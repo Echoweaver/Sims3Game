@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{43923B94-FD25-4762-90A5-C26542A5EF4C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Echoweaver.Sims3Game.DiscussKelpRecipes</RootNamespace>
+    <AssemblyName>Echoweaver.Sims3Game.DiscussKelpRecipes</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <NoStdLib>true</NoStdLib>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="DiscussKelpRecipes.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
+      <HintPath>..\..\Sims3GameFiles\0x03D6C8D903CE868C_Sims3GameplaySystems.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x0CAE1C361E05B2B3_Sims3StoreObjects">
+      <HintPath>..\..\Sims3GameFiles\0x0CAE1C361E05B2B3_Sims3StoreObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x28EE9D383A73463E_mscorlib">
+      <HintPath>..\..\Sims3GameFiles\0x28EE9D383A73463E_mscorlib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x342EE04373CF1E1C_System">
+      <HintPath>..\..\Sims3GameFiles\0x342EE04373CF1E1C_System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x600F9EA1DDC99FB1_Sims3MetaData">
+      <HintPath>..\..\Sims3GameFiles\0x600F9EA1DDC99FB1_Sims3MetaData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x6AC101133051BEF1_System.Xml">
+      <HintPath>..\..\Sims3GameFiles\0x6AC101133051BEF1_System.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x78CF6CF5304D0C4F_ScriptCore">
+      <HintPath>..\..\Sims3GameFiles\0x78CF6CF5304D0C4F_ScriptCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xB9C90FDC6793BC0A_Sims3GameplayObjects">
+      <HintPath>..\..\Sims3GameFiles\0xB9C90FDC6793BC0A_Sims3GameplayObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xC356DF69B70ADD42_SimIFace">
+      <HintPath>..\..\Sims3GameFiles\0xC356DF69B70ADD42_SimIFace.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xF7C3ADE896D4E765_UI">
+      <HintPath>..\..\Sims3GameFiles\0xF7C3ADE896D4E765_UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
