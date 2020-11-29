@@ -1,12 +1,13 @@
 ﻿using System;
-using Sims3.Gameplay;
-using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Objects.FoodObjects;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.PetObjects;
+using Sims3.Gameplay.Pools;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -32,35 +33,30 @@ namespace Echoweaver.Sims3Game
             // Load custom buffs
             (new BuffBooter()).LoadBuffData();
 
-            //try
-            //{
-                if (HasBeenLoaded) return; // you only want to run it once per gameplay session
-                HasBeenLoaded = true;
+            if (HasBeenLoaded) return; // you only want to run it once per gameplay session
+            HasBeenLoaded = true;
 
-                // fill this in with the resourcekey of your SKIL xml
-                XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x67503AA43670DA12, 0xA8D58BE5, 0x00000000), false);
+            // fill this in with the resourcekey of your SKIL xml
+            XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x67503AA43670DA12, 0xA8D58BE5, 0x00000000), false);
 
-                if (data == null)
-                {
-                    return;
-                }
-                SkillManager.ParseSkillData(data, true);
-
-            //}
-            //catch (Exception ex)
-            //{
-            //    return;
-            //}
+            if (data == null)
+            {
+                return;
+            }
+            SkillManager.ParseSkillData(data, true);
         }
-
-
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
+            // Add custom fishing interaction that uses custom fishing skill
+            // TODO: Remove old interaction
+            if (Terrain.Singleton != null)
+            {
+                Terrain.Singleton.AddInteraction(EWCatFishHere.Singleton);
+            }
 
             // Add listeners for the events you care about
             EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(OnSocialInteraction));
-            EventTracker.AddListener(EventTypeId.kFighting, new ProcessEventDelegate(OnFight));
             EventTracker.AddListener(EventTypeId.kPreyTypeCaught, new ProcessEventDelegate(OnPreyTypeCaught));
             EventTracker.AddListener(EventTypeId.kPreyRarityCaught, new ProcessEventDelegate(OnPreyRarityCaught));
             EventTracker.AddListener(EventTypeId.kGoHuntingCat, new ProcessEventDelegate(OnGoHuntingCat));
@@ -68,8 +64,9 @@ namespace Echoweaver.Sims3Game
             // kInventoryObjectAdded for hunt failure?
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnInventoryObjectAdded));
 
-            // kHunt, kSoloHunted (probably Vampire or Werewolf), kCaughtFish, kCaughtMinorPet, kCaughtBug, kGotBuff
+            // kGotBuff
         }
+
 
         public static ListenerAction OnSocialInteraction(Event e)
         {
@@ -82,35 +79,41 @@ namespace Echoweaver.Sims3Game
                         cevent.ActorWonFight, StyledNotification.NotificationStyle.kGameMessagePositive));
                     cevent.Actor.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
                         (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                    if (cevent.ActorWonFight)
+                    {
+                        EWCatFightSkill simFighting = e.Actor.SkillManager.GetElement(EWCatFightSkill.skillNameID) as EWCatFightSkill;
+                        simFighting.wonFight();
+                        simFighting.AddPoints(3.0f);
+                    }
+                    else
+                    {
+                        EWCatFightSkill simFighting = e.Actor.SkillManager.GetElement(EWCatFightSkill.skillNameID) as EWCatFightSkill;
+                        simFighting.lostFight();
+                        simFighting.AddPoints(3.0f);
+                    }
 
-                } else
+                }
+                else
                 {
-                    // Pounce Play, Chase Play, PlayPetToPet, Sniff, GoHuntingCat (Does not involve catching)
+                    // Pounce Play, Chase Play, PlayPetToPet, Sniff, GoHuntingCat
                     // Human - Pet: Let Sniff Hand
-                    StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
-                        ", SocialName: " + cevent.SocialName, StyledNotification.NotificationStyle.kGameMessagePositive));
+                    //StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
+                    //    ", SocialName: " + cevent.SocialName, StyledNotification.NotificationStyle.kGameMessagePositive));
                 }
             }
             return ListenerAction.Keep;
         }
 
-        // Add wound or disease moodlets
-        public static ListenerAction OnFight(Event e)
-        {
-            StyledNotification.Show(new StyledNotification.Format("Fight Happened",
-                StyledNotification.NotificationStyle.kGameMessagePositive));
-
-            //StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
-            //    + " fights!", StyledNotification.NotificationStyle.kGameMessagePositive));
-            return ListenerAction.Keep;
-        }
-
         public static ListenerAction OnPreyTypeCaught(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("PreyTypeCaught Happened: " + e.TargetObject.NameComponent.Name,
-                StyledNotification.NotificationStyle.kGameMessagePositive));
-            //StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
-            //    + " CaughtPreyType!", StyledNotification.NotificationStyle.kGameMessagePositive));
+            {
+                StyledNotification.Show(new StyledNotification.Format("PreyTypeCaught: " + e.TargetObject.NameComponent.Name,
+                    StyledNotification.NotificationStyle.kGameMessagePositive));
+
+                EWCatFightSkill simFighting = e.Actor.SkillManager.GetElement(EWCatFightSkill.skillNameID) as EWCatFightSkill;
+                simFighting.wonFight();
+                simFighting.AddPoints(3.0f);
+            }
             return ListenerAction.Keep;
         }
 
@@ -118,8 +121,6 @@ namespace Echoweaver.Sims3Game
         {
             StyledNotification.Show(new StyledNotification.Format("PreyRarityCaught: " + e.TargetObject.NameComponent.Name,
                 StyledNotification.NotificationStyle.kGameMessagePositive));
-            //StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
-            //    + " CaughtPreyRarity!", StyledNotification.NotificationStyle.kGameMessagePositive));
             return ListenerAction.Keep;
         }
 
@@ -133,64 +134,27 @@ namespace Echoweaver.Sims3Game
 
         public static ListenerAction OnGoFishingCat(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("GoFishingCat Happened",
-                StyledNotification.NotificationStyle.kGameMessagePositive));
-            //StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
-            //    + " CaughtPreyRarity!", StyledNotification.NotificationStyle.kGameMessagePositive));
+            StyledNotification.Show(new StyledNotification.Format("GoFishingCat Happened Type: " + e.ToDetailedString(),
+                StyledNotification.NotificationStyle.kSystemMessage));
+            
             return ListenerAction.Keep;
         }
 
         public static ListenerAction OnInventoryObjectAdded(Event e)
         {
-            // I haven't figured out how to trap a hunting failure
+            // I haven't figured out how to trap a hunting failure.
+            // Also, catching a fish doesn't trigger the prey caught events, so we can catch when fish added to inventory
+            // If cat eats fish immediately this won't be triggered.
+
             if (e.TargetObject is CatHuntFailureObject)
             {
+                EWCatFightSkill simFighting = e.Actor.SkillManager.GetElement(EWCatFightSkill.skillNameID) as EWCatFightSkill;
+                simFighting.lostFight();
+                simFighting.AddPoints(3.0f);
                 StyledNotification.Show(new StyledNotification.Format(e.Actor.Name + " Received failure object",
                     StyledNotification.NotificationStyle.kGameMessagePositive));
             }
             return ListenerAction.Keep;
-        }
-
-    }
-
-    public class EWMedicineCatSkill : Skill
-    {
-        public EWMedicineCatSkill(SkillNames guid) : base(guid)
-        {
-        }
-        private EWMedicineCatSkill()
-        {
-        }
-    }
-
-    public class EWCatFightSkill : Skill
-    {
-        public EWCatFightSkill(SkillNames guid) : base(guid)
-        {
-        }
-        private EWCatFightSkill()
-        {
-        }
-    }
-
-    public class ExampleUsesClass : GameObject
-    {
-        private const SkillNames EWMedicineCatSkill = (SkillNames)0x277ECF3A;  // Hash32 of EWMedicineCatSkill
-
-        public ExampleUsesClass()
-        {
-        }
-
-        public void ExampleUses(Sim s)
-        {
-            if (!s.SkillManager.HasElement(EWMedicineCatSkill))
-            {
-                s.SkillManager.AddElement(EWMedicineCatSkill);
-            }
-            s.SkillManager.AddSkillPoints(EWMedicineCatSkill, 3.0f);
-            Skill sk = s.SkillManager.GetElement(EWMedicineCatSkill);
-            float sl = sk.SkillPoints;
-
         }
 
     }

@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.DiscussKelpRecipes", "Echoweaver.Sims3Game.DiscussKelpRecipes\Echoweaver.Sims3Game.DiscussKelpRecipes.csproj", "{43923B94-FD25-4762-90A5-C26542A5EF4C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.Warriorcats", "Echoweaver.Sims3Game.Warriorcats\Echoweaver.Sims3Game.Warriorcats.csproj", "{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,5 +15,9 @@ Global
 		{43923B94-FD25-4762-90A5-C26542A5EF4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43923B94-FD25-4762-90A5-C26542A5EF4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43923B94-FD25-4762-90A5-C26542A5EF4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
