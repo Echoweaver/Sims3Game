@@ -49,9 +49,14 @@ namespace Echoweaver.Sims3Game
 				}
 				return InteractionTestResult.Gen_BadTerrainType;
 			}
+
+			public override string GetInteractionName(Sim a, Terrain target, InteractionObjectPair interaction)
+			{
+				return Localization.LocalizeString("Echoweaver/Interactions:EWCatFishHere");
+			}
+
 		}
 
-		public const string kLocalizationPrefix = "Echoweaver/WarriorCats/Interactions:";
 
 		[TunableComment("Description:  Min To Max time the cat  does pre-pounce animations for")]
 		[Tunable]
@@ -109,13 +114,14 @@ namespace Echoweaver.Sims3Game
 			{
 				EventTracker.SendEvent(EventTypeId.kGoFishingCat, Actor);
 				AnimateSim("FishLoop");
-				flag = RandomUtil.InterpolatedChance(0f, EWCatFishingSkill.MaxSkillLevel, kMinMaxSuccesChance[0], kMinMaxSuccesChance[1], EWCatFishingSkill.SkillLevel);
+				flag = RandomUtil.InterpolatedChance(0f, EWCatFishingSkill.MaxSkillLevel, kMinMaxSuccesChance[0],
+					kMinMaxSuccesChance[1], EWCatFishingSkill.SkillLevel);
 				if (flag)
 				{
 					FishType caughtFishType = GetCaughtFishType();
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
 
-//					EWCatFishingSkill.RegisterCaughtPrey(fish);
+					string message = EWCatFishingSkill.RegisterCaughtPrey(fish);  // Will return a message if the fish is new or interesting
 					if (fish.CatHuntingComponent != null)
 					{
 						fish.CatHuntingComponent.SetCatcher(Actor);
@@ -124,16 +130,18 @@ namespace Echoweaver.Sims3Game
 					SetActor("fish", (IHasScriptProxy)(object)fish);
 					if (Actor.Motives.GetValue(CommodityKind.Hunger) <= kEatFishHungerThreshold)
 					{
-						string message = Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:EatFishTns", Actor, fish.GetLocalizedName(), fish.Weight);
-						Actor.ShowTNSIfSelectable(message, (NotificationStyle)3);
+						message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:EatFishTns",
+							Actor, fish.GetLocalizedName(), fish.Weight);
+						Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
 						AnimateSim("ExitEat");
 						fish.Destroy();
 						Actor.Motives.ChangeValue(CommodityKind.Hunger, kHungerGainFromEating);
 					}
 					else
 					{
-						string message2 = Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:PutFishInInventoryTns", Actor, fish.GetLocalizedName(), fish.Weight);
-						Actor.ShowTNSIfSelectable(message2, (NotificationStyle)3);
+						message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:PutFishInInventoryTns",
+							Actor, fish.GetLocalizedName(), fish.Weight);
+						Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
 						AnimateSim("ExitInventory");
 						fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
 						if (!Actor.Inventory.TryToAdd(fish))

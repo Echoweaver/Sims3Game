@@ -95,7 +95,7 @@ namespace Echoweaver.Sims3Game
                 }
                 else
                 {
-                    // Pounce Play, Chase Play, PlayPetToPet, Sniff, GoHuntingCat
+                    // Pounce Play, Chase Play, PlayPetToPet, Sniff
                     // Human - Pet: Let Sniff Hand
                     //StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
                     //    ", SocialName: " + cevent.SocialName, StyledNotification.NotificationStyle.kGameMessagePositive));
@@ -126,16 +126,16 @@ namespace Echoweaver.Sims3Game
 
         public static ListenerAction OnGoHuntingCat(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
-                + " GoHuntingCat: " + e.TargetObject.NameComponent.Name,
-                StyledNotification.NotificationStyle.kGameMessagePositive));
+            //StyledNotification.Show(new StyledNotification.Format("Actor " + e.Actor.Name
+            //    + " GoHuntingCat: " + e.TargetObject.NameComponent.Name,
+            //    StyledNotification.NotificationStyle.kGameMessagePositive));
             return ListenerAction.Keep;
         }
 
         public static ListenerAction OnGoFishingCat(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("GoFishingCat Happened Type: " + e.ToDetailedString(),
-                StyledNotification.NotificationStyle.kSystemMessage));
+            //StyledNotification.Show(new StyledNotification.Format("GoFishingCat Happened Type: " + e.ToDetailedString(),
+            //    StyledNotification.NotificationStyle.kSystemMessage));
             
             return ListenerAction.Keep;
         }
