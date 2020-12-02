@@ -138,7 +138,7 @@ namespace Echoweaver.Sims3Game
         {
             //StyledNotification.Show(new StyledNotification.Format("GoFishingCat Happened Type: " + e.ToDetailedString(),
             //    StyledNotification.NotificationStyle.kSystemMessage));
-            
+
             return ListenerAction.Keep;
         }
 
