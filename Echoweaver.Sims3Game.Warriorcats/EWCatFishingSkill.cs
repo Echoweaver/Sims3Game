@@ -22,7 +22,10 @@ namespace Echoweaver.Sims3Game
 		public AlarmHandle mRemoveMapTagsHandle = AlarmHandle.kInvalidHandle;
 
 		public const string sEWLocalizationKey = "Echoweaver/Skills/EWCatFishingSkill";
+
 		public const string sRecordLocalizationKey = "Gameplay/Skills/Fishing/Fish";
+
+		public static float kEWFishingSkillGainRateNormal = 5f;
 
 		public static double sNumberOfFishTypes = Enum.GetValues(typeof(FishType)).Length - 3;
 
@@ -409,7 +412,6 @@ namespace Echoweaver.Sims3Game
 
 		public bool CanCatchPreyFish()
 		{
-
 			foreach (KeyValuePair<FishType, FishData> sFishDatum in Fish.sFishData)
 			{
 				CatHuntingComponent.PreyData preyData = sFishDatum.Value.PreyData;
@@ -421,7 +423,16 @@ namespace Echoweaver.Sims3Game
 			return false;
 		}
 
-		public string RegisterCaughtPrey(ICatPrey prey)
+		public bool KnowsAbout(FishType type)
+		{
+			if (mFishingInfo == null)
+			{
+				return false;
+			}
+			return mFishingInfo.ContainsKey(type);
+		}
+
+		public string RegisterCaughtPrey(ICatPrey prey, bool isFreshwater)
 		{			
 			CatHuntingComponent.PreyData mPreyData = prey.CatHuntingComponent.mPreyData;
 			string message = "";
@@ -432,17 +443,13 @@ namespace Echoweaver.Sims3Game
 				WaterTypes waterType = Fish.sFishData[caughtFish.mFishType].LocationFound;
 
 				// Tried to find a cute way to do this but failed. There's really no easy test?
-				if (waterType == WaterTypes.Ocean || waterType == WaterTypes.OceanPond ||
-					waterType == WaterTypes.OceanPool || waterType == WaterTypes.All)
+				if (isFreshwater)
+                {
+					++mFreshFishCaught;
+                } else
                 {
 					++mSaltFishCaught;
-                }
-				// Cats can't fish in pools, but hey
-				if (waterType == WaterTypes.FreshWater || waterType == WaterTypes.Pond ||
-					waterType == WaterTypes.Pool || waterType == WaterTypes.All)
-				{
-					++mFreshFishCaught;
-                }
+				}
 				if (!mFishingInfo.ContainsKey(caughtFish.mFishType))
 				{
 					++mUniqueFishCaught;

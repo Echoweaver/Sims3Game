@@ -63,7 +63,7 @@ namespace Echoweaver.Sims3Game
 		public static float[] kMinMaxPrePounceTime = new float[2] {
 		1f,
 		5f
-	};
+		};
 
 		[Tunable]
 		[TunableComment("Description:  If the cat's hunger is below this when they're done fishing they'll eat the fish instead of putting it in their inventory")]
@@ -78,24 +78,25 @@ namespace Echoweaver.Sims3Game
 		public static float[] kMinMaxSuccesChance = new float[2] {
 		30f,
 		75f
-	};
+		};
 
 		public static InteractionDefinition Singleton = new Definition();
 
 		public bool TerrainIsWaterPond => (int)Hit.mType == 8;
 
-		public override ThumbnailKey GetIconKey()
+
+        public override ThumbnailKey GetIconKey()
 		{
 			return Actor.GetThumbnailKey();
 		}
 
 		public override bool Run()
 		{
-			EWCatFishingSkill EWCatFishingSkill = Actor.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
-			if (EWCatFishingSkill == null)
+			EWCatFishingSkill skill = Actor.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
+			if (skill == null)
 			{
-				EWCatFishingSkill = (Actor.SkillManager.AddElement(EWCatFishingSkill.SkillNameID) as EWCatFishingSkill);
-				if (EWCatFishingSkill == null)
+				skill = (Actor.SkillManager.AddElement(EWCatFishingSkill.SkillNameID) as EWCatFishingSkill);
+				if (skill == null)
 				{
 					return false;
 				}
@@ -104,6 +105,7 @@ namespace Echoweaver.Sims3Game
 			{
 				return false;
 			}
+			skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
 			StandardEntry();
 			EnterStateMachine("CatHuntInPond", "Enter", "x");
 			AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
@@ -114,14 +116,14 @@ namespace Echoweaver.Sims3Game
 			{
 				EventTracker.SendEvent(EventTypeId.kGoFishingCat, Actor);
 				AnimateSim("FishLoop");
-				flag = RandomUtil.InterpolatedChance(0f, EWCatFishingSkill.MaxSkillLevel, kMinMaxSuccesChance[0],
-					kMinMaxSuccesChance[1], EWCatFishingSkill.SkillLevel);
+				flag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, kMinMaxSuccesChance[0],
+					kMinMaxSuccesChance[1], skill.SkillLevel);
 				if (flag)
 				{
 					FishType caughtFishType = GetCaughtFishType();
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
 
-					string message = EWCatFishingSkill.RegisterCaughtPrey(fish);  // Will return a message if the fish is new or interesting
+					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  // Will return a message if the fish is new or interesting
 					if (fish.CatHuntingComponent != null)
 					{
 						fish.CatHuntingComponent.SetCatcher(Actor);
@@ -161,6 +163,7 @@ namespace Echoweaver.Sims3Game
 			}
 			EndCommodityUpdates(flag);
 			StandardExit();
+			skill.StopSkillGain();
 			return true;
 		}
 
@@ -180,21 +183,205 @@ namespace Echoweaver.Sims3Game
 
 		public FishType GetCaughtFishType()
 		{
-			int skillLevel = Actor.SkillManager.GetSkillLevel(EWCatFishingSkill.SkillNameID);
-			List<FishType> list = new List<FishType>();
-			List<float> list2 = new List<float>();
-			foreach (KeyValuePair<FishType, FishData> sFishDatum in Fish.sFishData)
+			GetSpawnerChances(Actor, FishingSpot.GetFishingData(Hit.mPoint, Hit.mType), out List<FishType> fish, out float[] chances);			
+			float num = 0f;
+			for (int i = 0; i < chances.Length; i++)
 			{
-				CatHuntingComponent.PreyData preyData = sFishDatum.Value.PreyData;
-				if (preyData != null && skillLevel >= preyData.MinSkillLevel && skillLevel <= preyData.MaxSkillLevel)
+				num += chances[i];
+			}
+			if (num == 0f)
+			{
+				return FishType.None;
+			}
+			float num2 = RandomUtil.GetFloat(num);
+			int j;
+			for (j = 0; num2 > chances[j]; j++)
+			{
+				num2 -= chances[j];
+			}
+			FishType fishType = fish[j];
+			return fishType;
+		}
+
+		public void GetSpawnerChances(Sim Actor, FishingData fishingData, out List<FishType> fish, out float[] chances)
+		{
+			fish = fishingData.GetFish();
+			int skillLevel = Actor.SkillManager.GetSkillLevel(EWCatFishingSkill.SkillNameID);
+			List<int> chances2 = fishingData.GetChances();
+			chances = new float[chances2.Count];
+			int num = 0;
+			foreach (FishType item in fish)
+			{
+				if (item != FishType.None)
 				{
-					float item = MathHelpers.LinearInterpolate(preyData.MinSkillLevel, preyData.MaxSkillLevel, preyData.MinWeight, preyData.MaxWeight, skillLevel);
-					list2.Add(item);
-					list.Add(sFishDatum.Key);
+					Fish.sFishData.TryGetValue(item, out FishData value);
+					if (value != null && skillLevel >= value.Level)
+					{
+						chances[num] = (float)chances2[num];
+					}
+					else
+					{
+						chances[num] = 0f;
+					}
+				}
+				num++;
+			}
+		}
+	}
+
+	public class EWCatInspectWater : ImmediateInteractionGameObjectHit<Sim, Terrain>
+	{
+		public class Definition : ImmediateInteractionDefinition<Sim, Terrain, EWCatInspectWater>
+		{
+			public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				if (a.IsCat)
+				{
+					EWCatFishingSkill skill = a.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
+					if (skill != null && skill.CanCatchPreyFish())
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+
+			public override InteractionTestResult Test(ref InteractionInstanceParameters parameters, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				if (((int)parameters.Hit.mType == 8 && PondManager.ArePondsLiquid()) || (int)parameters.Hit.mType == 9)
+				{
+					return base.Test(ref parameters, ref greyedOutTooltipCallback);
+				}
+				return InteractionTestResult.Gen_BadTerrainType;
+			}
+
+			public override string GetInteractionName(Sim a, Terrain target, InteractionObjectPair interaction)
+			{
+				return Localization.LocalizeString("Echoweaver/Interactions:EWCatInspectWater");
+			}
+		}
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public override bool Run()
+		{
+			Vector3 mPoint = Hit.mPoint;
+			FishingData fishingData = FishingSpot.GetFishingData(mPoint, Hit.mType);
+			FishingSpotData fishingSpotData = fishingData as FishingSpotData;
+			string str = (fishingSpotData == null) ? Localization.LocalizeString("Gameplay/Objects/Fishing:EmptyWater")
+				: ((!fishingSpotData.IsActive) ? Localization.LocalizeString("Gameplay/Objects/Fishing:InactiveWater")
+				: Localization.LocalizeString("Gameplay/Objects/Fishing:ActiveWater"));
+			str += "\n";
+			List<FishType> fish = fishingData.GetFish();
+			List<int> chances = fishingData.GetChances();
+			EWCatFishingSkill skill = Actor.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
+			for (int i = 0; i < chances.Count; i++)
+			{
+				if (chances[i] > 0)
+				{
+					FishType fishType = fish[i];
+					if (fishType != FishType.None && fishType != FishType.Box)
+					{
+						//str = str + "\n" + GetFishName(fish[i], skill);
+						str = str + "\n" + fish[i].ToString();
+					}
 				}
 			}
-			int weightedIndex = RandomUtil.GetWeightedIndex(list2.ToArray());
-			return list[weightedIndex];
+            Show(new Format(str, NotificationStyle.kGameMessagePositive));
+			return true;
+		}
+
+		public string GetFishName(FishType type, EWCatFishingSkill fishingSkill)
+		{
+            if (Fish.sFishData.TryGetValue(type, out FishData value) && fishingSkill != null && (fishingSkill.SkillLevel >= value.Level
+                || fishingSkill.KnowsAbout(type)))
+            {
+                return Localization.LocalizeString(value.StringKeyName);
+            }
+            return Localization.LocalizeString("Gameplay/Objects/Fishing:UnknownFish");
+		}
+	}
+
+	public class EWCatPlayInWater : TerrainInteraction, IPondInteraction
+	{
+		public class Definition : InteractionDefinition<Sim, Terrain, EWCatPlayInWater>
+		{
+			public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				if (a.IsCat || a.IsKitten)
+				{
+					if (isAutonomous && a.TraitManager.HasElement(TraitNames.NeatPet))
+					{
+						return false;
+					}
+					return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
+				}
+				return false;
+			}
+
+			public override InteractionTestResult Test(ref InteractionInstanceParameters parameters, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				if (((int)parameters.Hit.mType == 8 && PondManager.ArePondsLiquid()) || (int)parameters.Hit.mType == 9)
+				{
+					return base.Test(ref parameters, ref greyedOutTooltipCallback);
+				}
+				return InteractionTestResult.Gen_BadTerrainType;
+			}
+
+			public override string GetInteractionName(Sim a, Terrain target, InteractionObjectPair interaction)
+			{
+				return Localization.LocalizeString("Echoweaver/Interactions:EWCatPlayInWater");
+			}
+
+		}
+
+		[Tunable]
+		[TunableComment("Description:  Max amount of time (in minutes) to play in the water")]
+		public static float kMaxPlayTime = 30f;
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public bool TerrainIsWaterPond => (int)Hit.mType == 8;
+
+		public override bool Run()
+		{
+			LotLocation val = default(LotLocation);
+			ulong lotLocation = World.GetLotLocation(Hit.mPoint, ref val);
+			Vector3 val2 = Hit.mPoint;
+			if (!DrinkFromPondHelper.RouteToDrinkLocation(Hit.mPoint, Actor, Hit.mType, Hit.mId))
+			{
+				return false;
+			}
+			EWCatFishingSkill skill = Actor.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
+			if (skill == null)
+            {
+				skill = Actor.SkillManager.AddElement(EWCatFishingSkill.SkillNameID) as EWCatFishingSkill;
+            }
+			if (skill == null)
+            {
+                Show(new Format("Error: Attempt to add EWFishingSkill to " + Actor.Name + " FAILED.",
+					NotificationStyle.kDebugAlert));
+				return false;
+            }
+			skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
+			EnterStateMachine("Puddle", "Enter", "x");
+			BeginCommodityUpdates();
+			AnimateSim("Loop Play");
+			bool flag = DoLoop(ExitReason.Default, LoopDelegate, mCurrentStateMachine);
+
+			EndCommodityUpdates(flag);
+			AnimateSim("Exit");
+			skill.StopSkillGain();
+			return flag;
+		}
+
+		public void LoopDelegate(StateMachineClient smc, LoopData ld)
+		{
+			//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+			if (ld.mLifeTime > kMaxPlayTime)
+			{
+				Actor.AddExitReason(ExitReason.Finished);
+			}
 		}
 	}
 }

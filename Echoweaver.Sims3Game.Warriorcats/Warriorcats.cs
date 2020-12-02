@@ -53,6 +53,8 @@ namespace Echoweaver.Sims3Game
             if (Terrain.Singleton != null)
             {
                 Terrain.Singleton.AddInteraction(EWCatFishHere.Singleton);
+                Terrain.Singleton.AddInteraction(EWCatInspectWater.Singleton);
+                Terrain.Singleton.AddInteraction(EWCatPlayInWater.Singleton);
             }
 
             // Add listeners for the events you care about
