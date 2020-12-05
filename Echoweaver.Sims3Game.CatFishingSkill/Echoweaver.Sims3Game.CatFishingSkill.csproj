@@ -23,6 +23,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EWCatFishingSkill.cs" />
     <Compile Include="EWCatFishHere.cs" />
+    <Compile Include="EWCatFishAWhile.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

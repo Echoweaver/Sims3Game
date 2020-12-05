@@ -1,17 +1,8 @@
 ﻿using System;
-using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Objects.Fishing;
-using Sims3.Gameplay.PetObjects;
-using Sims3.Gameplay.Pools;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 
 namespace Echoweaver.Sims3Game
 {
@@ -52,6 +43,7 @@ namespace Echoweaver.Sims3Game
                 Terrain.Singleton.AddInteraction(EWCatFishHere.Singleton);
                 Terrain.Singleton.AddInteraction(EWCatInspectWater.Singleton);
                 Terrain.Singleton.AddInteraction(EWCatPlayInWater.Singleton);
+                Terrain.Singleton.AddInteraction(EWCatFishAWhile.Singleton);
             }
 
         }

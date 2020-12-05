@@ -120,7 +120,7 @@ namespace Echoweaver.Sims3Game
 					kMinMaxSuccesChance[1], skill.SkillLevel);
 				if (flag)
 				{
-					FishType caughtFishType = GetCaughtFishType();
+					FishType caughtFishType = GetCaughtFishType(Actor, Hit);
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
 
 					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  // Will return a message if the fish is new or interesting
@@ -181,9 +181,9 @@ namespace Echoweaver.Sims3Game
 			Actor.SetForward(forwardVector);
 		}
 
-		public FishType GetCaughtFishType()
+		public static FishType GetCaughtFishType(Sim actor, GameObjectHit hit)
 		{
-			GetSpawnerChances(Actor, FishingSpot.GetFishingData(Hit.mPoint, Hit.mType), out List<FishType> fish, out float[] chances);			
+			GetSpawnerChances(actor, FishingSpot.GetFishingData(hit.mPoint, hit.mType), out List<FishType> fish, out float[] chances);			
 			float num = 0f;
 			for (int i = 0; i < chances.Length; i++)
 			{
@@ -203,7 +203,7 @@ namespace Echoweaver.Sims3Game
 			return fishType;
 		}
 
-		public void GetSpawnerChances(Sim Actor, FishingData fishingData, out List<FishType> fish, out float[] chances)
+		public static void GetSpawnerChances(Sim Actor, FishingData fishingData, out List<FishType> fish, out float[] chances)
 		{
 			fish = fishingData.GetFish();
 			int skillLevel = Actor.SkillManager.GetSkillLevel(EWCatFishingSkill.SkillNameID);
@@ -306,7 +306,8 @@ namespace Echoweaver.Sims3Game
 	{
 		public class Definition : InteractionDefinition<Sim, Terrain, EWCatPlayInWater>
 		{
-			public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			public override bool Test(Sim a, Terrain target, bool isAutonomous,
+				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
 				if (a.IsCat || a.IsKitten)
 				{
@@ -319,7 +320,8 @@ namespace Echoweaver.Sims3Game
 				return false;
 			}
 
-			public override InteractionTestResult Test(ref InteractionInstanceParameters parameters, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			public override InteractionTestResult Test(ref InteractionInstanceParameters parameters,
+				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
 				if (((int)parameters.Hit.mType == 8 && PondManager.ArePondsLiquid()) || (int)parameters.Hit.mType == 9)
 				{
@@ -372,13 +374,11 @@ namespace Echoweaver.Sims3Game
 			EndCommodityUpdates(flag);
 			AnimateSim("Exit");
 			skill.StopSkillGain();
-			Actor.Motives.SetValue(CommodityKind.Fun, +20f);
 			return flag;
 		}
 
 		public void LoopDelegate(StateMachineClient smc, LoopData ld)
 		{
-			//IL_0021: Unknown result type (might be due to invalid IL or missing references)
 			if (ld.mLifeTime > kMaxPlayTime)
 			{
 				Actor.AddExitReason(ExitReason.Finished);

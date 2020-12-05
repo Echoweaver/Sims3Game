@@ -11,6 +11,7 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Abstracts;
 using static Sims3.Gameplay.Skills.CatHuntingSkill;
 using Sims3.UI;
+using Sims3.Gameplay.Autonomy;
 
 namespace Echoweaver.Sims3Game
 {
@@ -18,6 +19,8 @@ namespace Echoweaver.Sims3Game
     public class EWCatFishingSkill : Skill
 	{
 		public const SkillNames SkillNameID = (SkillNames)0xDE46D7FA;
+
+//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
 
 		public AlarmHandle mRemoveMapTagsHandle = AlarmHandle.kInvalidHandle;
 
