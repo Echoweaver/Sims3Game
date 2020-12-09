@@ -39,9 +39,6 @@ namespace Echoweaver.Sims3Game
                 return;
             }
             SkillManager.ParseSkillData(data, true);
-
-            // Replace cat fishing interaction
-            Terrain.CatFishHere.Singleton = new EWCatFishHere.Definition();
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
@@ -62,7 +59,7 @@ namespace Echoweaver.Sims3Game
             {
                 if (val.CatHuntingComponent != null)
                 {
-                    // Separate out eating fish from prey.
+                    // Separate out eating fish from land prey.
                     // I don't think dogs eat fish, or anyway it's fine if they can't.
                     val.RemoveInteractionByType(PetEatPrey.Singleton);
                     val.AddInteraction(EWCatEatFish.Singleton);
