@@ -186,11 +186,11 @@ namespace Echoweaver.Sims3Game
 		{
 			public EWCatFishingSkill mSkill;
 
-			public string Title => mSkill.LocalizeString("Fishercat");
+			public string Title => mSkill.LocalizeString("OppFishercat");
 
-			public string RewardDescription => mSkill.LocalizeString("FishercatDescription", kNumFishForFelineFisher);
+			public string RewardDescription => mSkill.LocalizeString("OppFishercatDescription", kNumFishForFelineFisher);
 
-			public string AchievedDescription => mSkill.LocalizeString("FishercatAchieved", mSkill.mSkillOwner);
+			public string AchievedDescription => mSkill.LocalizeString("OppFishercatAchieved", mSkill.mSkillOwner);
 
 			public bool IsNew
 			{
@@ -230,11 +230,11 @@ namespace Echoweaver.Sims3Game
 		{
 			public EWCatFishingSkill mSkill;
 
-			public string Title => mSkill.LocalizeString("SeafoodGourmet");
+			public string Title => mSkill.LocalizeString("OppSeafoodGourmet");
 
-			public string RewardDescription => mSkill.LocalizeString("SeafoodGourmetDescription", kPctFishTypesForSeafoodGourmet);
+			public string RewardDescription => mSkill.LocalizeString("OppSeafoodGourmetDescription", kPctFishTypesForSeafoodGourmet);
 
-			public string AchievedDescription => mSkill.LocalizeString("SeafoodGourmetAchieved", mSkill.mSkillOwner);
+			public string AchievedDescription => mSkill.LocalizeString("OppSeafoodGourmetAchieved", mSkill.mSkillOwner);
 
 			public bool IsNew
 			{
@@ -248,7 +248,7 @@ namespace Echoweaver.Sims3Game
 				}
 			}
 
-			public bool Completed => mSkill.OppFishercatCompleted;
+			public bool Completed => mSkill.OppSeafoodGourmetCompleted;
 
 			public OppSeafoodGourmet(EWCatFishingSkill skill)
 			{
@@ -295,11 +295,11 @@ namespace Echoweaver.Sims3Game
 		{
 			public EWCatFishingSkill mSkill;
 
-			public string Title => mSkill.LocalizeString("Saltaholic");
+			public string Title => mSkill.LocalizeString("OppSaltaholic");
 
-			public string RewardDescription => mSkill.LocalizeString("SaltaholicDescription", kNumFishForFelineFisher);
+			public string RewardDescription => mSkill.LocalizeString("OppSaltaholicDescription", kNumFishForFelineFisher);
 
-			public string AchievedDescription => mSkill.LocalizeString("SaltaholicAchieved", mSkill.mSkillOwner);
+			public string AchievedDescription => mSkill.LocalizeString("OppSaltaholicAchieved", mSkill.mSkillOwner);
 
 			public bool IsNew
 			{
@@ -340,11 +340,11 @@ namespace Echoweaver.Sims3Game
 		{
 			public EWCatFishingSkill mSkill;
 
-			public string Title => mSkill.LocalizeString("PondProvisioner");
+			public string Title => mSkill.LocalizeString("OppPondProvisioner");
 
-			public string RewardDescription => mSkill.LocalizeString("PondProvisionerDescription", kNumFishForFelineFisher);
+			public string RewardDescription => mSkill.LocalizeString("OppPondProvisionerDescription", kNumFishForFelineFisher);
 
-			public string AchievedDescription => mSkill.LocalizeString("PondProvisionerAchieved", mSkill.mSkillOwner);
+			public string AchievedDescription => mSkill.LocalizeString("OppPondProvisionerAchieved", mSkill.mSkillOwner);
 
 			public bool IsNew
 			{
@@ -501,7 +501,7 @@ namespace Echoweaver.Sims3Game
 
 		public new string LocalizeString(string name, params object[] parameters)
 		{
-			return Localization.LocalizeString(SkillOwner.IsFemale, sLocalizationKey + ":" + name, parameters);
+			return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + ":" + name, parameters);
 		}
 
 

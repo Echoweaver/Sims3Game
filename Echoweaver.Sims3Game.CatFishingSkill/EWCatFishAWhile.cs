@@ -204,11 +204,13 @@ namespace Echoweaver.Sims3Game
         public override void ConfigureInteraction()
         {
             List<Stage> list = new List<Stage>();
-            mIndefiniteStage = new IndefiniteStage(Localization.LocalizeString("Gameplay/Objects/Fishing:FishIndefiniteStage"), selectable: true);
+            mIndefiniteStage = new IndefiniteStage(Localization.LocalizeString("Gameplay/Objects/Fishing:FishIndefiniteStage"),
+                selectable: true);
             list.Add(mIndefiniteStage);
             list.Add(CountedFishStage.MakeCountedStage(kNumberOfFishToCatchInMediumStage));
             list.Add(new SkillStage(Localization.LocalizeString("Gameplay/Objects/Fishing:FishSkillStage"),
-                EWCatFishingSkill.SkillNameID, Actor, EWCatFishingSkill.kEWFishingSkillGainRateNormal, showCompletionTime: false, selectable: true));
+                EWCatFishingSkill.SkillNameID, Actor, EWCatFishingSkill.kEWFishingSkillGainRateNormal,
+                showCompletionTime: false, selectable: true));
             SetStages(list);
         }
 
