@@ -1,6 +1,7 @@
 ﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
@@ -8,6 +9,7 @@ using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.SimIFace.CAS;
+using Sims3.UI;
 using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
 namespace Echoweaver.Sims3Game
 {
@@ -43,17 +45,16 @@ namespace Echoweaver.Sims3Game
 		}
 
 		public bool mDestroyPrey;
+		public SimDescription mFishCatcher;
 
 		public static InteractionDefinition Singleton = new Definition();
 
 		public override bool Run()
 		{
-			bool flag = false;
 			float distanceToObjectSquared = Actor.GetDistanceToObjectSquared(Target);
 			StandardEntry();
 			Target.DisableInteractions();
-			CASAgeGenderFlags species = Actor.SimDescription.Species;
-			flag = CatBehavior(distanceToObjectSquared);
+			bool flag = CatBehavior(distanceToObjectSquared);
 			return flag;
 		}
 
@@ -79,6 +80,26 @@ namespace Echoweaver.Sims3Game
 			if (!Actor.RouteToObjectRadius(Target, routingDistance))
 			{
 				return false;
+			}
+			if (EWCatFishingSkill.sGourmetSimIDs.Contains(Target.CatHuntingComponent.mCatcherId))
+			{
+				// Catcher of the prey is a SeafoodGourmet. Add Hunger multiplier.
+				InteractionTuning tuning = InteractionObjectPair.Tuning;
+				foreach (CommodityChange mOutput in tuning.mTradeoff.mOutputs)
+				{
+					if (mOutput.Commodity == CommodityKind.Hunger)
+					{
+						if (mOutput.mMultiplier > 0)
+						{
+							// I don't know if 0 is a possibility, but lets just rule it out.
+							mOutput.mMultiplier *= EWCatFishingSkill.kSeafoodGourmetHungerMultiplier;
+						}
+						else
+						{
+							mOutput.mMultiplier = EWCatFishingSkill.kSeafoodGourmetHungerMultiplier;
+						}
+					}
+				}
 			}
 			EnterStateMachine("eatofffloor", "Enter", "x");
 			SetParameter("isFish", true);

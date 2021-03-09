@@ -1,6 +1,5 @@
 ﻿using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.ActiveCareer.ActiveCareers;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
@@ -11,13 +10,9 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects.Fishing;
-using Sims3.Gameplay.Objects.Island;
 using Sims3.Gameplay.Objects.Vehicles;
-using Sims3.Gameplay.Opportunities;
 using Sims3.Gameplay.Pools;
 using Sims3.Gameplay.Skills;
-using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Tutorial;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -33,13 +28,21 @@ namespace Echoweaver.Sims3Game
 
     public class EWCatFishAWhile : TerrainInteraction, IPondInteraction
     {
-        public class Definition : InteractionDefinition<Sim, Terrain, EWCatFishAWhile>
+        public class Definition : InteractionDefinition<Sim, Terrain, EWCatFishAWhile>,
+            IOverridesVisualType, IRequiresCheckinTerrainInteraction
         {
+            public InteractionVisualTypes GetVisualType
+            {
+                get
+                {
+                    return InteractionVisualTypes.Trait;
+                }
+            }
 
-            //public override string GetInteractionName(Sim a, Terrain target, InteractionObjectPair interaction)
-            //{
-            //    return Localization.LocalizeString("Echoweaver/Interactions:EWFishAWhile");
-            //}
+            public override string GetInteractionName(Sim a, Terrain target, InteractionObjectPair interaction)
+            {
+                return Localization.LocalizeString("Echoweaver/Interactions:EWFishAWhile");
+            }
 
             public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
@@ -71,6 +74,7 @@ namespace Echoweaver.Sims3Game
             public static CountedFishStage MakeCountedStage(int count)
             {
                 return new CountedFishStage(Localization.LocalizeString("Gameplay/Objects/Fishing:FishCountedStage", count), count);
+//                return new CountedFishStage("Count the fish " + count.ToString(), count);
             }
 
             public CountedFishStage()
@@ -86,7 +90,7 @@ namespace Echoweaver.Sims3Game
 
             public float CountedComplete(InteractionInstance inst)
             {
-                float val = (float)(inst as FishHere).mNumberFishCaught / (float)mGoalCount;
+                float val = (float)(inst as EWCatFishAWhile).mNumberFishCaught / (float)mGoalCount;
                 return Math.Min(val, 1f);
             }
 
@@ -95,10 +99,6 @@ namespace Echoweaver.Sims3Game
                 return ResourceKey.CreatePNGKey("hud_interactions_stage_x5", 0u);
             }
         }
-
-        public const float kSlotPosOffset = 0.5f;
-
-        public const float kRayCastSpread = 0.15f;
 
         [Tunable]
         [TunableComment("Description:  The min and max chances for success, will lerp between these values based on your hunting skill")]
@@ -160,7 +160,7 @@ namespace Echoweaver.Sims3Game
 
         public SittingInBoat mSittingInBoatPosture;
 
-        public static ulong kIconNameHash = ResourceUtils.HashString64("hud_interactions_fish");
+        public static ulong kIconNameHash = ResourceUtils.HashString64("skill_EWCatFishing");
 
         public bool TerrainIsWaterPond => (int)Hit.mType == 8;
 
@@ -246,8 +246,7 @@ namespace Echoweaver.Sims3Game
 
         public override ThumbnailKey GetIconKey()
         {
-            // TODO: Add thumbail
-            return new ThumbnailKey(new ResourceKey(kIconNameHash, 796721156u, 0u), (ThumbnailSize)1);
+            return new ThumbnailKey(new ResourceKey(kIconNameHash, 796721156u, 0u), ThumbnailSize.Medium);
         }
 
         //public override void AddExcludedDreams(ICollection<DreamNames> excludedDreams)
@@ -265,29 +264,36 @@ namespace Echoweaver.Sims3Game
                 return false;
             }
             skill = Actor.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
-            skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
+            if (skill.OppFishercatCompleted)  
+            {
+                skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateFishercat);
+            }
+            else
+            {
+                skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
+            }
             mFishingData = FishingSpot.GetFishingData(trySpot, Hit.mType);
-            EnterStateMachine("CatHuntInPond", "Enter", "x");
-            StandardEntry();
             BeginCommodityUpdates();
             StartStages();
+            mHasCatFisherTrait = false;
             //MotiveDelta delta = null;
-            //if (Actor.TraitManager.HasElement(TraitNames.Angler))
+            //if (Actor.TraitManager.HasElement(TraitNames.Angler)) // TODO: Figure out how to check for custom character trait
             //{
             //	mHasCatFisherTrait = true;
             //	delta = AddMotiveDelta(CommodityKind.Fun, kAnglerFunPerHour);
             //}
-            mHasCatFisherTrait = false;
-            AnimateSim("PrePounceLoop");
-            bool flag = DoLoop(ExitReason.Default, LoopFunc, mCurrentStateMachine);
+            //            bool flag = DoLoop(ExitReason.Default, LoopFunc, mCurrentStateMachine);
             //if (mHasCatFisherTrait)
             //{
             //    RemoveMotiveDelta(delta);
             //}
-            SnapOnExit(null, null);
+            bool flag = true;
+            while (flag && !ActiveStage.IsComplete(this))
+            {
+                flag = LoopAnimation();
+            }
             skill.StopSkillGain();
             EndCommodityUpdates(flag);
-            StandardExit();
             return flag;
         }
 
@@ -304,8 +310,16 @@ namespace Echoweaver.Sims3Game
             Actor.SetForward(forwardVector);
         }
 
-        public void LoopFunc(StateMachineClient smc, LoopData ld)
+        public bool LoopAnimation()
         {
+            if (!DrinkFromPondHelper.RouteToDrinkLocation(Hit.mPoint, Actor, Hit.mType, Hit.mId))
+            {
+                return false;
+            }
+            StandardEntry();
+            EnterStateMachine("CatHuntInPond", "Enter", "x");
+            AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
+            AnimateSim("PrePounceLoop");
             // Saving this method in case I want to use it. Humans seem to wait longer for a fish action but
             // fail less often.
             //mLoopLengthForNextFish += mFishingData.GetNextFishTimeLength(mHasCatFisherTrait, skill.OppFishercatCompleted);
@@ -314,73 +328,69 @@ namespace Echoweaver.Sims3Game
             if (loopFlag)
             {
                 EventTracker.SendEvent(EventTypeId.kGoFishingCat, Actor);
-                AnimateSim("FishLoop");
+                // TODO: This success calculation is where we should use OppFishercatCompleted
                 bool successFlag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, EWCatFishHere.kMinMaxSuccesChance[0],
                     kMinMaxSuccesChance[1], skill.SkillLevel);
                 FishType fishType = FishType.None;
+                AnimateSim("FishLoop");
                 if (successFlag)
                 {
                     fishType = EWCatFishHere.GetCaughtFishType(Actor, Hit);
-                }
-                switch (fishType)
-                {
-                    case FishType.None:
-                        {
-                            AnimateSim("ExitFailure");
-                            break;
-                        }
-                    default:
-                        {
-                            Fish fish = Fish.CreateFishOfRandomWeight(fishType, Actor.SimDescription);
-                            string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);
-                            if (fish.CatHuntingComponent != null)
+                    switch (fishType)
+                    {
+                        case FishType.None:
                             {
-                                fish.CatHuntingComponent.SetCatcher(Actor);
+                                // This is just in case there is weirdness.
+                                AnimateSim("ExitFailure");
+                                break;
                             }
-                            fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.Carried);
-                            mNumberFishCaught++;
-                            SetActor("fish", (IHasScriptProxy)(object)fish);
-                            if (Actor.Motives.GetValue(CommodityKind.Hunger) <= EWCatFishHere.kEatFishHungerThreshold)
+                        default:
                             {
-                                // Notify if cat eats caught fish
-                                message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:EatFishTns",
-                                    Actor, fish.GetLocalizedName(), fish.Weight);
-                                Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
-                                AnimateSim("ExitEat");
-                                fish.Destroy();
-                                Actor.Motives.ChangeValue(CommodityKind.Hunger, EWCatFishHere.kHungerGainFromEating);
-                            }
-                            else
-                            {
-                                if (message != "")
+                                Fish fish = Fish.CreateFishOfRandomWeight(fishType, Actor.SimDescription);
+                                string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);
+                                if (fish.CatHuntingComponent != null)
                                 {
-                                    // Notify if the fish is interesting (new type or weight record)
-                                    message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:PutFishInInventoryTns",
+                                    fish.CatHuntingComponent.SetCatcher(Actor);
+                                }
+                                fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.Carried);
+                                SetActor("fish", (IHasScriptProxy)(object)fish);
+                                mNumberFishCaught++;
+                                if (Actor.Motives.GetValue(CommodityKind.Hunger) <= EWCatFishHere.kEatFishHungerThreshold)
+                                {
+                                    // Notify if cat eats caught fish
+                                    message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:EatFishTns",
                                         Actor, fish.GetLocalizedName(), fish.Weight);
                                     Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
-                                }
-                                AnimateSim("ExitInventory");
-                                fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
-                                if (!Actor.Inventory.TryToAdd(fish))
-                                {
+                                    AnimateSim("ExitEat");
                                     fish.Destroy();
+                                    Actor.Motives.ChangeValue(CommodityKind.Hunger, EWCatFishHere.kHungerGainFromEating);
                                 }
+                                else
+                                {
+                                    if (message != "")
+                                    {
+                                        // Notify if the fish is interesting (new type or weight record)
+                                        message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:PutFishInInventoryTns",
+                                            Actor, fish.GetLocalizedName(), fish.Weight);
+                                        Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
+                                    }
+                                    fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
+                                    AnimateSim("ExitInventory");
+                                    if (!Actor.Inventory.TryToAdd(fish))
+                                    {
+                                        fish.Destroy();
+                                    }
+                                }
+                                break;
                             }
-                            break;
-                        }
+                    }
+                } else
+                {
+                    AnimateSim("ExitFailure");
                 }
             }
-            if (Actor.HasExitReason(ExitReason.UserCanceled) || (Actor.HasExitReason(ExitReason.MoodFailure))
-                || (Actor.HasExitReason(ExitReason.Canceled)))
-            {
-                Actor.AddExitReason(ExitReason.UserCanceled);
-                Actor.AddExitReason(ExitReason.MoodFailure);
-            }
-            if (!ActiveStage.IsComplete(this))
-            {
-                DrinkFromPondHelper.RouteToDrinkLocation(Hit.mPoint, Actor, Hit.mType, Hit.mId);
-                AnimateSim("PrePounceLoop");
-            }
+            StandardExit();
+            return loopFlag;
         }
     }
 }

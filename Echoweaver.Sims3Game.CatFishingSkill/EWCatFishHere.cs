@@ -76,6 +76,8 @@ namespace Echoweaver.Sims3Game
 		75f
 		};
 
+		public static ulong kIconNameHash = ResourceUtils.HashString64("skill_EWCatFishing");
+
 		public static InteractionDefinition Singleton = new Definition();
 
 		public bool TerrainIsWaterPond => (int)Hit.mType == 8;
@@ -83,7 +85,8 @@ namespace Echoweaver.Sims3Game
 
         public override ThumbnailKey GetIconKey()
 		{
-			return Actor.GetThumbnailKey();
+//			return Actor.GetThumbnailKey();
+			return new ThumbnailKey(new ResourceKey(kIconNameHash, 796721156u, 0u), ThumbnailSize.Small);
 		}
 
 		public override bool Run()
@@ -101,7 +104,14 @@ namespace Echoweaver.Sims3Game
 			{
 				return false;
 			}
-			skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
+			if (skill.OppFishercatCompleted)
+			{
+				skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateFishercat);
+			}
+			else
+			{
+				skill.StartSkillGain(EWCatFishingSkill.kEWFishingSkillGainRateNormal);
+			}
 			StandardEntry();
 			EnterStateMachine("CatHuntInPond", "Enter", "x");
 			AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
@@ -112,8 +122,14 @@ namespace Echoweaver.Sims3Game
 			{
 				EventTracker.SendEvent(EventTypeId.kGoFishingCat, Actor);
 				AnimateSim("FishLoop");
-				flag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, kMinMaxSuccesChance[0],
-					kMinMaxSuccesChance[1], skill.SkillLevel);
+				float successBonus = 0;
+				if ((TerrainIsWaterPond && skill.OppPondProvisionerCompleted)
+					|| (!TerrainIsWaterPond && skill.OppSaltaholicCompleted))
+                {
+					successBonus = EWCatFishingSkill.kFishCatchingBonus;
+                }
+				flag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, kMinMaxSuccesChance[0] - successBonus,
+					kMinMaxSuccesChance[1] + successBonus, skill.SkillLevel);
 				if (flag)
 				{
 					FishType caughtFishType = GetCaughtFishType(Actor, Hit);
@@ -307,10 +323,6 @@ namespace Echoweaver.Sims3Game
 			{
 				if (a.IsCat || a.IsKitten)
 				{
-					if (isAutonomous && a.TraitManager.HasElement(TraitNames.NeatPet))
-					{
-						return false;
-					}
 					return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
 				}
 				return false;

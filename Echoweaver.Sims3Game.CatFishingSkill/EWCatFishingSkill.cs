@@ -20,7 +20,9 @@ namespace Echoweaver.Sims3Game
 	{
 		public const SkillNames SkillNameID = (SkillNames)0xDE46D7FA;
 
-//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
+		//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
+
+		public static List<ulong> sGourmetSimIDs;
 
 		public AlarmHandle mRemoveMapTagsHandle = AlarmHandle.kInvalidHandle;
 
@@ -182,6 +184,11 @@ namespace Echoweaver.Sims3Game
 		[TunableComment("Num Fish cat must catch to get Fishercat skill achievement.")]
 		public static int kNumFishForFishercat = 20;
 
+		[Tunable]
+		[TunableComment("Num Fish cat must catch to get Fishercat skill achievement.")]
+		public static float kEWFishingSkillGainRateFishercat = 7.5f;
+
+
 		public class OppFishercat : ILifetimeOpportunity
 		{
 			public EWCatFishingSkill mSkill;
@@ -224,6 +231,10 @@ namespace Echoweaver.Sims3Game
 		[TunableComment("Percent fish types cat must catch to get Seafood Gourmet skill achievement.")]
 		public static int kPctFishTypesForSeafoodGourmet = 20;
 
+		[Tunable]
+		[TunableComment("Percent hunger multiplier for fish caught by a Seafood Gourmet.")]
+		public static float kSeafoodGourmetHungerMultiplier = 1.3f;
+
 		public bool mOppSeafoodGourmetIsNew = true;
 
 		public class OppSeafoodGourmet : ILifetimeOpportunity
@@ -245,6 +256,13 @@ namespace Echoweaver.Sims3Game
 				set
 				{
 					mSkill.mOppSeafoodGourmetIsNew = value;
+					if (value == false)
+                    {
+						if (!sGourmetSimIDs.Contains(mSkill.mSkillOwner.mSimDescriptionId))
+                        {
+							sGourmetSimIDs.Add(mSkill.mSkillOwner.mSimDescriptionId);
+                        }
+                    }
 				}
 			}
 
@@ -283,6 +301,15 @@ namespace Echoweaver.Sims3Game
 				return num >= kPctFishTypesForSeafoodGourmet;
 			}
 		}
+
+		public bool SimIDIsSeafoodGourmet(ulong simID)
+        {
+			return false;
+        }
+
+		[Tunable]
+		[TunableComment("Bonus to fishing success for either Saltaholic or Pond Provisioner.")]
+		public static int kFishCatchingBonus = 10;
 
 		[Tunable]
 		[TunableComment("Num Saltwater Fish cat must catch to get Saltaholic skill achievement.")]

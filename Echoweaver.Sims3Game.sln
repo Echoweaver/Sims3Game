@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.DiscussKelpRecipes", "Echoweaver.Sims3Game.DiscussKelpRecipes\Echoweaver.Sims3Game.DiscussKelpRecipes.csproj", "{43923B94-FD25-4762-90A5-C26542A5EF4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.Warriorcats", "Echoweaver.Sims3Game.Warriorcats\Echoweaver.Sims3Game.Warriorcats.csproj", "{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.CatFishingSkill", "Echoweaver.Sims3Game.CatFishingSkill\Echoweaver.Sims3Game.CatFishingSkill.csproj", "{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
