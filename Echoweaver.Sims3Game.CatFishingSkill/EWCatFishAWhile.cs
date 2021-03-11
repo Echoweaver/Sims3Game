@@ -12,7 +12,6 @@ using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.Pools;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -74,7 +73,6 @@ namespace Echoweaver.Sims3Game
             public static CountedFishStage MakeCountedStage(int count)
             {
                 return new CountedFishStage(Localization.LocalizeString("Gameplay/Objects/Fishing:FishCountedStage", count), count);
-//                return new CountedFishStage("Count the fish " + count.ToString(), count);
             }
 
             public CountedFishStage()
@@ -99,14 +97,6 @@ namespace Echoweaver.Sims3Game
                 return ResourceKey.CreatePNGKey("hud_interactions_stage_x5", 0u);
             }
         }
-
-        [Tunable]
-        [TunableComment("Description:  The min and max chances for success, will lerp between these values based on your hunting skill")]
-        public static float[] kMinMaxSuccesChance = new float[2] {
-        30f,
-        75f
-        };
-
 
         [Tunable]
         public static int kEstimatedTimeToCatchOneFish = 50;
@@ -249,11 +239,11 @@ namespace Echoweaver.Sims3Game
             return new ThumbnailKey(new ResourceKey(kIconNameHash, 796721156u, 0u), ThumbnailSize.Medium);
         }
 
-        //public override void AddExcludedDreams(ICollection<DreamNames> excludedDreams)
-        //{
-        //	base.AddExcludedDreams(excludedDreams);
-        //	excludedDreams.Add(DreamNames.go_fishing);
-        //}
+        public override void AddExcludedDreams(ICollection<DreamNames> excludedDreams)
+        {
+            base.AddExcludedDreams(excludedDreams);
+            excludedDreams.Add(DreamNames.go_fishing);
+        }
 
         public override bool Run()
         {
@@ -318,19 +308,23 @@ namespace Echoweaver.Sims3Game
             }
             StandardEntry();
             EnterStateMachine("CatHuntInPond", "Enter", "x");
-            AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
+//            AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
             AnimateSim("PrePounceLoop");
-            // Saving this method in case I want to use it. Humans seem to wait longer for a fish action but
-            // fail less often.
-            //mLoopLengthForNextFish += mFishingData.GetNextFishTimeLength(mHasCatFisherTrait, skill.OppFishercatCompleted);
+            // TODO: If we don't have an opportunity for catching fish faster, we should
             float mLoopLengthForNextFish = RandomUtil.GetFloat(EWCatFishHere.kMinMaxPrePounceTime[0], EWCatFishHere.kMinMaxPrePounceTime[1]);
             bool loopFlag = DoTimedLoop(mLoopLengthForNextFish);
             if (loopFlag)
             {
                 EventTracker.SendEvent(EventTypeId.kGoFishingCat, Actor);
-                // TODO: This success calculation is where we should use OppFishercatCompleted
-                bool successFlag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, EWCatFishHere.kMinMaxSuccesChance[0],
-                    kMinMaxSuccesChance[1], skill.SkillLevel);
+                float successBonus = 0;
+                // Check for salt and freshwater opportunity bonuses
+                if ((TerrainIsWaterPond && skill.OppPondProvisionerCompleted)
+                    || (!TerrainIsWaterPond && skill.OppSaltaholicCompleted))
+                {
+                    successBonus = EWCatFishingSkill.kFishCatchingBonus;
+                }
+                bool successFlag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, EWCatFishHere.kMinMaxSuccesChance[0] + successBonus,
+                    EWCatFishHere.kMinMaxSuccesChance[1] + successBonus, skill.SkillLevel);
                 FishType fishType = FishType.None;
                 AnimateSim("FishLoop");
                 if (successFlag)

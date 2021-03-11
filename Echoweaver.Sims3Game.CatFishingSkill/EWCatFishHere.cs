@@ -85,7 +85,6 @@ namespace Echoweaver.Sims3Game
 
         public override ThumbnailKey GetIconKey()
 		{
-//			return Actor.GetThumbnailKey();
 			return new ThumbnailKey(new ResourceKey(kIconNameHash, 796721156u, 0u), ThumbnailSize.Small);
 		}
 
@@ -117,6 +116,7 @@ namespace Echoweaver.Sims3Game
 			AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
 			BeginCommodityUpdates();
 			AnimateSim("PrePounceLoop");
+			// TODO: If we don't have an opportunity for catching fish faster, we should
 			bool flag = DoTimedLoop(RandomUtil.GetFloat(kMinMaxPrePounceTime[0], kMinMaxPrePounceTime[1]));
 			if (flag)
 			{
@@ -128,7 +128,7 @@ namespace Echoweaver.Sims3Game
                 {
 					successBonus = EWCatFishingSkill.kFishCatchingBonus;
                 }
-				flag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, kMinMaxSuccesChance[0] - successBonus,
+				flag = RandomUtil.InterpolatedChance(0f, skill.MaxSkillLevel, kMinMaxSuccesChance[0] + successBonus,
 					kMinMaxSuccesChance[1] + successBonus, skill.SkillLevel);
 				if (flag)
 				{
@@ -294,8 +294,10 @@ namespace Echoweaver.Sims3Game
 					FishType fishType = fish[i];
 					if (fishType != FishType.None && fishType != FishType.Box)
 					{
-						//str = str + "\n" + GetFishName(fish[i], skill);
-						str = str + "\n" + fish[i].ToString();
+						// Only fish appropriate to skill or that sim "knows about" (has already caught) will be
+						// displayed. This should be just like human fishing.
+						str = str + "\n" + GetFishName(fish[i], skill);
+						//str = str + "\n" + fish[i].ToString();
 					}
 				}
 			}

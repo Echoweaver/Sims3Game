@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.DreamsAndPromises;
 //using Sims3.Gameplay.DreamsAndPromises;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Objects.Fishing;
@@ -27,7 +28,7 @@ namespace Echoweaver.Sims3Game
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
             World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
-//            World.sOnStartupAppEventHandler += new EventHandler(OnStartupAppHandler);
+            World.sOnStartupAppEventHandler += new EventHandler(OnStartupAppHandler);
         }
 
         public static void OnPreLoad()
@@ -45,20 +46,19 @@ namespace Echoweaver.Sims3Game
             SkillManager.ParseSkillData(data, true);
         }
 
-        //public static void OnStartupAppHandler(object sender, System.EventArgs e)
-        //{
-        //    AddDreamEnums();
-        //    ParseEWCatFishingPrimitives();
-        //}
+        public static void OnStartupAppHandler(object sender, System.EventArgs e)
+        {
+            AddDreamEnums();
+            ParseEWCatFishingPrimitives();
+        }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
             // Add custom fishing interaction that uses custom fishing skill
-            // TODO: Remove old interaction
             if (Terrain.Singleton != null)
             {
                 Terrain.Singleton.RemoveInteractionByType(Terrain.CatFishHere.Singleton);
-                Terrain.Singleton.AddInteraction(EWCatFishHere.Singleton); 
+                Terrain.Singleton.AddInteraction(EWCatFishHere.Singleton);
                 Terrain.Singleton.AddInteraction(EWCatInspectWater.Singleton);
                 Terrain.Singleton.AddInteraction(EWCatPlayInWater.Singleton);
                 Terrain.Singleton.AddInteraction(EWCatFishAWhile.Singleton);
@@ -84,7 +84,8 @@ namespace Echoweaver.Sims3Game
                     AutonomyTuning.AddTuning("Echoweaver.Sims3Game+EWCatEatFish+Definition",
                     "Sims3.Gameplay.Interfaces.ICatPrey", newTuning);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 StyledNotification.Show(new StyledNotification.Format("ERROR loading EWCatEatFish tuning: " + ex.Message,
                     StyledNotification.NotificationStyle.kDebugAlert));
@@ -124,7 +125,8 @@ namespace Echoweaver.Sims3Game
                     newFish.AddInteraction(EWCatEatFish.Singleton);
 
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 StyledNotification.Show(new StyledNotification.Format("ERROR assigning EWCatEatFish interaction: " + ex.Message,
                     StyledNotification.NotificationStyle.kDebugAlert));
@@ -132,67 +134,57 @@ namespace Echoweaver.Sims3Game
             return ListenerAction.Keep;
         }
 
-        //public static void AddDreamEnums()
-        //{
-        //    EnumParser parser;
-        //    Dictionary<Type, EnumParser> dictionary_ic = ParserFunctions.sCaseInsensitiveEnumParsers;
-        //    Dictionary<Type, EnumParser> dictionary_c = ParserFunctions.sCaseSensitiveEnumParsers;
-        //    string[] new_enum_names = { "play_in_water_echoweaver" };
-        //    object[] new_enum_values = { 0x0E0E0DB1 };
-        //    if (!dictionary_ic.TryGetValue(typeof(DreamNames), out parser))
-        //    {
-        //        parser = new EnumParser(typeof(DreamNames), true);
-        //        dictionary_ic.Add(typeof(DreamNames), parser);
-        //    }
+        public static void AddDreamEnums()
+        {
+            EnumParser parser;
+            Dictionary<Type, EnumParser> dictionary_ic = ParserFunctions.sCaseInsensitiveEnumParsers;
+            Dictionary<Type, EnumParser> dictionary_c = ParserFunctions.sCaseSensitiveEnumParsers;
+            string[] new_enum_names = { "play_in_water_echoweaver" };
+            object[] new_enum_values = { 0x0E0E0DB1 };
+            if (!dictionary_ic.TryGetValue(typeof(DreamNames), out parser))
+            {
+                parser = new EnumParser(typeof(DreamNames), true);
+                dictionary_ic.Add(typeof(DreamNames), parser);
+            }
 
-        //    for (int i = 0; i < new_enum_names.Length; i++)
-        //        parser.mLookup.Add(new_enum_names[i].ToLowerInvariant(), new_enum_values[i]);
+            for (int i = 0; i < new_enum_names.Length; i++)
+                parser.mLookup.Add(new_enum_names[i].ToLowerInvariant(), new_enum_values[i]);
 
-        //    if (!dictionary_c.TryGetValue(typeof(DreamNames), out parser))
-        //    {
-        //        parser = new EnumParser(typeof(DreamNames), true);
-        //        dictionary_c.Add(typeof(DreamNames), parser);
-        //    }
-        //    for (int i = 0; i < new_enum_names.Length; i++)
-        //        parser.mLookup.Add(new_enum_names[i], new_enum_values[i]);
-        //}
+            if (!dictionary_c.TryGetValue(typeof(DreamNames), out parser))
+            {
+                parser = new EnumParser(typeof(DreamNames), true);
+                dictionary_c.Add(typeof(DreamNames), parser);
+            }
+            for (int i = 0; i < new_enum_names.Length; i++)
+                parser.mLookup.Add(new_enum_names[i], new_enum_values[i]);
+        }
 
-        //public static void ParseEWCatFishingPrimitives()
-        //{
-        //    DreamsAndPromisesManager.sNodePrimitves = new Dictionary<uint, DreamNodePrimitive>();
-        //    List<DreamNodePrimitive> cachePrimitives = new List<DreamNodePrimitive>();
-        //    XmlDbData xmlDbData = XmlDbData.ReadData("Echoweaver_cat_fishing_dreams");
-        //    if (xmlDbData != null)
-        //    {
-        //        DreamsAndPromisesManager.ParseNodePrimitivesFromXmlDbData(xmlDbData, ref cachePrimitives, isStore: false);
-        //    }
-        //    //uint num = 16777216u;
-        //    //ResourceKey key = default(ResourceKey);
-        //    //((ResourceKey)(ref key))._002Ector(ResourceUtils.HashString64("DreamsAndPromisesNodes_store"), 3162301119u, num);
-        //    //XmlDbData xmlDbData2 = XmlDbData.ReadData(key, bSuppressLogs: false);
-        //    //if (xmlDbData2 != null)
-        //    //{
-        //    //    ParseNodePrimitivesFromXmlDbData(xmlDbData2, ref cachePrimitives, isStore: true);
-        //    //}
-        //    //if (CacheManager.get_IsCachingEnabled())
-        //    //{
-        //    //    CacheManager.SaveTuningData("DreamsAndPromisesPrimitives", (object)cachePrimitives);
-        //    //}
-        //}
+        public static void ParseEWCatFishingPrimitives()
+        {
+            //sNodePrimitves = new Dictionary<uint, DreamNodePrimitive>();
 
-        //public static void ParseEWCatFishingDreamTrees()
-        //{
-        //    Dictionary<string, XmlElement> instanceDefults = DreamsAndPromisesManager.ParseDefaults();
-        //    //SetupDefaultNodeInstance(instanceDefults);
-        //    //if (CacheManager.get_IsCachingEnabled() && LoadCachedTrees())
-        //    //{
-        //    //    return;
-        //    //}
-        //    //sDreamTrees = new Dictionary<ulong, DreamTree>();
-        //    List<DreamTree> cacheTrees = new List<DreamTree>();
-        //    ResourceKey key = new ResourceKey(0xA43129F3D1D0E08C, 0x333406C, 0x0);
-        //    DreamsAndPromisesManager.ParseDreamTreeByKey(key, instanceDefults, ref cacheTrees);
-        //}
+            List<DreamNodePrimitive> cachePrimitives = new List<DreamNodePrimitive>();
+            XmlDbData xmlDbData = XmlDbData.ReadData(new ResourceKey(0xC54CBCBB14C4EC27, 0x0333406C, 0x00000000), false);
+            if (xmlDbData != null)
+            {
+                DreamsAndPromisesManager.ParseNodePrimitivesFromXmlDbData(xmlDbData, ref cachePrimitives, isStore: false);
+            }
+
+        }
+
+        public static void ParseEWCatFishingDreamTrees()
+        {
+            Dictionary<string, XmlElement> instanceDefults = DreamsAndPromisesManager.ParseDefaults();
+            List<DreamTree> cacheTrees = new List<DreamTree>();
+            uint[] array = new uint[2];
+            uint[] array2 = array;
+            ResourceKey item = new ResourceKey(0xA43129F3D1D0E08C, 0x0604ABDA, 0x0);
+            array2[0]++;
+            if (DreamsAndPromisesManager.ParseDreamTreeByKey(item, instanceDefults, ref cacheTrees))
+            {
+                array2[1]++;
+            }
+        }
 
     }
 }

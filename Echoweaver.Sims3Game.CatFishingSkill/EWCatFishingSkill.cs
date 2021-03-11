@@ -309,7 +309,7 @@ namespace Echoweaver.Sims3Game
 
 		[Tunable]
 		[TunableComment("Bonus to fishing success for either Saltaholic or Pond Provisioner.")]
-		public static int kFishCatchingBonus = 10;
+		public static float kFishCatchingBonus = 10f;
 
 		[Tunable]
 		[TunableComment("Num Saltwater Fish cat must catch to get Saltaholic skill achievement.")]

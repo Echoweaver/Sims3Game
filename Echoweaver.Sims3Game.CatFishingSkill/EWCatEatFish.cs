@@ -81,9 +81,12 @@ namespace Echoweaver.Sims3Game
 			{
 				return false;
 			}
+
 			if (EWCatFishingSkill.sGourmetSimIDs.Contains(Target.CatHuntingComponent.mCatcherId))
 			{
-				// Catcher of the prey is a SeafoodGourmet. Add Hunger multiplier.
+				// The cat who CAUGHT the fish has completed the SeafoodGourmet opportunity, so the
+				// fish is more nourishing.
+				// TODO: Should SeafoodGourmet fish also get a moodlet?
 				InteractionTuning tuning = InteractionObjectPair.Tuning;
 				foreach (CommodityChange mOutput in tuning.mTradeoff.mOutputs)
 				{
