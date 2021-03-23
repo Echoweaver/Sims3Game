@@ -13,7 +13,7 @@ using static Sims3.Gameplay.Skills.CatHuntingSkill;
 using Sims3.UI;
 using Sims3.Gameplay.Autonomy;
 
-namespace Echoweaver.Sims3Game
+namespace Echoweaver.Sims3Game.CatFishing
 {
 
     public class EWCatFishingSkill : Skill

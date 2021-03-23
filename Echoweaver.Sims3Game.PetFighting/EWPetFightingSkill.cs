@@ -8,6 +8,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 {
     public class EWPetFightingSkill : Skill
     {
+        public const SkillNames skillNameID = (SkillNames)0x20F47569;
+
         [Persistable(false)]
         private List<ITrackedStat> mTrackedStats;
 
@@ -18,7 +20,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         public int mFightsLost = 0;
         public string sStatsLocalizeKey = "Echoweaver/PetFighting/SkillStats:";
 
-        public const SkillNames skillNameID = (SkillNames)0x20F47569;
+        public static float kSkillGainRateNormal = 5f;
 
         public EWPetFightingSkill(SkillNames guid) : base(guid)
         {

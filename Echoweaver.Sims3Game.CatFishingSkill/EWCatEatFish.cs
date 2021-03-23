@@ -11,7 +11,8 @@ using Sims3.SimIFace;
 using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
-namespace Echoweaver.Sims3Game
+
+namespace Echoweaver.Sims3Game.CatFishing
 {
     public class EWCatEatFish : Interaction<Sim, ICatPrey>
 	{

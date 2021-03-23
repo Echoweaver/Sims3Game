@@ -10,12 +10,17 @@ using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using System.Diagnostics;
+using static Sims3.Gameplay.Actors.Sim;
+using System.Xml;
+using Sims3.Gameplay.Socializing;
+using System.Collections.Generic;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
     public class Loader
     {
-//        static bool HasBeenLoaded = false;
+        static bool HasBeenLoaded = false;
 
         [Tunable]
         protected static bool kInstantiator = false;
@@ -28,11 +33,11 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public static void OnPreLoad()
         {
+            if (HasBeenLoaded) return; // you only want to run it once per gameplay session
+            HasBeenLoaded = true;
+
             // Load custom buffs
             (new BuffBooter()).LoadBuffData();
-
-            //if (HasBeenLoaded) return; // you only want to run it once per gameplay session
-            //HasBeenLoaded = true;
 
             // fill this in with the resourcekey of your SKIL xml
             XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x494F3A8118D98C44, 0xA8D58BE5, 0x00000000), false);
@@ -42,14 +47,52 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return;
             }
             SkillManager.ParseSkillData(data, true);
+
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
+            LoadSocialData("EWPetFighting_SocialData");
+
+            FightPet.Singleton = EWFightPet.Singleton;
+
+            foreach (Sim s in Sims3.Gameplay.Queries.GetObjects<Sim>())
+            {
+                if (s.IsCat || s.IsADogSpecies)
+                {
+                    foreach (InteractionObjectPair pair in s.Interactions)
+                    {
+                        if (pair.InteractionDefinition.GetType() == EWFightPet.Singleton.GetType())
+                        {
+                            break;
+                        }
+                    }
+                    s.AddInteraction(EWFightPet.Singleton);
+                }
+            }
             // Add listeners for the events you care about
-            EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(OnSocialInteraction));
+            // EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(OnSocialInteraction));
+            EventTracker.AddListener(EventTypeId.kSimPassedOut, new ProcessEventDelegate(OnSimPassedOut));
         }
 
+        public static void LoadSocialData(string spreadsheet)
+        {
+            XmlDocument root = Simulator.LoadXML(spreadsheet);
+            bool isEp5Installed = GameUtils.IsInstalled(ProductVersion.EP5);
+            if (spreadsheet != null)
+            {
+                XmlElementLookup lookup = new XmlElementLookup(root);
+                List<XmlElement> list = lookup["Action"];
+                foreach (XmlElement element in list)
+                {
+                    CommodityTypes types;
+                    XmlElementLookup table = new XmlElementLookup(element);
+                    ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"), out types, CommodityTypes.Undefined);
+                    ActionData data = new ActionData(element.GetAttribute("key"), types, ProductVersion.BaseGame, table, isEp5Installed);
+                    ActionData.Add(data);
+                }
+            }
+        }
 
         public static ListenerAction OnSocialInteraction(Event e)
         {
@@ -64,37 +107,29 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (e is SocialEvent)
             {
                 SocialEvent cevent = (SocialEvent)e;
-                if (cevent.SocialName == "Fight Pet")  // How come kFight is its own ID, but pet fights are not? Bleh.
-                {
-                    StyledNotification.Show(new StyledNotification.Format("Actor: " + cevent.Actor.Name + " won fight " +
-                        cevent.ActorWonFight, StyledNotification.NotificationStyle.kGameMessagePositive));
-                    cevent.Actor.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
-                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                    if (cevent.ActorWonFight)
-                    {
-                        EWPetFightingSkill simFighting = e.Actor.SkillManager.GetElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
-                        simFighting.wonFight();
-                        simFighting.AddPoints(3.0f);
-                    }
-                    else
-                    {
-                        EWPetFightingSkill simFighting = e.Actor.SkillManager.GetElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
-                        simFighting.lostFight();
-                        simFighting.AddPoints(3.0f);
-                    }
 
-                }
-                else
+                // Pounce Play, Chase Play, PlayPetToPet, Sniff
+                // Human - Pet: Let Sniff Hand
+                StackTrace test_trace = new StackTrace();
+                string test_output = "";
+                foreach(StackFrame f in test_trace.GetFrames())
                 {
-                    // Pounce Play, Chase Play, PlayPetToPet, Sniff
-                    // Human - Pet: Let Sniff Hand
-                    StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
-                        ", SocialName: " + cevent.SocialName, StyledNotification.NotificationStyle.kGameMessagePositive));
+                    test_output += " ||| " + f.GetMethod().ToString();
                 }
+                StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
+                    ", SocialName: " + cevent.SocialName + "Stack: " + test_output,
+                    StyledNotification.NotificationStyle.kGameMessagePositive));
+
             }
             return ListenerAction.Keep;
         }
+        public static ListenerAction OnSimPassedOut(Event e)
+        {
+            // Check to see if pet sims have same passed out event
+            StyledNotification.Show(new StyledNotification.Format("Passed Out Actor: " + e.Actor.Name,
+                StyledNotification.NotificationStyle.kGameMessagePositive));
 
-
+            return ListenerAction.Keep;
+        }
     }
 }

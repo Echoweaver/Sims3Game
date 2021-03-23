@@ -18,7 +18,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void AddBuffs(ResourceKey[] resourceKeys)
         {
-            ResourceKey key = new ResourceKey(ResourceUtils.HashString64("EW_Warriorcats_Buffs"), 0x0333406C, 0x0);
+            ResourceKey key = new ResourceKey(ResourceUtils.HashString64("EWPetFighting_Buffs"), 0x0333406C, 0x0);
             XmlDbData data = XmlDbData.ReadData(key, false);
             if (data != null)
             {

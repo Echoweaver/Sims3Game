@@ -22,7 +22,7 @@ using static Sims3.Gameplay.Utilities.NotificationSystem;
 using static Sims3.SimIFace.Route;
 using static Sims3.UI.StyledNotification;
 
-namespace Echoweaver.Sims3Game
+namespace Echoweaver.Sims3Game.CatFishing
 {
 
     public class EWCatFishAWhile : TerrainInteraction, IPondInteraction

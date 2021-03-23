@@ -15,16 +15,16 @@ using Sims3.UI;
 using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
 using Queries = Sims3.Gameplay.Queries;
 
-namespace Echoweaver.Sims3Game
+namespace Echoweaver.Sims3Game.CatFishing
 {
-    public class EWCatFishingSkillLoader
+    public class Loader
     {
         static bool HasBeenLoaded = false;
 
         [Tunable]
         protected static bool kInstantiator = false;
 
-        static EWCatFishingSkillLoader()
+        static Loader()
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
             World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);

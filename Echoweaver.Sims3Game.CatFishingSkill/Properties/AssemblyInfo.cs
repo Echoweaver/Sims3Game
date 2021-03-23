@@ -6,7 +6,7 @@ using Sims3.SimIFace;
 // Information about this assembly is defined by the following attributes. 
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("Echoweaver.Sims3Game.Warriorcats")]
+[assembly: AssemblyTitle("Echoweaver.Sims3Game.CatFishingSkill")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
