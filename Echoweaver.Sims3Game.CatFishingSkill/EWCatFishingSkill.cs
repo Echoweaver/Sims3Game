@@ -15,7 +15,7 @@ using Sims3.Gameplay.Autonomy;
 
 namespace Echoweaver.Sims3Game.CatFishing
 {
-
+	[Persistable]
     public class EWCatFishingSkill : Skill
 	{
 		public const SkillNames SkillNameID = (SkillNames)0xDE46D7FA;
