@@ -9,6 +9,7 @@ using Sims3.Gameplay.InteractionsShared;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
@@ -229,7 +230,8 @@ namespace Echoweaver.Sims3Game.PetFighting
                 SetActor("y", (IHasScriptProxy)(object)Actor);
                 skillTarget.wonFight();
                 skillActor.lostFight();
-            } else
+            }
+            else
             {
                 skillActor.wonFight();
                 skillTarget.lostFight();
@@ -249,11 +251,11 @@ namespace Echoweaver.Sims3Game.PetFighting
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
-            AssignFightWounds();
-            if (DoesLoserDie())
-            {
-                Target.Kill(Sims3.Gameplay.CAS.SimDescription.DeathType.BluntForceTrauma);
-            }
+
+            // Must Assign wounds after checking for death because only a preexisting
+            // grave wound should cause death upon losing.
+            AssignFightWounds(Actor, actorWon);
+            AssignFightWounds(Target, !actorWon);
             return flag;
         }
 
@@ -288,51 +290,52 @@ namespace Echoweaver.Sims3Game.PetFighting
             return RandomUtil.RandomChance(num);
         }
 
-        public void AssignFightWounds()
+        public void AssignFightWounds(Sim fighter, bool wonFight)
         {
-            foreach (Sim fighter in new Sim[] { Actor, Target }) {
-                // Chance of being wounded is calculated based on the sim's fight skill.
-                // Could eventually take into account opponent sim or win/loss
-                int wound_chance = kBaseWoundChance;
-                int fight_level = Math.Max(0, fighter.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-                wound_chance -= kWoundChanceAdjPerSkillLevel * fight_level;
-                wound_chance = MathUtils.Clamp(wound_chance, 10, 90);
-                if (true)  // TODO: Replace debugging code
-//                if (RandomUtil.RandomChance(wound_chance))
-                {
-                    // Determine wound severity
-                    // Would severity is also offset by skill. This may not be the best way to do it.
+            if (!wonFight && fighter.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
+            {
+                // If the loser has Grave Wound moodlet or runs out of fatigue, they die 
+                BuffEWGraveWound.Succumb(fighter);
+            }
 
-                    int light_wound_chance = 10 + (2 * fight_level);
-                    int medium_wound_chance = 10 + fight_level;
-                    int grave_wound_chance = 10;
-                    int wound_type = RandomUtil.GetInt(light_wound_chance + medium_wound_chance + grave_wound_chance);
-                    if (wound_type <= light_wound_chance)
-                    {
-                        fighter.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
-                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                    } else if (wound_type <= (light_wound_chance + medium_wound_chance))
-                    {
-                        fighter.BuffManager.AddElement(BuffEWSeriousWound.StaticGuid,
-                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                    } else
-                    {
-                        fighter.BuffManager.AddElement(BuffEWGraveWound.StaticGuid,
-                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                    }
+            // Chance of being wounded is calculated based on the sim's fight skill.
+            // Could eventually take into account opponent sim or win/loss
+            int wound_chance = kBaseWoundChance;
+            int fight_level = Math.Max(0, fighter.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+            wound_chance -= kWoundChanceAdjPerSkillLevel * fight_level;
+            wound_chance = MathUtils.Clamp(wound_chance, 10, 90);
+            if (RandomUtil.RandomChance(wound_chance))
+            {
+                // Determine wound severity
+                // Wound severity is also offset by skill. This may not be the best way to do it.
+
+                int light_wound_chance = 10 + (2 * fight_level);
+                int medium_wound_chance = 10 + fight_level;
+                int grave_wound_chance = 10;
+                int wound_type = RandomUtil.GetInt(light_wound_chance + medium_wound_chance + grave_wound_chance);
+                if (wound_type <= light_wound_chance)
+                {
+                    fighter.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
+                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                }
+                else if (wound_type <= (light_wound_chance + medium_wound_chance))
+                {
+                    fighter.BuffManager.AddElement(BuffEWSeriousWound.StaticGuid,
+                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                }
+                else
+                {
+                    fighter.BuffManager.AddElement(BuffEWGraveWound.StaticGuid,
+                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
                 }
             }
-        }
 
-        public bool DoesLoserDie()
-        {
-            // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
-            return false;
         }
 
         public static void FightBroadcastCallback(Sim s, ReactionBroadcaster rb)
         {
-            ReactToDisturbance.NoiseBroadcastCallback(s, rb.BroadcastingObject as GameObject, rb.IsFirstTime(s), Origin.FromPetsFighting, isCryingBabyBuffInfinite: false);
+            ReactToDisturbance.NoiseBroadcastCallback(s, rb.BroadcastingObject as GameObject, rb.IsFirstTime(s),
+                Origin.FromPetsFighting, isCryingBabyBuffInfinite: false);
         }
     }
 }

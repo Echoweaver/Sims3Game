@@ -14,7 +14,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			}
 		}
-		public BuffEWMinorWound(Buff.BuffData data) : base(data)
+		public BuffEWMinorWound(BuffData data) : base(data)
 		{
 		}
 	}

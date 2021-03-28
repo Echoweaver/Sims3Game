@@ -25,13 +25,15 @@
     <Compile Include="Loader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuffBooter.cs" />
-    <Compile Include="BuffMinorWound.cs" />
-    <Compile Include="BuffSeriousWound.cs" />
-    <Compile Include="BuffGraveWound.cs" />
+    <Compile Include="BuffEWMinorWound.cs" />
+    <Compile Include="BuffEWSeriousWound.cs" />
+    <Compile Include="BuffEWGraveWound.cs" />
     <Compile Include="EWPetFightingSkill.cs" />
     <Compile Include="EWMedicineCat.cs" />
     <Compile Include="EWFightPet.cs" />
     <Compile Include="EWChaseMean.cs" />
+    <Compile Include="BuffEWRecuperating.cs" />
+    <Compile Include="EWPetRecuperating.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
