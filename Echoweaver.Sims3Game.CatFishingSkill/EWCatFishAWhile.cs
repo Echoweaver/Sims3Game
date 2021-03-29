@@ -308,7 +308,7 @@ namespace Echoweaver.Sims3Game.CatFishing
             }
             StandardEntry();
             EnterStateMachine("CatHuntInPond", "Enter", "x");
-//            AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
+            AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
             AnimateSim("PrePounceLoop");
             // TODO: If we don't have an opportunity for catching fish faster, we should
             float mLoopLengthForNextFish = RandomUtil.GetFloat(EWCatFishHere.kMinMaxPrePounceTime[0], EWCatFishHere.kMinMaxPrePounceTime[1]);
@@ -368,8 +368,8 @@ namespace Echoweaver.Sims3Game.CatFishing
                                             Actor, fish.GetLocalizedName(), fish.Weight);
                                         Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
                                     }
-                                    fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
                                     AnimateSim("ExitInventory");
+                                    fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
                                     if (!Actor.Inventory.TryToAdd(fish))
                                     {
                                         fish.Destroy();
@@ -382,6 +382,9 @@ namespace Echoweaver.Sims3Game.CatFishing
                 {
                     AnimateSim("ExitFailure");
                 }
+            } else
+            {
+                AnimateSim("ExitPrePounce");
             }
             StandardExit();
             return loopFlag;
