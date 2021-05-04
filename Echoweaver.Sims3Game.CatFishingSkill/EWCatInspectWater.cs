@@ -21,7 +21,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 				if (a.IsCat)
 				{
 					EWCatFishingSkill skill = a.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
-					if (skill != null && skill.CanCatchPreyFish())
+					if (skill != null && skill.SkillLevel >= 1)
 					{
 						return true;
 					}

@@ -26,20 +26,17 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 			public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (a.IsCat)
+				if (a.IsCat && !a.IsKitten)
 				{
-					EWCatFishingSkill skill = a.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
-					if (skill != null && skill.CanCatchPreyFish())
-					{
-						return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
-					}
+					return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
 				}
 				return false;
 			}
 
 			public override InteractionTestResult Test(ref InteractionInstanceParameters parameters, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (((int)parameters.Hit.mType == 8 && PondManager.ArePondsLiquid()) || (int)parameters.Hit.mType == 9)
+				if ((parameters.Hit.mType == GameObjectHitType.WaterPond
+					&& PondManager.ArePondsLiquid()) || parameters.Hit.mType == GameObjectHitType.WaterSea)
 				{
 					return base.Test(ref parameters, ref greyedOutTooltipCallback);
 				}

@@ -27,6 +27,7 @@
     <Compile Include="EWCatEatFish.cs" />
     <Compile Include="EWPlayInWater.cs" />
     <Compile Include="EWCatInspectWater.cs" />
+    <Compile Include="EWCatDropHere.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

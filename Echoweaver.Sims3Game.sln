@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.PetFig
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.CatFishingSkill", "Echoweaver.Sims3Game.CatFishingSkill\Echoweaver.Sims3Game.CatFishingSkill.csproj", "{955C0541-7D73-4628-AC62-8E7909C3EC5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echoweaver.Sims3Game.PetSwim", "Echoweaver.Sims3Game.PetSwim\Echoweaver.Sims3Game.PetSwim.csproj", "{3A0FD092-0CBE-49BE-9CEA-DEFA16B6FB85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,5 +27,9 @@ Global
 		{955C0541-7D73-4628-AC62-8E7909C3EC5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{955C0541-7D73-4628-AC62-8E7909C3EC5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{955C0541-7D73-4628-AC62-8E7909C3EC5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A0FD092-0CBE-49BE-9CEA-DEFA16B6FB85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A0FD092-0CBE-49BE-9CEA-DEFA16B6FB85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A0FD092-0CBE-49BE-9CEA-DEFA16B6FB85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A0FD092-0CBE-49BE-9CEA-DEFA16B6FB85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

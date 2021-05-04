@@ -46,7 +46,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public int mFreshFishCaught = 0;
 
-		public Dictionary<FishType, FishInfo> mFishingInfo = new Dictionary<FishType, FishInfo>();
+		public Dictionary<FishType, FishInfo> mFishingInfo;
 
         [Persistable(false)]
         public List<ITrackedStat> mTrackedStats;
@@ -70,6 +70,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 			mFishingInfo = new Dictionary<FishType, FishInfo>();
 			mSaltFishCaught = 0;
 			mFreshFishCaught = 0;
+			sGourmetSimIDs = new List<ulong>();
 
 		}
 

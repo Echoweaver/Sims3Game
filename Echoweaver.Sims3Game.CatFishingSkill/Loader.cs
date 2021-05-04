@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.DreamsAndPromises;
 //using Sims3.Gameplay.DreamsAndPromises;
 using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Interfaces;
+using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
@@ -91,7 +94,6 @@ namespace Echoweaver.Sims3Game.CatFishing
                     StyledNotification.NotificationStyle.kDebugAlert));
             }
 
-
             Fish[] objects = Queries.GetObjects<Fish>();
             foreach (Fish val in objects)
             {
@@ -101,6 +103,7 @@ namespace Echoweaver.Sims3Game.CatFishing
                     // I don't think dogs eat fish, or anyway it's fine if they can't.
                     val.RemoveInteractionByType(PetEatPrey.Singleton);
                     val.AddInteraction(EWCatEatFish.Singleton);
+                    val.AddInventoryInteraction(EWCatDropHere.Singleton); // Test only -- should go to all prey
                 }
             }
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
@@ -111,19 +114,42 @@ namespace Echoweaver.Sims3Game.CatFishing
         {
             try
             {
+                ICatPrey newPrey = e.TargetObject as ICatPrey;
+                if (newPrey != null)
+                {
+                    bool hasDrop = false;
+                    foreach (InteractionObjectPair pair in newPrey.Interactions)
+                    {
+                        if (pair.InteractionDefinition.GetType() == EWCatDropHere.Singleton.GetType())
+                        {
+                            hasDrop = true;
+                            break;
+                        }
+                    }
+                    if (!hasDrop)
+                    {
+                        newPrey.Interactions.Add(new InteractionObjectPair(EWCatDropHere.Singleton, newPrey));
+                    }
+                }
+
                 Fish newFish = e.TargetObject as Fish;
                 if (newFish != null)
                 {
+                    bool hasEat = false;
                     foreach (InteractionObjectPair pair in newFish.Interactions)
                     {
                         if (pair.InteractionDefinition.GetType() == EWCatEatFish.Singleton.GetType())
                         {
-                            return ListenerAction.Keep;
+                            hasEat = true;
+                            break;
                         }
                     }
-                    newFish.RemoveInteractionByType(PetEatPrey.Singleton);
-                    newFish.AddInteraction(EWCatEatFish.Singleton);
-
+                    if (!hasEat)
+                    {
+                        newFish.RemoveInteractionByType(PetEatPrey.Singleton);
+                        newFish.AddInteraction(EWCatEatFish.Singleton);
+                        newFish.AddInventoryInteraction(EWCatDropHere.Singleton);
+                    }
                 }
             }
             catch (Exception ex)

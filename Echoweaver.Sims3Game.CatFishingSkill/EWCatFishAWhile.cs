@@ -14,7 +14,6 @@ using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.Pools;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Core.Terrain;
@@ -45,13 +44,9 @@ namespace Echoweaver.Sims3Game.CatFishing
 
             public override bool Test(Sim a, Terrain target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
-                if (a.IsCat)
+                if (a.IsCat && !a.IsKitten)
                 {
-                    EWCatFishingSkill skill = a.SkillManager.GetSkill<EWCatFishingSkill>(EWCatFishingSkill.SkillNameID);
-                    if (skill != null && skill.CanCatchPreyFish())
-                    {
-                        return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
-                    }
+                    return PetManager.PetSkillFatigueTest(a, ref greyedOutTooltipCallback);
                 }
                 return false;
             }
@@ -158,7 +153,6 @@ namespace Echoweaver.Sims3Game.CatFishing
         {
             Sim sim = parameters.Actor as Sim;
             GameObjectHit hit = parameters.Hit;
-            SwimmingInPool swimmingInPool = sim.Posture as SwimmingInPool;
             GameObjectHitType mType = hit.mType;
             if ((int)mType != 1)
             {
@@ -307,7 +301,7 @@ namespace Echoweaver.Sims3Game.CatFishing
                 return false;
             }
             StandardEntry();
-            EnterStateMachine("CatHuntInPond", "Enter", "x");
+            EnterStateMachine("CatFishing", "Enter", "x");
             AddOneShotScriptEventHandler(101u, (SacsEventHandler)(object)new SacsEventHandler(SnapOnExit));
             AnimateSim("PrePounceLoop");
             // TODO: If we don't have an opportunity for catching fish faster, we should
@@ -346,8 +340,12 @@ namespace Echoweaver.Sims3Game.CatFishing
                                 {
                                     fish.CatHuntingComponent.SetCatcher(Actor);
                                 }
-                                fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.Carried);
-                                SetActor("fish", (IHasScriptProxy)(object)fish);
+                                fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
+                                SetActor("fish", fish);
+                                //Vector3 mRotationValue = Quaternion.VRotate(Quaternion.MakeFromEulerAngles(0.1f, 4.8f, 0f), fish.ForwardVector);
+                                //fish.SetForward(mRotationValue);
+                                //fish.SetPosition(fish.Position.x - 500f, fish.Position.z - 500f);
+
                                 mNumberFishCaught++;
                                 if (Actor.Motives.GetValue(CommodityKind.Hunger) <= EWCatFishHere.kEatFishHungerThreshold)
                                 {
@@ -368,7 +366,10 @@ namespace Echoweaver.Sims3Game.CatFishing
                                             Actor, fish.GetLocalizedName(), fish.Weight);
                                         Actor.ShowTNSIfSelectable(message, NotificationStyle.kGameMessagePositive);
                                     }
+                                    AnimateSim("Idle");
+                                    bool flag = DoLoop(ExitReason.Default, LoopDel, null);
                                     AnimateSim("ExitInventory");
+                                    runIdleFishAnimation(fish);
                                     fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.InInventory);
                                     if (!Actor.Inventory.TryToAdd(fish))
                                     {
@@ -388,6 +389,28 @@ namespace Echoweaver.Sims3Game.CatFishing
             }
             StandardExit();
             return loopFlag;
+        }
+
+        public void runIdleFishAnimation(Fish fish)
+        {
+            base.AcquireStateMachine("CatFishing");
+            base.SetActorAndEnter("fish", fish, "EnterIdle");
+            base.StandardEntry();
+            base.BeginCommodityUpdates();
+            base.LowerPriority();
+            bool flag = DoLoop(ExitReason.Default, LoopDel, null);
+            base.EndCommodityUpdates(flag);
+        }
+
+
+        public void LoopDel(StateMachineClient smc, LoopData data)
+        {
+            float kMaxWaitTime = 600f; // this is 60 hours IIRC
+            if (data.mLifeTime > kMaxWaitTime)
+            {
+                base.Actor.AddExitReason(ExitReason.Finished);
+            }
+            //mCountdown -= data.mDeltaTime;
         }
     }
 }
