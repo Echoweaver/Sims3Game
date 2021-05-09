@@ -70,22 +70,14 @@ namespace Echoweaver.Sims3Game.CatFishing
             try
             {
                 // If there's no existing tuning for EWCatEatFish, copy over the Hunger output from PetEatPrey
-                InteractionTuning eatTuning = AutonomyTuning.GetTuning("Echoweaver.Sims3Game+EWCatEatFish+Definition",
+                InteractionTuning eatTuning = AutonomyTuning.GetTuning(EWCatEatFish.Singleton.GetType().FullName,
                     "Sims3.Gameplay.Interfaces.ICatPrey");
                 if (eatTuning == null)
                 {
-                    InteractionTuning newTuning = new InteractionTuning();
-                    InteractionTuning oldTuning = AutonomyTuning.GetTuning("Sims3.Gameplay.ObjectComponents.CatHuntingComponent+PetEatPrey+Definition",
+                    InteractionTuning oldTuning = AutonomyTuning.GetTuning(PetEatPrey.Singleton.GetType().FullName,
                         "Sims3.Gameplay.Interfaces.ICatPrey");
-                    foreach (CommodityChange mOldOutput in oldTuning.mTradeoff.mOutputs)
-                    {
-                        if (mOldOutput.Commodity == CommodityKind.Hunger)
-                        {
-                            newTuning.mTradeoff.mOutputs.Add(mOldOutput);
-                        }
-                    }
-                    AutonomyTuning.AddTuning("Echoweaver.Sims3Game+EWCatEatFish+Definition",
-                    "Sims3.Gameplay.Interfaces.ICatPrey", newTuning);
+                    AutonomyTuning.AddTuning(EWCatEatFish.Singleton.GetType().FullName,
+                    "Sims3.Gameplay.Interfaces.ICatPrey", oldTuning);
                 }
             }
             catch (Exception ex)
@@ -103,9 +95,17 @@ namespace Echoweaver.Sims3Game.CatFishing
                     // I don't think dogs eat fish, or anyway it's fine if they can't.
                     val.RemoveInteractionByType(PetEatPrey.Singleton);
                     val.AddInteraction(EWCatEatFish.Singleton);
-                    val.AddInventoryInteraction(EWCatDropHere.Singleton); // Test only -- should go to all prey
+                    val.AddInventoryInteraction(EWCatDropHere.Singleton);
                 }
             }
+
+            //ICatPrey[] moreobjects = Queries.GetObjects<ICatPrey>();
+            //foreach (ICatPrey p in moreobjects)
+            //{
+            //    GameObject prey = p as GameObject;
+            //    prey.AddInventoryInteraction(EWCatDropHere.Singleton);
+            //}
+            //EventTracker.AddListener(EventTypeId.kPreyTypeCaught, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
@@ -114,43 +114,63 @@ namespace Echoweaver.Sims3Game.CatFishing
         {
             try
             {
-                ICatPrey newPrey = e.TargetObject as ICatPrey;
-                if (newPrey != null)
+                if (e.TargetObject.CatHuntingComponent != null)
                 {
-                    bool hasDrop = false;
-                    foreach (InteractionObjectPair pair in newPrey.Interactions)
+                    if (e.TargetObject.InInventory)
                     {
-                        if (pair.InteractionDefinition.GetType() == EWCatDropHere.Singleton.GetType())
+                        bool hasDrop = false;
+                        GameObject g = e.TargetObject as GameObject;
+                        foreach (InteractionObjectPair pair in g.GetAllInventoryInteractionsForActor(e.Actor))
                         {
-                            hasDrop = true;
-                            break;
+                            if (pair.InteractionDefinition.GetType() == EWCatDropHere.Singleton.GetType())
+                            {
+                                hasDrop = true;
+                                break;
+                            }
+                        }
+                        if (!hasDrop)
+                        {
+                            g.AddInventoryInteraction(EWCatDropHere.Singleton);
                         }
                     }
-                    if (!hasDrop)
+                    Fish newFish = e.TargetObject as Fish;
+                    if (newFish != null)
                     {
-                        newPrey.Interactions.Add(new InteractionObjectPair(EWCatDropHere.Singleton, newPrey));
+                        bool hasEat = false;
+                        foreach (InteractionObjectPair pair in newFish.Interactions)
+                        {
+                            if (pair.InteractionDefinition.GetType() == EWCatEatFish.Singleton.GetType())
+                            {
+                                hasEat = true;
+                                break;
+                            }
+                        }
+                        if (!hasEat)
+                        {
+                            newFish.RemoveInteractionByType(PetEatPrey.Singleton);
+                            newFish.AddInteraction(EWCatEatFish.Singleton, true);
+                        }
                     }
                 }
+                //ICatPrey newPrey = e.TargetObject as ICatPrey;
+                //if (newPrey != null)
+                //{
+                //    bool hasDrop = false;
+                //    foreach (InteractionObjectPair pair in newPrey.Interactions)
+                //    {
+                //        if (pair.InteractionDefinition.GetType() == EWCatDropHere.Singleton.GetType())
+                //        {
+                //            hasDrop = true;
+                //            break;
+                //        }
+                //    }
+                //    if (!hasDrop)
+                //    {
+                //        GameObject g = e.TargetObject as GameObject;
+                //        g.AddInventoryInteraction(EWCatDropHere.Singleton);
+                //    }
+                //}
 
-                Fish newFish = e.TargetObject as Fish;
-                if (newFish != null)
-                {
-                    bool hasEat = false;
-                    foreach (InteractionObjectPair pair in newFish.Interactions)
-                    {
-                        if (pair.InteractionDefinition.GetType() == EWCatEatFish.Singleton.GetType())
-                        {
-                            hasEat = true;
-                            break;
-                        }
-                    }
-                    if (!hasEat)
-                    {
-                        newFish.RemoveInteractionByType(PetEatPrey.Singleton);
-                        newFish.AddInteraction(EWCatEatFish.Singleton);
-                        newFish.AddInventoryInteraction(EWCatDropHere.Singleton);
-                    }
-                }
             }
             catch (Exception ex)
             {

@@ -16,9 +16,8 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 			public override string GetInteractionName(Sim actor, ICatPrey target, InteractionObjectPair iop)
 			{
-				return "EWDropHere";
-//				return Localization.LocalizeString("Echoweaver/Interactions:EWDropHere"); 
-			}
+                return Localization.LocalizeString("Echoweaver/Interactions:EWDropHere");
+            }
 
 			public override bool Test(Sim a, ICatPrey target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{

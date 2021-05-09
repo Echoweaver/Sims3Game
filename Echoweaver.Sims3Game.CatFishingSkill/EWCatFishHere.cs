@@ -131,6 +131,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 				{
 					FishType caughtFishType = GetCaughtFishType(Actor, Hit);
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
+					EventTracker.SendEvent(EventTypeId.kPreyTypeCaught, Actor, fish);
 
 					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  // Will return a message if the fish is new or interesting
 					if (fish.CatHuntingComponent != null)

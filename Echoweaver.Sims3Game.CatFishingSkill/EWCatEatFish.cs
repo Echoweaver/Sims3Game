@@ -83,12 +83,13 @@ namespace Echoweaver.Sims3Game.CatFishing
 				return false;
 			}
 
-			if (EWCatFishingSkill.sGourmetSimIDs.Contains(Target.CatHuntingComponent.mCatcherId))
-			{
+            if (EWCatFishingSkill.sGourmetSimIDs.Contains(Target.CatHuntingComponent.mCatcherId))
+            {
 				// The cat who CAUGHT the fish has completed the SeafoodGourmet opportunity, so the
 				// fish is more nourishing.
 				// TODO: Should SeafoodGourmet fish also get a moodlet?
-				InteractionTuning tuning = InteractionObjectPair.Tuning;
+				InteractionTuning tuning = InteractionObjectPair.mTuning;
+				
 				foreach (CommodityChange mOutput in tuning.mTradeoff.mOutputs)
 				{
 					if (mOutput.Commodity == CommodityKind.Hunger)
