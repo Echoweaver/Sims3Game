@@ -131,9 +131,9 @@ namespace Echoweaver.Sims3Game.CatFishing
 				{
 					FishType caughtFishType = GetCaughtFishType(Actor, Hit);
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
-					EventTracker.SendEvent(EventTypeId.kPreyTypeCaught, Actor, fish);
 
-					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  // Will return a message if the fish is new or interesting
+					// Register will return a message if the fish is new or interesting
+					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  
 					if (fish.CatHuntingComponent != null)
 					{
 						fish.CatHuntingComponent.SetCatcher(Actor);
@@ -164,6 +164,8 @@ namespace Echoweaver.Sims3Game.CatFishing
 				}
 				else
 				{
+					Actor.ShowTNSIfSelectable(Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:FishFail",
+						Actor.Name), NotificationStyle.kGameMessageNegative);
 					AnimateSim("ExitFailure");
 				}
 			}

@@ -92,20 +92,11 @@ namespace Echoweaver.Sims3Game.CatFishing
                 if (val.CatHuntingComponent != null)
                 {
                     // Separate out eating fish from land prey.
-                    // I don't think dogs eat fish, or anyway it's fine if they can't.
                     val.RemoveInteractionByType(PetEatPrey.Singleton);
                     val.AddInteraction(EWCatEatFish.Singleton);
                     val.AddInventoryInteraction(EWCatDropHere.Singleton);
                 }
             }
-
-            //ICatPrey[] moreobjects = Queries.GetObjects<ICatPrey>();
-            //foreach (ICatPrey p in moreobjects)
-            //{
-            //    GameObject prey = p as GameObject;
-            //    prey.AddInventoryInteraction(EWCatDropHere.Singleton);
-            //}
-            //EventTracker.AddListener(EventTypeId.kPreyTypeCaught, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
@@ -152,25 +143,6 @@ namespace Echoweaver.Sims3Game.CatFishing
                         }
                     }
                 }
-                //ICatPrey newPrey = e.TargetObject as ICatPrey;
-                //if (newPrey != null)
-                //{
-                //    bool hasDrop = false;
-                //    foreach (InteractionObjectPair pair in newPrey.Interactions)
-                //    {
-                //        if (pair.InteractionDefinition.GetType() == EWCatDropHere.Singleton.GetType())
-                //        {
-                //            hasDrop = true;
-                //            break;
-                //        }
-                //    }
-                //    if (!hasDrop)
-                //    {
-                //        GameObject g = e.TargetObject as GameObject;
-                //        g.AddInventoryInteraction(EWCatDropHere.Singleton);
-                //    }
-                //}
-
             }
             catch (Exception ex)
             {

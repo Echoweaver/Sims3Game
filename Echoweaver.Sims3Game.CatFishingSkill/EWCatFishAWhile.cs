@@ -269,17 +269,6 @@ namespace Echoweaver.Sims3Game.CatFishing
             BeginCommodityUpdates();
             StartStages();
             mHasCatFisherTrait = false;
-            //MotiveDelta delta = null;
-            //if (Actor.TraitManager.HasElement(TraitNames.Angler)) // TODO: Figure out how to check for custom character trait
-            //{
-            //	mHasCatFisherTrait = true;
-            //	delta = AddMotiveDelta(CommodityKind.Fun, kAnglerFunPerHour);
-            //}
-            //            bool flag = DoLoop(ExitReason.Default, LoopFunc, mCurrentStateMachine);
-            //if (mHasCatFisherTrait)
-            //{
-            //    RemoveMotiveDelta(delta);
-            //}
             bool flag = true;
             while (flag && !ActiveStage.IsComplete(this))
             {
