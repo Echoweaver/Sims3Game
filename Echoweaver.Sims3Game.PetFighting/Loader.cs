@@ -54,6 +54,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         public static void OnWorldLoadFinished(object sender, System.EventArgs e)
         {
             LoadSocialData("EWPetFighting_SocialData");
+            LoadSocializingActionAvailability("EWPetFighting_Availability");
 
             FightPet.Singleton = EWFightPet.Singleton;
 
@@ -69,6 +70,17 @@ namespace Echoweaver.Sims3Game.PetFighting
                         }
                     }
                     s.AddInteraction(EWFightPet.Singleton);
+                }
+                if (s.IsHuman)
+                {
+                    foreach (InteractionObjectPair pair in s.Interactions)
+                    {
+                        if (pair.InteractionDefinition.GetType() == EWPetAttackSim.Singleton.GetType())
+                        {
+                            break;
+                        }
+                    }
+                    s.AddInteraction(EWPetAttackSim.Singleton);
                 }
             }
             // Add listeners for the events you care about
@@ -88,7 +100,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 {
                     CommodityTypes types;
                     XmlElementLookup table = new XmlElementLookup(element);
-                    ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"), out types, CommodityTypes.Undefined);
+                    ParserFunctions.TryParseEnum(element.GetAttribute("com"), out types, CommodityTypes.Undefined);
                     ActionData data = new ActionData(element.GetAttribute("key"), types, ProductVersion.BaseGame, table, isEp5Installed);
                     ActionData.Add(data);
                 }
@@ -99,6 +111,18 @@ namespace Echoweaver.Sims3Game.PetFighting
             } else if (GameUtils.IsInstalled(ProductVersion.EP2))
             {
                 fightDeathType = SimDescription.DeathType.Meteor;
+            }
+        }
+
+        public static void LoadSocializingActionAvailability(string spreadsheet)
+        {
+            XmlDbData xdb = XmlDbData.ReadData(spreadsheet);
+            if (xdb != null)
+            {
+                if (xdb.Tables.ContainsKey("SAA"))
+                {
+                    SocialManager.ParseStcActionAvailability(xdb);
+                }
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿using Sims3.Gameplay.ActorSystems;
-using System;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {

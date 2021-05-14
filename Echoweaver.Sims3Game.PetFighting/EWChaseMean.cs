@@ -12,7 +12,6 @@ using static Sims3.Gameplay.Actors.Sim;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
-
     public class EWChaseMean : ChaseBaseClass
     {
         public enum OutcomeType
