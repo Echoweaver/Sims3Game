@@ -34,6 +34,8 @@
     <Compile Include="ShowPetBreed.cs" />
     <Compile Include="BreedPickerDialog.cs" />
     <Compile Include="SetPetBreed.cs" />
+    <Compile Include="BreedManager.cs" />
+    <Compile Include="EWCustomizeCollarAndCoats.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
