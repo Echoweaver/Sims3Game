@@ -20,7 +20,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 		{
 			public override bool Test(Sim a, ICatPrey target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if(a.SimDescription.Species != CASAgeGenderFlags.Cat)  // Interaction for cats only. 
+				if(!a.IsCat)  // Interaction for cats only. 
                 {
 					return false;
 				}

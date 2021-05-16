@@ -21,6 +21,10 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 			public override bool Test(Sim a, ICatPrey target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
+				if(!a.IsPet)
+                {
+					return false;
+                }
                 if (!target.InInventory && target.Parent != a)
                 {
                     return false;

@@ -31,7 +31,7 @@ namespace Echoweaver.Sims3Game.CatFishing
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
             World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
-            World.sOnStartupAppEventHandler += new EventHandler(OnStartupAppHandler);
+            //World.sOnStartupAppEventHandler += new EventHandler(OnStartupAppHandler);
         }
 
         public static void OnPreLoad()
@@ -51,6 +51,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 
         public static void OnStartupAppHandler(object sender, System.EventArgs e)
         {
+            // Dream trees do not work as of now.
             AddDreamEnums();
             ParseEWCatFishingPrimitives();
         }
