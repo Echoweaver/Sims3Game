@@ -29,9 +29,14 @@ namespace Echoweaver.Sims3Game.PetBreeding
 
             foreach (BreedOutfit b in mBreeds)
             {
-                ObjectListPickerInfo o = new ObjectListPickerInfo(StringTable.
-                    GetLocalizedString(b.BreedLocKey), b);
-                breedInfo.Add(o); 
+                // Breed names ending in "Delta" display as, "Create a [Species]".
+                // I think they are used in CAP.
+                if (!b.BreedOutfitName.EndsWith("Delta"))
+                {
+                    ObjectListPickerInfo o = new ObjectListPickerInfo(StringTable.
+                        GetLocalizedString(b.BreedLocKey), b);
+                    breedInfo.Add(o);
+                }
             }
         }
     }
