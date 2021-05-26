@@ -27,6 +27,16 @@ namespace Echoweaver.Sims3Game.PetBreeding
             mBreeds = CASLogic.GetBreedOutfitList(speciesFlag);
             breedInfo = new List<ObjectListPickerInfo>();
 
+            string emptyBreed = "";
+            if (speciesFlag == CASAgeGenderFlags.Dog || speciesFlag == CASAgeGenderFlags.LittleDog)
+            {
+                emptyBreed = StringTable.GetLocalizedString("Ui/Caption/HUD/PetAdoptionInfoTooltip:DogNoBreed");
+            } else
+            {
+                emptyBreed = StringTable.GetLocalizedString("Ui/Caption/HUD/PetAdoptionInfoTooltip:CatHorseNoBreed");
+            }
+            breedInfo.Add(new ObjectListPickerInfo(emptyBreed, new BreedOutfit("", "")));
+
             foreach (BreedOutfit b in mBreeds)
             {
                 // Breed names ending in "Delta" display as, "Create a [Species]".

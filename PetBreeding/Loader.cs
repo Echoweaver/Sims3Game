@@ -11,24 +11,16 @@ namespace Echoweaver.Sims3Game.PetBreeding
 {
     public class Loader
     {
-        static bool HasBeenLoaded = false;
-
         [Tunable]
         protected static bool kInstantiator = false;
 
+        public static string sEWBreedLocalizeKey = "Echoweaver/BreedFix:";
+
         static Loader()
         {
-            //            LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
             World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
-
         }
 
-        public static void OnPreLoad()
-        {
-            if (HasBeenLoaded) return; // you only want to run it once per gameplay session
-            HasBeenLoaded = true;
-
-        }
 
         public static void AddBreedInteractions(Sim a)
         {
@@ -52,8 +44,6 @@ namespace Echoweaver.Sims3Game.PetBreeding
 
         public static ListenerAction OnNewOffspringPet(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("New Offspring Pet Event - setting breed",
-                StyledNotification.NotificationStyle.kDebugAlert));
             Sim pet = e.TargetObject as Sim;
             if (pet.SimDescription.PetManager.BreedName == "" || pet.SimDescription.PetManager.BreedName == null)
             {

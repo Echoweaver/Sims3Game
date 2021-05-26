@@ -14,9 +14,16 @@ namespace Echoweaver.Sims3Game.PetBreeding
         [DoesntRequireTuning]
         private sealed class Definition : ImmediateInteractionDefinition<Sim, Sim, ShowPetBreed>
         {
+            public override string[] GetPath(bool isFemale)
+            {
+                return new string[1] {
+                    Localization.LocalizeString (Loader.sEWBreedLocalizeKey + "BreedMenu")
+                };
+            }
+
             public override string GetInteractionName(Sim a, Sim target, InteractionObjectPair interaction)
             {
-                return "Show Breed";
+                return Localization.LocalizeString(Loader.sEWBreedLocalizeKey + "ShowPetBreed");
             }
 
             public override bool Test(Sim a, Sim target, bool isAutonomous,
@@ -31,7 +38,6 @@ namespace Echoweaver.Sims3Game.PetBreeding
         public override bool Run()
         {
             string breedName = Target.SimDescription.PetManager.BreedName;
-            //string breedName = new HudModel().GetPetBreedName(Target.SimDescription.GetMiniSimDescription()); 
             if (breedName == null || breedName == string.Empty)
             {
                 if (Target.IsADogSpecies)
@@ -46,7 +52,10 @@ namespace Echoweaver.Sims3Game.PetBreeding
             {
                 breedName = StringTable.GetLocalizedString(breedName);
             }
-            Actor.ShowTNSIfSelectable(breedName, StyledNotification.NotificationStyle.kSimTalking);
+            StyledNotification.Show(new StyledNotification.Format(Target.FullName
+                + " " + Localization.LocalizeString(Loader.sEWBreedLocalizeKey + "BreedMenu")
+                + " = " + StringTable.GetLocalizedString(breedName),
+                StyledNotification.NotificationStyle.kGameMessagePositive));
             return true;
         }
     }
