@@ -40,6 +40,17 @@ namespace Echoweaver.Sims3Game.PetBreeding
                 AddBreedInteractions(pet);
             }
             EventTracker.AddListener(EventTypeId.kNewOffspringPet, new ProcessEventDelegate(OnNewOffspringPet));
+            EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));
+        }
+
+        public static ListenerAction OnSimInstantiated(Event e)
+        {
+            Sim sim = e.TargetObject as Sim;
+            if (sim.IsPet)
+            {
+                AddBreedInteractions(sim);
+            }
+            return ListenerAction.Keep;
         }
 
         public static ListenerAction OnNewOffspringPet(Event e)

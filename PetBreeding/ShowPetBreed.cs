@@ -54,7 +54,7 @@ namespace Echoweaver.Sims3Game.PetBreeding
             }
             StyledNotification.Show(new StyledNotification.Format(Target.FullName
                 + " " + Localization.LocalizeString(Loader.sEWBreedLocalizeKey + "BreedMenu")
-                + " = " + StringTable.GetLocalizedString(breedName),
+                + " = " + breedName,
                 StyledNotification.NotificationStyle.kGameMessagePositive));
             return true;
         }

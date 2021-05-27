@@ -41,6 +41,7 @@ namespace Echoweaver.Sims3Game.PetBreeding
             string breedName = "";
             if (breed == null || breed.BreedLocKey == string.Empty)
             {
+                Target.SimDescription.PetManager.BreedName = "";
                 if (Target.IsADogSpecies)
                 {
                     breedName = StringTable.GetLocalizedString("Ui/Caption/HUD/PetAdoptionInfoTooltip:DogNoBreed");
@@ -52,13 +53,13 @@ namespace Echoweaver.Sims3Game.PetBreeding
             }
             else
             {
-                breedName = StringTable.GetLocalizedString(breedName);
+                Target.SimDescription.PetManager.BreedName = breed.BreedLocKey;
+                breedName = StringTable.GetLocalizedString(breed.BreedLocKey);
             }
 
             StyledNotification.Show(new StyledNotification.Format(Target.FullName
                 + " " + Localization.LocalizeString(Loader.sEWBreedLocalizeKey + "SetPetBreed")
-                + " = " + StringTable.GetLocalizedString(breedName),
-                StyledNotification.NotificationStyle.kGameMessagePositive));
+                + " = " + breedName, StyledNotification.NotificationStyle.kGameMessagePositive));
             return true;
         }
     }
