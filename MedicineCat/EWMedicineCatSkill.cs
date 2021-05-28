@@ -12,6 +12,42 @@ using Sims3.Gameplay.Abstracts;
 using Sims3.UI;
 using Sims3.Gameplay.Autonomy;
 
+
+/*
+ * Types of medicine:
+ *  - Fleas
+ *    > Cure: rodent
+ *  - Treatment of wounds (Pet Fighting Mod)
+ *    - Lower levels: Reduce wound by one level
+ *    - Higher levels: Remove wound entirely
+ *      > goldenrod, marigold [sulfur], GARLIC, (WOLFSBANE), (WATERMELON), 
+ *      > BLACKBERRY, burdock root (MANDRAKE ROOT), poppy [cosmos], chervil, comfrey root, dandelion, dock leaf 
+ *      > elder leaf (BUMBLELEAF), fennel, goldenrod, horsetail, oak leaf (APPLE), stinging nettle (LEMON LIME), willow bark
+ *  - Treatment of disease 
+ *    - Whitecough Coughing and sneezing, fatigue
+ *      > HONEY, (ONION), bright eyes [sweet william]
+ *    - Greencough (Develops from untreated whitecough) Coughing, Fever, Rheumy Eyes, Difficulty Breathing
+ *      > blazing star flower (WONDERPETAL)[azalea], catmint (PEPPERMINT), chickweed, hawkweed, LAVENDER, 
+ *        borage leaves [blue flax], lungwort, sweet-sedge (LICORICE), tansy
+ *  - Nausea (Vomits reduce hunger motive. Eating causes vomiting and halves the gain from eating)
+ *      > Watermint, williow leaves (GREENLEAF), wintergreen, juniper berries (BUZZBERRY), mallow leaves, parsley, yarrow
+ *      > (SWEETGRASS), (WATERMELON)
+ *  - Problems with childbirth (requires childbirth trouble event)
+ *    > RASPBERRY, chervil, fennel(BASIL), ragwort leaves, (BELL PEPPER)
+ *  - ? Problems with nursing
+ */
+
+/* 
+ * Types of medicine (converted to Sims)
+ * - Fleas: RODENT
+ * - Wounds, reduce by one level: [sulfur], GARLIC, <wolfsbane>, WATERMELON, APPLE
+ * - Disease, whitecough: HONEY, ONION, [sweet william], LICORICE
+ * - Disease, nausea: GREENLEAF, BUZZBERRY, SWEETGRASS, WATERMELON
+ * - Disease, greencough: WONDERPETAL, [azalea],  PEPPERMINT, LAVENDER, [blue flax]
+ * - Childbirth: RASPBERRY, BASIL, BELL PEPPER
+ * - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIME
+ */
+
 namespace Echoweaver.Sims3Game.MedicineCat
 {
 	[Persistable]

@@ -36,6 +36,9 @@
     <Compile Include="BuffBooter.cs" />
     <Compile Include="BuffEWGreenCough.cs" />
     <Compile Include="BuffEWRecuperating.cs" />
+    <Compile Include="EWPetViewPlant.cs" />
+    <Compile Include="EWPetWaterPlant.cs" />
+    <Compile Include="EWPetHarvest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

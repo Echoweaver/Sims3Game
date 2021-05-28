@@ -12,6 +12,22 @@ using Sims3.Gameplay.Abstracts;
 using Sims3.UI;
 using Sims3.Gameplay.Autonomy;
 
+
+/*
+ * Herb Lore Skill Levels:
+ * 0: View Plant, Play with Plant, Pick up seeds
+ * 1: Harvest
+ * 2: Water
+ * 3: Weed
+ * 4: Dispose
+ * 5: Plant Harvestables
+ * 6: Tend
+ * 7: Fertilize with Fish
+ * 8: 
+ * 9:
+ * 10: Harvest gains quality?
+ */
+
 namespace Echoweaver.Sims3Game.MedicineCat
 {
 	[Persistable]
