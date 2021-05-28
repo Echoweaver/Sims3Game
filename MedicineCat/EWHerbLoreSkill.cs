@@ -11,6 +11,7 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Abstracts;
 using Sims3.UI;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Objects.Gardening;
 
 
 /*
@@ -19,9 +20,9 @@ using Sims3.Gameplay.Autonomy;
  * 1: Harvest
  * 2: Water
  * 3: Weed
- * 4: Dispose
- * 5: Plant Harvestables
- * 6: Tend
+ * 4: Dispose, Plant Harvestables
+ * 5: Tend
+ * 6: 
  * 7: Fertilize with Fish
  * 8: 
  * 9:
@@ -33,15 +34,13 @@ namespace Echoweaver.Sims3Game.MedicineCat
 	[Persistable]
 	public class EWHerbLoreSkill : Skill
 	{
-		public const SkillNames SkillNameID = (SkillNames)0x0; //TODO: Set this value
+		public const SkillNames SkillNameID = (SkillNames)0x7808B943;
 
-		//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
-
-		public const string sEWLocalizationKey = "Echoweaver/Skills/EWHerLoreSkill";
+		public const string sEWLocalizationKey = "Echoweaver/Skills/EWHerbLoreSkill:";
 
 		public static float kEWHerbLoreGainRateNormal = 5f;
 
-		int mDiseasesCured = 0;
+		int mSpeciesPlanted = 0;
 
 		bool mTestOppIsNew = false;
 
@@ -61,20 +60,13 @@ namespace Echoweaver.Sims3Game.MedicineCat
 		}
 
 		[Persistable]
-		public class FishInfo
-		{
-			public int mNumberCaught;
-
-			public float mHeaviestTypeWeight;
-		}
-
-		public class DiseasesCured : ITrackedStat
+		public class SpeciesPlanted : ITrackedStat
 		{
 			public EWHerbLoreSkill mSkill;
 
-			public string Description => Localization.LocalizeString(sEWLocalizationKey + ":DiseasesCured", mSkill.mDiseasesCured);
+			public string Description => mSkill.LocalizeString("SpeciesPlanted", mSkill.mSpeciesPlanted);
 
-			public DiseasesCured(EWHerbLoreSkill skill)
+			public SpeciesPlanted(EWHerbLoreSkill skill)
 			{
 				mSkill = skill;
 			}
@@ -130,14 +122,14 @@ namespace Echoweaver.Sims3Game.MedicineCat
 
 		public new string LocalizeString(string name, params object[] parameters)
 		{
-			return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + ":" + name, parameters);
+			return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + name, parameters);
 		}
 
 
 		public override void CreateSkillJournalInfo()
 		{
 			mTrackedStats = new List<ITrackedStat>();
-			mTrackedStats.Add(new DiseasesCured(this));
+			mTrackedStats.Add(new SpeciesPlanted(this));
 			mLifetimeOpportunities = new List<ILifetimeOpportunity>();
 			mLifetimeOpportunities.Add(new OppTest(this));
 		}
