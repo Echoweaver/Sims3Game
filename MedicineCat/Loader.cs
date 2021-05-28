@@ -20,7 +20,6 @@ namespace Echoweaver.Sims3Game.MedicineCat
         [Tunable]
         public static bool kAllowPetDeath = true;
         public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.Starve;
-        public static SimDescription.DeathType childbirthDeathType = SimDescription.DeathType.Starve;
 
         static Loader()
         {
@@ -49,7 +48,6 @@ namespace Echoweaver.Sims3Game.MedicineCat
             if (GameUtils.IsInstalled(ProductVersion.EP9))
             {
                 diseaseDeathType = SimDescription.DeathType.Ranting;
-                childbirthDeathType = SimDescription.DeathType.BluntForceTrauma; // TODO: Would like to find better one
             }
         }
 

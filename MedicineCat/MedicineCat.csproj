@@ -6,7 +6,7 @@
     <ProjectGuid>{9C2C3D06-3269-43F9-8928-EC440E4B1E16}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Echoweaver.Sims3Game.MedicineCat</RootNamespace>
-    <AssemblyName>MedicineCatSkill</AssemblyName>
+    <AssemblyName>MedicineCat</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

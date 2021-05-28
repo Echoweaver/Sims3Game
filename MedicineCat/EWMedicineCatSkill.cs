@@ -53,7 +53,7 @@ namespace Echoweaver.Sims3Game.MedicineCat
 	[Persistable]
 	public class EWMedicineCatSkill : Skill
 	{
-		public const SkillNames SkillNameID = (SkillNames)0x0; //TODO: Set this value
+		public const SkillNames SkillNameID = (SkillNames)0x277ECF3A;
 
 		//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
 
