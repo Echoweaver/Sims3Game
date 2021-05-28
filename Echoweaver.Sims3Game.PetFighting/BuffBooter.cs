@@ -1,7 +1,6 @@
 ﻿using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -13,8 +12,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void LoadBuffData()
         {
-            AddBuffs(null);
-            UIManager.NewHotInstallStoreBuffData += new Sims3.UI.UIManager.NewHotInstallStoreBuffCallback(AddBuffs);
+            this.AddBuffs(null);
+            Sims3.UI.UIManager.NewHotInstallStoreBuffData += new Sims3.UI.UIManager.NewHotInstallStoreBuffCallback(this.AddBuffs);
         }
 
         public void AddBuffs(ResourceKey[] resourceKeys)

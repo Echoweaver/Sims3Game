@@ -6,11 +6,9 @@ using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.InteractionsShared;
-using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
@@ -19,10 +17,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 {
     public class EWFightPet : SocialInteractionA
     {
-        [Tunable]
-        [TunableComment("Distance attacking pet must be from target pet before initiating attack animations.")]
-        public static float kDistanceForPetFight = CatHuntingComponent.PetEatPrey.kDistanceFromPreyForCatToHunting;
-
         public class EWFightPetDefinition : Definition
         {
             public EWFightPetDefinition()
@@ -49,18 +43,20 @@ namespace Echoweaver.Sims3Game.PetFighting
             public override string[] GetPath(bool isFemale)
             {
                 return new string[1] {
-                    Localization.LocalizeString (ActionData.GetParentMenuLocKey (ActionDataBase.ParentMenuType.Mean))
+                    Localization.LocalizeString (ActionData.GetParentMenuLocKey
+                    (ActionDataBase.ParentMenuType.Mean))
                 };
             }
 
-            public override float CalculateScore(InteractionObjectPair interactionObjectPair, Sims3.Gameplay.Autonomy.Autonomy autonomy)
+            public override float CalculateScore(InteractionObjectPair interactionObjectPair,
+                Autonomy autonomy)
             {
-                return CalculateScoreWithInteractionTuning(interactionObjectPair, autonomy, kSocialTuningScoreWeight, kInteractionTuningScoreWeight);
+                return CalculateScoreWithInteractionTuning(interactionObjectPair, autonomy,
+                    kSocialTuningScoreWeight, kInteractionTuningScoreWeight);
             }
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                // TODO: Localize
                 return "EWFightPet";
             }
         }
@@ -143,7 +139,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return false;
             }
 
-            float distanceToObjectSquared = Actor.GetDistanceToObjectSquared(Target);
             EWPetFightingSkill skillActor = Actor.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillActor == null)
             {
@@ -154,27 +149,22 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            EWPetFightingSkill skillTarget = Target.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+            EWPetFightingSkill skillTarget = Target.SkillManager
+                .GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillTarget == null)
             {
-                skillTarget = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
+                skillTarget = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
+                    as EWPetFightingSkill;
                 if (skillTarget == null)
                 {
                     return false;
                 }
             }
 
-            // TODO: There are accelerated gain rates for Hunter and Aggressive pets. Possibly slower for Nonaggressive and Skittish?
+            // TODO: There are accelerated gain rates for Hunter and Aggressive pets.
+            // Possibly slower for Nonaggressive and Skittish?
             skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
             skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
-
-            float distanceToObject = Actor.GetDistanceToObject(Target);
-            if (distanceToObject > kDistanceForPetFight)
-            {
-                Actor.RequestWalkStyle(WalkStyle.PetRun);
-                Actor.RouteToObjectRadius(Target, kDistanceForPetFight);
-                Actor.UnrequestWalkStyle(WalkStyle.PetRun);
-            }
 
             if (Actor.IsCat)
             {
@@ -187,7 +177,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 RequestWalkStyle(WalkStyle.PetRun);
             }
-            if (!BeginSocialInteraction(new SocialInteractionB.Definition(null, GetInteractionName(), allowCarryChild: false), pairedSocial: true, doCallOver: false))
+            if (!BeginSocialInteraction(new SocialInteractionB.Definition(null, GetInteractionName(),
+                allowCarryChild: false), pairedSocial: true, doCallOver: false))
             {
                 if (Actor.IsCat)
                 {
@@ -203,12 +194,12 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             StandardEntry(addToUseList: false);
             StartSocial("Fight Pet");
-            BeginCommodityUpdates();
             ((SocialInteraction)LinkedInteractionInstance).Rejected = Rejected;
-            mPetFightNoiseBroadcast = new ReactionBroadcaster(Actor, kPetFightLoudBroadcastParams, FightBroadcastCallback);
+            mPetFightNoiseBroadcast = new ReactionBroadcaster(Actor, kPetFightLoudBroadcastParams,
+                FightBroadcastCallback);
             PetStartleBehavior.CheckForStartle(Actor, StartleType.Fight);
-            SetActor("y", (IHasScriptProxy)(object)Target);
             EnterStateMachine("PetFight", "Enter", "x");
+            SetActor("y", (IHasScriptProxy)(object)Target);
             AnimateSim("Loop Fight");
             if (Actor.IsCat)
             {
@@ -218,6 +209,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                     Actor.PopPosture();
                 }
             }
+            BeginCommodityUpdates();
             // A fight should reduce fatigue
             InteractionTuning tuning = InteractionObjectPair.Tuning;
             if (tuning != null && tuning.mTradeoff != null)
@@ -245,8 +237,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 SetActor("y", (IHasScriptProxy)(object)Actor);
                 skillTarget.wonFight();
                 skillActor.lostFight();
-            }
-            else
+            } else
             {
                 skillActor.wonFight();
                 skillTarget.lostFight();
@@ -266,11 +257,11 @@ namespace Echoweaver.Sims3Game.PetFighting
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
-
-            // Must Assign wounds after checking for death because only a preexisting
-            // grave wound should cause death upon losing.
-            AssignFightWounds(Actor, actorWon);
-            AssignFightWounds(Target, !actorWon);
+            AssignFightWounds();
+            if (DoesLoserDie())
+            {
+                Target.Kill(Sims3.Gameplay.CAS.SimDescription.DeathType.BluntForceTrauma);
+            }
             return flag;
         }
 
@@ -286,71 +277,70 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public bool DoesActorWinFight()
         {
-            int winChance = kBaseWinChance;
-            int actorSkillLevel = Math.Max(0, Actor.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            int targetSkillLevel = Math.Max(0, Target.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            winChance += (actorSkillLevel - targetSkillLevel) * kWinChanceBonusPerSkillLevelDiff;
+            int num = kBaseWinChance;
+            int num2 = Math.Max(0, Actor.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+            int num3 = Math.Max(0, Target.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+            num += (num2 - num3) * kWinChanceBonusPerSkillLevelDiff;
             for (int i = 0; i < kWinChanceModifyTraits.Length; i++)
             {
                 if (Actor.HasTrait(kWinChanceModifyTraits[i]))
                 {
-                    winChance += kWinChanceModifyValues[i];
+                    num += kWinChanceModifyValues[i];
                 }
                 if (Target.HasTrait(kWinChanceModifyTraits[i]))
                 {
-                    winChance -= kWinChanceModifyValues[i];
+                    num -= kWinChanceModifyValues[i];
                 }
             }
-            winChance = MathUtils.Clamp(winChance, 0, 100);
-            return RandomUtil.RandomChance(winChance);
+            num = MathUtils.Clamp(num, 0, 100);
+            return RandomUtil.RandomChance(num);
         }
 
-        public void AssignFightWounds(Sim fighter, bool wonFight)
+        public void AssignFightWounds()
         {
-            if (!wonFight && fighter.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
-            {
-                // If the loser has Grave Wound moodlet or runs out of fatigue, they die 
-                BuffEWGraveWound.Succumb(fighter);
-            }
+            foreach (Sim fighter in new Sim[] { Actor, Target }) {
+                // Chance of being wounded is calculated based on the sim's fight skill.
+                // Could eventually take into account opponent sim or win/loss
+                int wound_chance = kBaseWoundChance;
+                int fight_level = Math.Max(0, fighter.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+                wound_chance -= kWoundChanceAdjPerSkillLevel * fight_level;
+                wound_chance = MathUtils.Clamp(wound_chance, 10, 90);
+                if (true)  // TODO: Replace debugging code
+//                if (RandomUtil.RandomChance(wound_chance))
+                {
+                    // Determine wound severity
+                    // Would severity is also offset by skill. This may not be the best way to do it.
 
-            // Chance of being wounded is calculated based on the sim's fight skill.
-            // Could eventually take into account opponent sim or win/loss
-            int wound_chance = kBaseWoundChance;
-            int fight_level = Math.Max(0, fighter.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            wound_chance -= kWoundChanceAdjPerSkillLevel * fight_level;
-            wound_chance = MathUtils.Clamp(wound_chance, 10, 90);
-            if (RandomUtil.RandomChance(wound_chance))
-            {
-                // Determine wound severity
-                // Wound severity is also offset by skill. This may not be the best way to do it.
-
-                int light_wound_chance = 10 + (2 * fight_level);
-                int medium_wound_chance = 10 + fight_level;
-                int grave_wound_chance = 10;
-                int wound_type = RandomUtil.GetInt(light_wound_chance + medium_wound_chance + grave_wound_chance);
-                if (wound_type <= light_wound_chance)
-                {
-                    fighter.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
-                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                }
-                else if (wound_type <= (light_wound_chance + medium_wound_chance))
-                {
-                    fighter.BuffManager.AddElement(BuffEWSeriousWound.StaticGuid,
-                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-                }
-                else
-                {
-                    fighter.BuffManager.AddElement(BuffEWGraveWound.StaticGuid,
-                        (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                    int light_wound_chance = 10 + (2 * fight_level);
+                    int medium_wound_chance = 10 + fight_level;
+                    int grave_wound_chance = 10;
+                    int wound_type = RandomUtil.GetInt(light_wound_chance + medium_wound_chance + grave_wound_chance);
+                    if (wound_type <= light_wound_chance)
+                    {
+                        fighter.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
+                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                    } else if (wound_type <= (light_wound_chance + medium_wound_chance))
+                    {
+                        fighter.BuffManager.AddElement(BuffEWSeriousWound.StaticGuid,
+                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                    } else
+                    {
+                        fighter.BuffManager.AddElement(BuffEWGraveWound.StaticGuid,
+                            (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
+                    }
                 }
             }
+        }
 
+        public bool DoesLoserDie()
+        {
+            // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
+            return false;
         }
 
         public static void FightBroadcastCallback(Sim s, ReactionBroadcaster rb)
         {
-            ReactToDisturbance.NoiseBroadcastCallback(s, rb.BroadcastingObject as GameObject, rb.IsFirstTime(s),
-                Origin.FromPetsFighting, isCryingBabyBuffInfinite: false);
+            ReactToDisturbance.NoiseBroadcastCallback(s, rb.BroadcastingObject as GameObject, rb.IsFirstTime(s), Origin.FromPetsFighting, isCryingBabyBuffInfinite: false);
         }
     }
 }

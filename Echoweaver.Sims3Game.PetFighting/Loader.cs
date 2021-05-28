@@ -1,8 +1,11 @@
 ﻿using System;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.CAS;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.PetObjects;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -12,6 +15,7 @@ using static Sims3.Gameplay.Actors.Sim;
 using System.Xml;
 using Sims3.Gameplay.Socializing;
 using System.Collections.Generic;
+using Sims3.Gameplay.CAS;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -24,21 +28,22 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         [Tunable]
         public static bool kAllowPetDeath = true;
-        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.Starve;
+        // Heh. Since pets don't use the human old age shader, might as well use it for default.
+        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.OldAge;
 
         static Loader()
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;
-            World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinished);
+            World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
         }
 
         public static void OnPreLoad()
         {
-            // Load custom buffs
-            (new BuffBooter()).LoadBuffData();
-
             if (HasBeenLoaded) return; // you only want to run it once per gameplay session
             HasBeenLoaded = true;
+
+            // Load custom buffs
+            (new BuffBooter()).LoadBuffData();
 
             // fill this in with the resourcekey of your SKIL xml
             XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x494F3A8118D98C44, 0xA8D58BE5, 0x00000000), false);
@@ -51,10 +56,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         }
 
-        public static void OnWorldLoadFinished(object sender, System.EventArgs e)
+        public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
             LoadSocialData("EWPetFighting_SocialData");
-            LoadSocializingActionAvailability("EWPetFighting_Availability");
 
             FightPet.Singleton = EWFightPet.Singleton;
 
@@ -100,7 +104,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 {
                     CommodityTypes types;
                     XmlElementLookup table = new XmlElementLookup(element);
-                    ParserFunctions.TryParseEnum(element.GetAttribute("com"), out types, CommodityTypes.Undefined);
+                    ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"), out types, CommodityTypes.Undefined);
                     ActionData data = new ActionData(element.GetAttribute("key"), types, ProductVersion.BaseGame, table, isEp5Installed);
                     ActionData.Add(data);
                 }
@@ -108,23 +112,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             if(GameUtils.IsInstalled(ProductVersion.EP9))
             {
                 fightDeathType = SimDescription.DeathType.BluntForceTrauma;
-            } else if (GameUtils.IsInstalled(ProductVersion.EP2))
-            {
-                fightDeathType = SimDescription.DeathType.Meteor;
             }
         }
 
-        public static void LoadSocializingActionAvailability(string spreadsheet)
-        {
-            XmlDbData xdb = XmlDbData.ReadData(spreadsheet);
-            if (xdb != null)
-            {
-                if (xdb.Tables.ContainsKey("SAA"))
-                {
-                    SocialManager.ParseStcActionAvailability(xdb);
-                }
-            }
-        }
 
         public static ListenerAction OnSocialInteraction(Event e)
         {
@@ -155,16 +145,13 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             return ListenerAction.Keep;
         }
+
         public static ListenerAction OnSimPassedOut(Event e)
         {
             // Check to see if pet sims have same passed out event
             StyledNotification.Show(new StyledNotification.Format("Passed Out Actor: " + e.Actor.Name,
                 StyledNotification.NotificationStyle.kGameMessagePositive));
-            Sim actor = (Sim)e.Actor;
-            if (actor.BuffManager.HasElement(BuffEWGraveWound.StaticGuid)) {
-                // Pets who pass out with a Grave Wound have succumbed to their wound
-                BuffEWGraveWound.Succumb(actor);
-            }
+
             return ListenerAction.Keep;
         }
     }
