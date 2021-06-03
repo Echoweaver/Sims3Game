@@ -5,7 +5,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI.Hud;
 
-namespace Echoweaver.Sims3.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats
 {
     /*
      * Herb Lore Skill Levels:

@@ -36,10 +36,10 @@ using Sims3.UI.Hud;
  * - Disease, nausea: GREENLEAF, BUZZBERRY, SWEETGRASS, WATERMELON
  * - Disease, greencough: WONDERPETAL, [azalea],  PEPPERMINT, LAVENDER, [blue flax]
  * - Childbirth: RASPBERRY, BASIL, BELL PEPPER
- * - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIME
+ * - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIMEx
  */
 
-namespace Echoweaver.Sims3.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats
 {
 
     public class EWMedicineCatSkill : Skill

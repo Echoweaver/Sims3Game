@@ -1,11 +1,15 @@
 ﻿using System;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Queries = Sims3.Gameplay.Queries;
+using Sims3.Gameplay.EventSystem;
 
-namespace Echoweaver.Sims3.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats
 {
     public class Loader : GameObject
     {
@@ -14,57 +18,53 @@ namespace Echoweaver.Sims3.WarriorCats
         [Tunable]
         protected static bool kInstantiator = false;
 
+        [Tunable]
+        public static bool kAllowPetDeath = true;
+        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.Starve;
+
+
         static Loader()
         {
             // gets the OnPreload method to run before the whole savegame is loaded so your sim doesn't find
             // the skill missing if they need to access its data
             LoadSaveManager.ObjectGroupsPreLoad += OnPreload;
+            World.sOnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinishedHandler);
         }
 
         static void OnPreload()
         {
-            try
-            {
-                if (HasBeenLoaded) return; // you only want to run it once per gameplay session
-                HasBeenLoaded = true;
+            if (HasBeenLoaded) return; // you only want to run it once per gameplay session
+            HasBeenLoaded = true;
 
-                // fill this in with the resourcekey of your SKIL xml
-                XmlDbData data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("EW_MedicineCat_Skill"),
-                    0xA8D58BE5, 0x00000000), false);
+            // fill this in with the resourcekey of your SKIL xml
+            XmlDbData data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("EW_MedicineCat_Skill"),
+                0xA8D58BE5, 0x00000000), false);
 
-                if (data == null)
-                {
-                    return;
-                }
-                SkillManager.ParseSkillData(data, true);
-
-            }
-            catch (Exception ex)
+            if (data == null)
             {
                 return;
             }
+            SkillManager.ParseSkillData(data, true);
         }
-    }
 
-    public class ExampleUsesClass : GameObject
-    {
-        private const SkillNames ExampleCustomSkillGuid = (SkillNames)0x277ECF3A;
-
-        public ExampleUsesClass()
+        public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
+            //foreach (Plant p in Queries.GetObjects<Plant>())
+            //{
+            //    p.AddInteraction(EWPetViewPlant.Singleton);
+            //}
+            //EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
+            //EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
 
-        public void ExampleUses(Sim s)
+        public static ListenerAction OnObjectChanged(Event e)
         {
-            if (!s.SkillManager.HasElement(ExampleCustomSkillGuid))
-            {
-                s.SkillManager.AddElement(ExampleCustomSkillGuid);
-            }
-            s.SkillManager.AddSkillPoints(ExampleCustomSkillGuid, 3.0f);
-            Skill sk = s.SkillManager.GetElement(ExampleCustomSkillGuid);
-            float sl = sk.SkillPoints;
-
+            //Plant p = e.TargetObject as Plant;
+            //if (p != null)
+            //{
+            //    p.AddInteraction(EWPetViewPlant.Singleton);
+            //}
+            return ListenerAction.Keep;
         }
-
     }
 }
