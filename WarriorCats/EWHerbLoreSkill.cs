@@ -14,9 +14,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
      * 2: Water
      * 3: Weed
      * 4: Dispose, Plant Harvestables
-     * 5: Tend
-     * 6: Tend gains speed
-     * 7: Fertilize with Fish
+     * 5: Fertilize with Fish
+     * 6: Tend 
+     * 7: Tend gains speed
      * 8: Harvest gains quality
      * 9: Make traveling herbs
      * 10: Make more traveling herbs

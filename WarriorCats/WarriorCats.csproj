@@ -35,6 +35,8 @@
     <Compile Include="Loader.cs" />
     <Compile Include="EWMedicineCatSkill.cs" />
     <Compile Include="EWHerbLoreSkill.cs" />
+    <Compile Include="EWPetMarkPlant.cs" />
+    <Compile Include="EWPetWatchPlant.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
