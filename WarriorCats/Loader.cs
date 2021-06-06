@@ -33,8 +33,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         static void OnPreload()
         {
-            //if (HasBeenLoaded) return; // you only want to run it once per gameplay session
-            //HasBeenLoaded = true;
+            if (HasBeenLoaded) return; // you only want to run it once per gameplay session
+            HasBeenLoaded = true;
 
             // fill this in with the resourcekey of your SKIL xml
             XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x37302B56D63A81A2, 0xA8D58BE5, 0x00000000), false);
@@ -52,6 +52,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             {
                 p.AddInteraction(EWPetMarkPlant.Singleton);
                 p.AddInteraction(EWPetWatchPlant.Singleton);
+                p.AddInteraction(EWPetHarvest.Singleton);
             }
             if (GameUtils.IsInstalled(ProductVersion.EP9))
             {

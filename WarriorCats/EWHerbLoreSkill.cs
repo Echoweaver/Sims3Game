@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.Objects;
+using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.UI;
 using Sims3.UI.Hud;
+using static Sims3.Gameplay.Skills.Gardening;
+using static Sims3.UI.StyledNotification;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -31,8 +38,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static float kEWHerbLoreGainRateNormal = 5f;
 
-        int mSpeciesPlanted = 0;
-
         bool mTestOppIsNew = false;
 
         bool mTestOppIsCompleted = false;
@@ -42,6 +47,16 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         [Persistable(false)]
         public List<ILifetimeOpportunity> mLifetimeOpportunities;
+
+        public Dictionary<string, PlantInfo> mHarvestCounts;
+
+        public int mNumberPlanted;
+
+        public int mNumberThingsHarvested;
+
+        public List<string> mPlantsPlanted;
+
+        public Quality mBestQualityHarvested = Quality.Any;
 
 
         public EWHerbLoreSkill(SkillNames guid) : base(guid)
@@ -56,18 +71,149 @@ namespace Echoweaver.Sims3Game.WarriorCats
             return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + name, parameters);
         }
 
-
         [Persistable]
-        public class SpeciesPlanted : ITrackedStat
+        public class PlantInfo
+        {
+            public int HarvestablesCount;
+
+            public Quality BestQuality = Quality.Any;
+
+            public int MostExpensive;
+        }
+
+        public class NumberPlanted : ITrackedStat
         {
             public EWHerbLoreSkill mSkill;
 
-            public string Description => mSkill.LocalizeString("SpeciesPlanted", mSkill.mSpeciesPlanted);
+            public string Description => Gardening.LocalizeString("NumberPlanted", mSkill.mNumberPlanted);
 
-            public SpeciesPlanted(EWHerbLoreSkill skill)
+            public NumberPlanted(EWHerbLoreSkill skill)
             {
                 mSkill = skill;
             }
+        }
+
+        public class UniquePlantsPlanted : ITrackedStat
+        {
+            public EWHerbLoreSkill mSkill;
+
+            public string Description
+            {
+                get
+                {
+                    double num = 0.0;
+                    if (mSkill.mPlantsPlanted != null)
+                    {
+                        int num2 = 0;
+                        foreach (string item in mSkill.mPlantsPlanted)
+                        {
+                            if (PlantDefinition.mDictionary.ContainsKey(item))
+                            {
+                                num2++;
+                            }
+                        }
+                        num = (double)num2 / (double)sUniquePlants;
+                        num = Math.Round(num, 2) * 100.0;
+                    }
+                    return Gardening.LocalizeString("UniquePlantsPlanted", num);
+                }
+            }
+
+            public UniquePlantsPlanted(EWHerbLoreSkill skill)
+            {
+                mSkill = skill;
+            }
+        }
+
+        public class ItemsHarvested : ITrackedStat
+        {
+            public EWHerbLoreSkill mSkill;
+
+            public string Description => Gardening.LocalizeString("ItemsHarvested", mSkill.mNumberThingsHarvested);
+
+            public ItemsHarvested(EWHerbLoreSkill skill)
+            {
+                mSkill = skill;
+            }
+        }
+
+        public class BestHarvestable : ITrackedStat
+        {
+            public EWHerbLoreSkill mSkill;
+
+            public string Description
+            {
+                get
+                {
+                    if (mSkill.mBestQualityHarvested == Quality.Any)
+                    {
+                        return Gardening.LocalizeString("BestHarvestable", new object[1] {
+                    Gardening.LocalizeString ("NoneHarvested")
+                });
+                    }
+                    return Gardening.LocalizeString("BestHarvestable", new object[1] {
+                QualityHelper.GetQualityLocalizedString (mSkill.mBestQualityHarvested)
+            });
+                }
+            }
+
+            public BestHarvestable(EWHerbLoreSkill skill)
+            {
+                mSkill = skill;
+            }
+        }
+
+        public bool HasPlanted(string plantName)
+        {
+            if (mHarvestCounts != null)
+            {
+                return mHarvestCounts.ContainsKey(plantName);
+            }
+            return false;
+        }
+
+        public bool HasHarvested()
+        {
+            if (mHarvestCounts != null)
+            {
+                foreach (PlantInfo value in mHarvestCounts.Values)
+                {
+                    if (value.HarvestablesCount > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void Harvested(Quality quality, PlantDefinition def)
+        {
+            if (mHarvestCounts == null)
+            {
+                mHarvestCounts = new Dictionary<string, PlantInfo>();
+            }
+            if (!mHarvestCounts.TryGetValue(def.PlantName, out PlantInfo value))
+            {
+                value = new PlantInfo();
+                value.HarvestablesCount = 1;
+                value.BestQuality = quality;
+                mHarvestCounts.Add(def.PlantName, value);
+            }
+            else
+            {
+                value.HarvestablesCount++;
+                if (quality > value.BestQuality)
+                {
+                    value.BestQuality = quality;
+                }
+            }
+            if (quality > mBestQualityHarvested)
+            {
+                mBestQualityHarvested = quality;
+            }
+            mNumberThingsHarvested++;
+            TestForNewLifetimeOpp();
         }
 
         public override List<ITrackedStat> TrackedStats => mTrackedStats;
@@ -111,9 +257,77 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public override void CreateSkillJournalInfo()
         {
             mTrackedStats = new List<ITrackedStat>();
-            mTrackedStats.Add(new SpeciesPlanted(this));
+            mTrackedStats.Add(new NumberPlanted(this));
+            mTrackedStats.Add(new UniquePlantsPlanted(this));
+            mTrackedStats.Add(new ItemsHarvested(this));
+            mTrackedStats.Add(new BestHarvestable(this));
             mLifetimeOpportunities = new List<ILifetimeOpportunity>();
             mLifetimeOpportunities.Add(new OppTest(this));
+        }
+
+        public void UpdateSkillJournal(PlantDefinition harvestPlantDef, List<GameObject> objectsHarvested)
+        {
+            foreach (GameObject item in objectsHarvested)
+            {
+                Harvested(Plant.GetQuality(item.Plantable.QualityLevel), harvestPlantDef);
+            }
+        }
+
+        public static StateMachineClient CreateStateMachine(Sim s, HarvestPlant p, out Soil dummyIk)
+        {
+            dummyIk = Soil.Create(isDummyIk: true);
+            StateMachineClient val = StateMachineClient.Acquire(s, "petgardening");
+            //dummyIk.SetHiddenFlags(HiddenFlags.Nothing);
+            dummyIk.SetPosition(p.GetSoil().Position);
+            Vector3 forward = p.GetSoil().Position - s.Position;
+            dummyIk.SetForward(forward);
+            dummyIk.AddToWorld();
+            val.SetActor("x", s);
+            val.SetActor("gardenPlantBush", p);
+            val.SetActor("gardenSoil", p.GetSoil());
+            val.SetActor("Dummy", dummyIk);
+            if (!p.PlantDef.GetPlantHeight(out PlantHeight height))
+            {
+                height = PlantHeight.Medium;
+            }
+            val.SetParameter("Plant Height", height);
+            return val;
+        }
+
+        public static bool DoHarvest(Sim actor, HarvestPlant target, bool hasHarvested)
+        {
+            Slot[] containmentSlots = target.GetContainmentSlots();
+            List<GameObject> list = new List<GameObject>();
+            Slot[] array = containmentSlots;
+            foreach (Slot slotName in array)
+            {
+                GameObject gameObject = target.GetContainedObject(slotName) as GameObject;
+                if (gameObject != null && target.HarvestHarvestable(gameObject, actor, null))
+                {
+                    list.Add(gameObject);
+                }
+            }
+
+            if (list.Count > 0)
+            {
+                StyledNotification.Show(new StyledNotification.Format("List larger than 0",
+                    StyledNotification.NotificationStyle.kDebugAlert));
+                EWHerbLoreSkill skill = actor.SkillManager.GetSkill<EWHerbLoreSkill>(EWHerbLoreSkill.SkillNameID);
+                if (skill != null)
+                {
+                    skill.UpdateSkillJournal(target.PlantDef, list);
+                }
+
+                if (!hasHarvested)
+                {
+                    actor.ShowTNSIfSelectable(Localization.LocalizeString(actor.IsFemale,
+                        "Gameplay/Objects/Gardening/HarvestPlant/Harvest:FirstHarvest", actor, target.PlantDef.Name),
+                        NotificationStyle.kGameMessagePositive, target.ObjectId, actor.ObjectId);
+                }
+                target.PostHarvest();
+                return true;
+            }
+            return false;
         }
 
         public override bool ExportContent(IPropertyStreamWriter writer)
