@@ -8,6 +8,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Autonomy;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -53,7 +54,20 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 p.AddInteraction(EWPetMarkPlant.Singleton);
                 p.AddInteraction(EWPetWatchPlant.Singleton);
                 p.AddInteraction(EWPetHarvest.Singleton);
+                p.AddInteraction(EWPetWeedPlant.Singleton);
+                p.AddInteraction(EWPetWaterPlant.Singleton);
+                p.AddInteraction(EWPetDisposePlant.Singleton);
             }
+
+            foreach (GameObject p in Queries.GetObjects<GameObject>())
+            {
+                if (!(p.Plantable == null))
+                {
+                    p.AddInteraction(EWPetPickUpPlantable.Singleton);
+                    p.AddInventoryInteraction(EWPetPlantSeed.Singleton);
+                }
+            }
+
             if (GameUtils.IsInstalled(ProductVersion.EP9))
             {
                 sickDeathType = SimDescription.DeathType.Ranting;
@@ -67,8 +81,31 @@ namespace Echoweaver.Sims3Game.WarriorCats
             Plant p = e.TargetObject as Plant;
             if (p != null)
             {
-                p.AddInteraction(EWPetMarkPlant.Singleton);
-                p.AddInteraction(EWPetWatchPlant.Singleton);
+                p.AddInteraction(EWPetMarkPlant.Singleton, true);
+                p.AddInteraction(EWPetWatchPlant.Singleton, true);
+                p.AddInteraction(EWPetHarvest.Singleton, true);
+                p.AddInteraction(EWPetWeedPlant.Singleton, true);
+                p.AddInteraction(EWPetWaterPlant.Singleton, true);
+                p.AddInteraction(EWPetDisposePlant.Singleton, true);
+            }
+
+            if (!(e.TargetObject.Plantable == null))
+            {
+                bool has_plant = false;
+                foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(e.Actor))
+                {
+                    if (pair.InteractionDefinition.GetType() == EWPetPlantSeed.Singleton.GetType())
+                    {
+                        has_plant = true;
+                        break;
+                    }
+                }
+                if (!has_plant)
+                {
+                    GameObject o = e.TargetObject as GameObject;
+                    o.AddInventoryInteraction(EWPetPlantSeed.Singleton);
+                    o.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+                }
             }
             return ListenerAction.Keep;
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Skills;
@@ -57,6 +58,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public List<string> mPlantsPlanted;
 
         public Quality mBestQualityHarvested = Quality.Any;
+
+        public int mUnknownSeedsPlanted;
 
 
         public EWHerbLoreSkill(SkillNames guid) : base(guid)
@@ -125,6 +128,18 @@ namespace Echoweaver.Sims3Game.WarriorCats
             }
         }
 
+        public class UnknownSeeds : ITrackedStat
+        {
+            public EWHerbLoreSkill mSkill;
+
+            public string Description => Gardening.LocalizeString("UnknownSeeds", mSkill.mUnknownSeedsPlanted);
+
+            public UnknownSeeds(EWHerbLoreSkill skill)
+            {
+                mSkill = skill;
+            }
+        }
+
         public class ItemsHarvested : ITrackedStat
         {
             public EWHerbLoreSkill mSkill;
@@ -163,6 +178,35 @@ namespace Echoweaver.Sims3Game.WarriorCats
             }
         }
 
+        public void Planted(Plant plant)
+        {
+            mNumberPlanted++;
+            PlantableComponent plantable = plant.Seed.Plantable;
+            string plantName = plantable.PlantDef.PlantName;
+            if (mPlantsPlanted == null)
+            {
+                mPlantsPlanted = new List<string>();
+            }
+            if (!mPlantsPlanted.Contains(plantName))
+            {
+                mPlantsPlanted.Add(plantName);
+            }
+            if (plantable.PlayerKnowledgeOfPlantableType == PlayerDisclosure.Concealed)
+            {
+                mUnknownSeedsPlanted++;
+            }
+            else
+            {
+                if (mHarvestCounts == null)
+                {
+                    mHarvestCounts = new Dictionary<string, PlantInfo>();
+                }
+                if (!mHarvestCounts.ContainsKey(plantName))
+                {
+                    mHarvestCounts.Add(plantName, new PlantInfo());
+                }
+            }
+        }
         public bool HasPlanted(string plantName)
         {
             if (mHarvestCounts != null)
@@ -261,6 +305,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             mTrackedStats.Add(new UniquePlantsPlanted(this));
             mTrackedStats.Add(new ItemsHarvested(this));
             mTrackedStats.Add(new BestHarvestable(this));
+            mTrackedStats.Add(new UnknownSeeds(this));
             mLifetimeOpportunities = new List<ILifetimeOpportunity>();
             mLifetimeOpportunities.Add(new OppTest(this));
         }
@@ -310,8 +355,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             if (list.Count > 0)
             {
-                StyledNotification.Show(new StyledNotification.Format("List larger than 0",
-                    StyledNotification.NotificationStyle.kDebugAlert));
                 EWHerbLoreSkill skill = actor.SkillManager.GetSkill<EWHerbLoreSkill>(EWHerbLoreSkill.SkillNameID);
                 if (skill != null)
                 {

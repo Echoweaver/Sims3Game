@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Interactions;
@@ -16,7 +15,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override bool Test(Sim a, HarvestPlant target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (a.IsCat && !a.IsKitten)  // TODO: Check skill level
+				if (a.IsCat && !a.IsKitten && !(target is ForbiddenFruitTree))  // TODO: Check skill level
 				{
 					return HarvestPlant.HarvestTest(target, a);
 				}
@@ -88,6 +87,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				hasHarvested = true;
 			}
 
+			if (!Target.PlantDef.GetPlantHeight(out PlantHeight height))
+			{
+				height = PlantHeight.Medium;
+			}
+			// TODO: Different animations -- scratching post for medium and high plants?
 			AcquireStateMachine("eatharvestablepet");
 			mCurrentStateMachine.SetActor("x", Actor);
 			mCurrentStateMachine.EnterState("x", "Enter");
