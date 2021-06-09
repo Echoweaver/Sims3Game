@@ -41,7 +41,7 @@
     <Compile Include="EWPetWaterPlant.cs" />
     <Compile Include="EWPetWeedPlant.cs" />
     <Compile Include="EWPetPlantSeed.cs" />
-    <Compile Include="EWPPetickUpPlantable.cs" />
+    <Compile Include="EWPPetPickUpPlantable.cs" />
     <Compile Include="EWPetDisposePlant.cs" />
   </ItemGroup>
   <ItemGroup>

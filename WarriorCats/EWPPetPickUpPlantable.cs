@@ -58,23 +58,30 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool Run()
 		{
-			if (Actor.RouteToPointRadialRange(Target.Position, 0.3f, 0.5f))
+			// Unable to use PetCarrySystem because plantable not recognized as IPetCarryable
+			// Not clear on how this interface works.
+			// Fortunately the CarryUtils methods used by both carry systems are less picky.
+			if (Actor.RouteToObjectRadius(Target, 0.3f))
 			{
-				CarryUtils.Acquire(Actor, Target);
-				Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
-				bool gotmodel = Target.Plantable.PlantDef.GetModelName(out string modelname);
-				Enter(Actor, Target, modelname);
-				CarryUtils.Request(Actor, "PickUp");
-				CarryUtils.Request(Actor, "Carry");
-				//CarryUtils.VerifyAnimationParent(Target, Actor);
-				bool success = CarryUtils.PutInSimInventory(Actor);
-//				CarryUtils.ExitCarry(Actor);
-				return gotmodel && success;
+				if (Target.Plantable.PlantDef.GetModelName(out string modelname))
+				{
+					CarryUtils.Acquire(Actor, Target);
+					Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
+					Enter(Actor, Target, modelname);
+					CarryUtils.Request(Actor, "PickUp");
+					CarryUtils.Request(Actor, "Carry");
+					AnimateIntoSimInventory(Actor);
+					//CarryUtils.VerifyAnimationParent(Target, Actor);
+					// Note: PutInSimInventory includes ExitCarry. This means the
+					// state machine has exited and can't be used again without Acquire
+					bool success = CarryUtils.PutInSimInventory(Actor);  
+					return success;
+				}
 			}
 			return false;
 		}
 
-		public static void Enter(Sim a, GameObject target, String modelname)
+		public static void Enter(Sim a, GameObject target, string modelname)
 		{
 			a.CarryStateMachine.SetActor("x", a);
 			a.CarryStateMachine.SetActor("object", target);
@@ -82,6 +89,13 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			a.CarryStateMachine.SetParameter("NamespaceMap0From", modelname);
 			a.CarryStateMachine.SetParameter("NamespaceMap0To", "object");
 			a.CarryStateMachine.EnterState("x", "Enter");
+		}
+
+		public static void AnimateIntoSimInventory(Sim actor)
+		{
+			actor.CarryStateMachine.SetParameter("model", "prey", ProductVersion.EP5);
+			actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.SimInventory);
+			actor.CarryStateMachine.RequestState("x", "PutDown");
 		}
 
 	}
