@@ -19,11 +19,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
      * Herb Lore Skill Levels:
      * 0: View Plant, Play with Plant, Pick up seeds
      * 1: Harvest
-     * 2: Water
-     * 3: Weed
-     * 4: Dispose, Plant Harvestables
-     * 5: Fertilize with Fish
-     * 6: Tend 
+     * 2: Weed
+     * 3: Dispose, Plant Harvestables
+     * 4: Water
+     * 5: Tend
+     * 6: Fertilize with Fish
      * 7: Tend gains speed
      * 8: Harvest gains quality
      * 9: Make traveling herbs
@@ -37,7 +37,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public const string sEWLocalizationKey = "Echoweaver/Skills/EWHerbLoreSkill:";
 
-        public static float kEWHerbLoreGainRateNormal = 5f;
+        public static float kEWHerbLoreGainRateNormal = 15f;
 
         bool mTestOppIsNew = false;
 
@@ -72,6 +72,25 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public new string LocalizeString(string name, params object[] parameters)
         {
             return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + name, parameters);
+        }
+
+        public static EWHerbLoreSkill StartSkillGain(Sim actor)
+        {
+            EWHerbLoreSkill skill = actor.SkillManager.GetSkill<EWHerbLoreSkill>(SkillNameID);
+            if (skill == null)
+            {
+                skill = actor.SkillManager.AddElement(SkillNameID) as EWHerbLoreSkill;
+            }
+            if (skill == null)
+            {
+                Show(new Format("Error: Attempt to add EWHerbLoreSkill to " + actor.Name + " FAILED.",
+                    NotificationStyle.kDebugAlert));
+                return null;
+            }
+
+            // TODO: Check for skill gain modifiers
+            skill.StartSkillGain(kEWHerbLoreGainRateNormal);
+            return skill;
         }
 
         [Persistable]
@@ -339,7 +358,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             return val;
         }
 
-        public static bool DoHarvest(Sim actor, HarvestPlant target, bool hasHarvested)
+        public static bool DoHarvest(Sim actor, HarvestPlant target, EWHerbLoreSkill skill)
         {
             Slot[] containmentSlots = target.GetContainmentSlots();
             List<GameObject> list = new List<GameObject>();
@@ -355,13 +374,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             if (list.Count > 0)
             {
-                EWHerbLoreSkill skill = actor.SkillManager.GetSkill<EWHerbLoreSkill>(EWHerbLoreSkill.SkillNameID);
-                if (skill != null)
-                {
-                    skill.UpdateSkillJournal(target.PlantDef, list);
-                }
+                skill.UpdateSkillJournal(target.PlantDef, list);
 
-                if (!hasHarvested)
+                if (!skill.HasHarvested())
                 {
                     actor.ShowTNSIfSelectable(Localization.LocalizeString(actor.IsFemale,
                         "Gameplay/Objects/Gardening/HarvestPlant/Harvest:FirstHarvest", actor, target.PlantDef.Name),

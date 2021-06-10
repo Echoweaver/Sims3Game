@@ -24,8 +24,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 			public override bool Test(Sim a, Plant target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				// TODO: Check for HerbLore skill
-				return target.GardenInteractionLotValidityTest(a) && a.IsCat;
+				if (a.SkillManager.GetSkillLevel(EWHerbLoreSkill.SkillNameID) >= 3)
+					return target.GardenInteractionLotValidityTest(a);
+				else return false;
 			}
 		}
 
@@ -91,23 +92,31 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				return false;
 			}
 
-			disposePlantInteraction.ReachedPlantDeletePointOfNoReturn();
-			interaction.StandardEntry();
-			interaction.BeginCommodityUpdates();
-            AcquireStateMachine("eatharvestablepet");
-			mCurrentStateMachine.SetActor("x", Actor);
-			mCurrentStateMachine.EnterState("x", "Enter");
-			SetParameter("IsEatingOnGround", paramValue: true);
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
+			{
 
-			uint footprintHash = Target.GetFootprintHash();
-			Target.DisableFootprint(footprintHash);
-			Target.GetSoil().DisableFootprint(1478897068u);
+				disposePlantInteraction.ReachedPlantDeletePointOfNoReturn();
+				interaction.StandardEntry();
+				interaction.BeginCommodityUpdates();
 
-			AnimateSim("EatHarvestable");
-			AnimateSim("Exit");
-			interaction.EndCommodityUpdates(true);
-			interaction.StandardExit();
-			return true;
+				// TODO: Hope to use dig animation here. Need to be converted?
+				AcquireStateMachine("eatharvestablepet");
+				mCurrentStateMachine.SetActor("x", Actor);
+				mCurrentStateMachine.EnterState("x", "Enter");
+				SetParameter("IsEatingOnGround", paramValue: true);
+
+				uint footprintHash = Target.GetFootprintHash();
+				Target.DisableFootprint(footprintHash);
+				Target.GetSoil().DisableFootprint(1478897068u);
+
+				AnimateSim("EatHarvestable");
+				AnimateSim("Exit");
+				interaction.EndCommodityUpdates(true);
+				interaction.StandardExit();
+				return true;
+			}
+			return false;
 		}
 
 		public override ThumbnailKey GetIconKey()

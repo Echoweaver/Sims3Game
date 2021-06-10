@@ -51,7 +51,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
         {
             foreach (Plant p in Queries.GetObjects<Plant>())
             {
-                p.AddInteraction(EWPetMarkPlant.Singleton);
+                //p.AddInteraction(EWPetMarkPlant.Singleton);
                 p.AddInteraction(EWPetWatchPlant.Singleton);
                 p.AddInteraction(EWPetHarvest.Singleton);
                 p.AddInteraction(EWPetWeedPlant.Singleton);
@@ -81,7 +81,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             Plant p = e.TargetObject as Plant;
             if (p != null)
             {
-                p.AddInteraction(EWPetMarkPlant.Singleton, true);
+                //p.AddInteraction(EWPetMarkPlant.Singleton, true);
                 p.AddInteraction(EWPetWatchPlant.Singleton, true);
                 p.AddInteraction(EWPetHarvest.Singleton, true);
                 p.AddInteraction(EWPetWeedPlant.Singleton, true);
@@ -89,7 +89,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 p.AddInteraction(EWPetDisposePlant.Singleton, true);
             }
 
-            if (!(e.TargetObject.Plantable == null))
+            if (e.TargetObject.InInventory && !(e.TargetObject.Plantable == null))
             {
                 bool has_plant = false;
                 foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(e.Actor))

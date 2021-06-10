@@ -26,7 +26,13 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override bool Test(Sim a, GameObject target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				return CommonPlantingTest(a, target, LotManager.ActiveLot, ref greyedOutTooltipCallback);
+				if (a.SkillManager.GetSkillLevel(EWHerbLoreSkill.SkillNameID) >= 3)
+					return CommonPlantingTest(a, target, LotManager.ActiveLot, ref greyedOutTooltipCallback);
+				else return false;
+			}
+			public override string GetInteractionName(Sim a, GameObject target, InteractionObjectPair interaction)
+			{
+				return "EWPetPlantSeed";
 			}
 		}
 
@@ -136,65 +142,72 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public bool DoSoilPlacementAndPlant()
 		{
-			mCurrentTarget = Target;
-			bool flag = false;
-			do
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
 			{
-				flag = false;
-				if (!ReservePlantable())
+				mCurrentTarget = Target;
+				bool flag = false;
+				do
 				{
-					break;
-				}
-				mCurrentSoil = (GlobalFunctions.CreateObjectOutOfWorld("GardenSoil") as Soil);
-				if (mCurrentSoil == null)
-				{
-					break;
-				}
-				mCurrentSoil.SetPlantDef(PlantHelper.GetPlantDefinition(mCurrentTarget));
-				mCurrentSoil.AddToWorld();
-				mCurrentSoil.Ghost();
-				if (!PlaceSoil())
-				{
-					mSoilPlacementFailure = true;
-					break;
-				}
-				mCurrentSoil.AddToUseList(Actor);
-				mCurrentSoil.SetPlanted();
-				if (mObjectsToPlant == null)
-				{
-					mObjectsToPlant = new List<PlantableObjectData>();
-				}
-				mObjectsToPlant.Add(new PlantableObjectData(mCurrentTarget, mCurrentSoil));
-				if (mInteractionType != PlantInteractionType.FromInventoryPlantMany)
-				{
-					continue;
-				}
-				uint stackNumber = Actor.Inventory.GetStackNumber(mCurrentTarget);
-				if (stackNumber != 0)
-				{
-					List<IGameObject> stackObjects = Actor.Inventory.GetStackObjects(stackNumber, checkInUse: true);
-					if (stackObjects.Count > 0)
+					flag = false;
+					if (!ReservePlantable())
 					{
-						mCurrentTarget = stackObjects[0];
-						flag = true;
+						break;
+					}
+					mCurrentSoil = (GlobalFunctions.CreateObjectOutOfWorld("GardenSoil") as Soil);
+					if (mCurrentSoil == null)
+					{
+						break;
+					}
+					mCurrentSoil.SetPlantDef(PlantHelper.GetPlantDefinition(mCurrentTarget));
+					mCurrentSoil.AddToWorld();
+					mCurrentSoil.Ghost();
+					if (!PlaceSoil())
+					{
+						mSoilPlacementFailure = true;
+						break;
+					}
+					mCurrentSoil.AddToUseList(Actor);
+					mCurrentSoil.SetPlanted();
+					if (mObjectsToPlant == null)
+					{
+						mObjectsToPlant = new List<PlantableObjectData>();
+					}
+					mObjectsToPlant.Add(new PlantableObjectData(mCurrentTarget, mCurrentSoil));
+					if (mInteractionType != PlantInteractionType.FromInventoryPlantMany)
+					{
+						continue;
+					}
+					uint stackNumber = Actor.Inventory.GetStackNumber(mCurrentTarget);
+					if (stackNumber != 0)
+					{
+						List<IGameObject> stackObjects = Actor.Inventory.GetStackObjects(stackNumber, checkInUse: true);
+						if (stackObjects.Count > 0)
+						{
+							mCurrentTarget = stackObjects[0];
+							flag = true;
+						}
+					}
+				} while (flag);
+
+				if (mObjectsToPlant != null && mObjectsToPlant.Count > 0)
+				{
+					EWPetDoPlant petDoPlant = EWPetDoPlant.Singleton.CreateInstance(Target, Actor, mPriority,
+						base.Autonomous, cancellableByPlayer: true) as EWPetDoPlant;
+					if (petDoPlant != null)
+					{
+						petDoPlant.SetObjectsToPlant(mObjectsToPlant);
+						petDoPlant.PlantInteractionType = mInteractionType;
+						if (Actor.InteractionQueue.Add(petDoPlant))
+						{
+							mInteractionPushed = true;
+						}
 					}
 				}
-			} while (flag);
-			if (mObjectsToPlant != null && mObjectsToPlant.Count > 0)
-			{
-				EWPetDoPlant petDoPlant = EWPetDoPlant.Singleton.CreateInstance(Target, Actor, mPriority,
-					base.Autonomous, cancellableByPlayer: true) as EWPetDoPlant;
-				if (petDoPlant != null)
-				{
-					petDoPlant.SetObjectsToPlant(mObjectsToPlant);
-					petDoPlant.PlantInteractionType = mInteractionType;
-					if (Actor.InteractionQueue.Add(petDoPlant))
-					{
-						mInteractionPushed = true;
-					}
-				}
+				skill.StopSkillGain();
+				return true;
 			}
-			return true;
+			return false;
 		}
 
 		public static bool CommonPlantingTest(Sim a, GameObject target, Lot lotTryingToPlantingOn, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -339,56 +352,62 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
-			while (mObjectsToPlant.Count > 0)
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
 			{
-				PlantableObjectData data = mObjectsToPlant[0];
-				CurrentTarget = data.PlantableObject;
-				CurrentSoil = data.Soil;
-				if (Plant.DoPlantRoute(Actor, CurrentSoil))
+				while (mObjectsToPlant.Count > 0)
 				{
-					UnreservePlantablePlantingSucceeded();
-					Plant plant = CreatePlantFromSeed(CurrentTarget, CurrentSoil, Actor);
-					plant.UpdateHealth();
-					plant.AddToUseList(Actor);
-					AcquireStateMachine("eatharvestablepet");
-					mCurrentStateMachine.SetActor("x", Actor);
-					mCurrentStateMachine.EnterState("x", "Enter");
-					SetParameter("IsEatingOnGround", paramValue: true);
-					// Parrotting the dummyIK code from the plantMedium state machine
-					mDummyIk = Soil.Create(isDummyIk: true);
-					//mDummyIk.SetHiddenFlags(-1);
-					mDummyIk.SetPosition(plant.GetSoil().Position);
-					Vector3 forward = plant.GetSoil().Position - Actor.Position;
-					mDummyIk.SetForward(forward);
-					mDummyIk.AddToWorld();
-					BeginCommodityUpdates();
-					EWHerbLoreSkill herbSkill = Actor.SkillManager.AddElement(EWHerbLoreSkill.SkillNameID) as EWHerbLoreSkill;
-					AddOneShotScriptEventHandler(201u, new SacsEventHandler(ScriptHandlerOnSimAboutToPlant));
-					AnimateSim("EatHarvestable");
-					herbSkill.Planted(plant);
-					AnimateSim("Exit");
-					EndCommodityUpdates(succeeded: true);
-					plant.RemoveFromUseList(Actor);
-					CurrentSoil.RemoveFromUseList(Actor);
-					if (mDummyIk != null)
+					PlantableObjectData data = mObjectsToPlant[0];
+					CurrentTarget = data.PlantableObject;
+					CurrentSoil = data.Soil;
+					if (Plant.DoPlantRoute(Actor, CurrentSoil))
 					{
-						mDummyIk.Destroy();
-						mDummyIk = null;
+						UnreservePlantablePlantingSucceeded();
+						Plant plant = CreatePlantFromSeed(CurrentTarget, CurrentSoil, Actor);
+						plant.UpdateHealth();
+						plant.AddToUseList(Actor);
+						AcquireStateMachine("eatharvestablepet");
+						mCurrentStateMachine.SetActor("x", Actor);
+						mCurrentStateMachine.EnterState("x", "Enter");
+						SetParameter("IsEatingOnGround", paramValue: true);
+						// Parrotting the dummyIK code from the plantMedium state machine
+						mDummyIk = Soil.Create(isDummyIk: true);
+						//mDummyIk.SetHiddenFlags(-1);
+						mDummyIk.SetPosition(plant.GetSoil().Position);
+						Vector3 forward = plant.GetSoil().Position - Actor.Position;
+						mDummyIk.SetForward(forward);
+						mDummyIk.AddToWorld();
+						BeginCommodityUpdates();
+						AddOneShotScriptEventHandler(201u, new SacsEventHandler(ScriptHandlerOnSimAboutToPlant));
+						AnimateSim("EatHarvestable");
+						skill.Planted(plant);
+						AnimateSim("Exit");
+						EndCommodityUpdates(succeeded: true);
+						plant.RemoveFromUseList(Actor);
+						CurrentSoil.RemoveFromUseList(Actor);
+						if (mDummyIk != null)
+						{
+							mDummyIk.Destroy();
+							mDummyIk = null;
+						}
+						EventTracker.SendEvent(EventTypeId.kGardened, Actor);
+						if (PlantHelper.IsSeed(CurrentTarget))
+						{
+							EventTracker.SendEvent(EventTypeId.kEventSeedPlanted, Actor, CurrentTarget);
+						}
+						EventTracker.SendEvent(EventTypeId.kPlantedObject, Actor, plant);
 					}
-					EventTracker.SendEvent(EventTypeId.kGardened, Actor);
-					if (PlantHelper.IsSeed(CurrentTarget))
+					else
 					{
-						EventTracker.SendEvent(EventTypeId.kEventSeedPlanted, Actor, CurrentTarget);
+						CleanupPlantInstances(data, Actor, PlantInteractionType);
+						mObjectsToPlant.RemoveAt(0);
 					}
-					EventTracker.SendEvent(EventTypeId.kPlantedObject, Actor, plant);
 				}
-				else
-				{
-					CleanupPlantInstances(data, Actor, PlantInteractionType);
-					mObjectsToPlant.RemoveAt(0);
-				}
+				skill.StopSkillGain();
+				skill.AddSkillPointsLevelClamped(200, 10); // Bonus, Planting takes animal thinking
+				return true;
 			}
-			return true;
+			return false;
 		}
 
 		public void SetObjectsToPlant(List<PlantableObjectData> objectsToPlant)

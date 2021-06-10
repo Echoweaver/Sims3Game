@@ -17,9 +17,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override bool Test(Sim a, Plant target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (target.GardenInteractionLotValidityTest(a))
+				if (a.SkillManager.GetSkillLevel(EWHerbLoreSkill.SkillNameID) >= 2)
 				{
-					return a.IsCat && target.HasWeeds && target.Alive;
+					return target.GardenInteractionLotValidityTest(a) && target.HasWeeds && target.Alive;
 				}
 				return false;
 			}
@@ -71,41 +71,34 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public bool DoWeed()
 		{
-			StandardEntry();
-			BeginCommodityUpdates();
-			//Soil dummyIk;
-			//StateMachineClient stateMachine = Target.GetStateMachine(Actor, out dummyIk);
-			//mDummyIk = dummyIk;
-			//if (stateMachine != null)
-			//{
-			//	stateMachine.RequestState("x", "Loop Weed");
-			//}
-			AcquireStateMachine("eatharvestablepet");
-			mCurrentStateMachine.SetActor("x", Actor);
-			mCurrentStateMachine.EnterState("x", "Enter");
-			SetParameter("IsEatingOnGround", paramValue: true);
-			AnimateSim("EatHarvestable");
-			StartStagesForTendableInteraction(this);
-			bool flag = DoLoop(ExitReason.Default);
-			//PauseTendGardenInteractionStage(Actor.CurrentInteraction);
-			if (flag)
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
 			{
-				Target.AddSimWhoHelpedGrow(Actor);
-				Target.HasWeeds = false;
-				int skillLevel = Actor.SkillManager.GetSkillLevel(EWHerbLoreSkill.SkillNameID);
-				Actor.BuffManager.AddElement(BuffNames.ReplenishingTheEarth, Origin.FromGardening, (ProductVersion)8, TraitNames.EnvironmentallyConscious);
-				EventTracker.SendEvent(EventTypeId.kWeededPlant, Actor, Target);
+				StandardEntry();
+				BeginCommodityUpdates();
+				AcquireStateMachine("eatharvestablepet");
+				mCurrentStateMachine.SetActor("x", Actor);
+				mCurrentStateMachine.EnterState("x", "Enter");
+				SetParameter("IsEatingOnGround", paramValue: true);
+				AnimateSim("EatHarvestable");
+				StartStagesForTendableInteraction(this);
+				bool flag = DoLoop(ExitReason.Default);
+				//PauseTendGardenInteractionStage(Actor.CurrentInteraction);
+				if (flag)
+				{
+					Target.AddSimWhoHelpedGrow(Actor);
+					Target.HasWeeds = false;
+					EventTracker.SendEvent(EventTypeId.kWeededPlant, Actor, Target);
+				}
+				AnimateSim("Exit");
+				EndCommodityUpdates(flag);
+				StandardExit();
+				EventTracker.SendEvent(EventTypeId.kGardened, Actor);
+				//UpdateTendGardenTimeSpent(this, SetWeedTimeSpent);
+				skill.StopSkillGain();
+				return flag;
 			}
-			//if (stateMachine != null)
-			//{
-			//	stateMachine.RequestState("x", "Exit Standing");
-			//}
-			AnimateSim("Exit");
-			EndCommodityUpdates(flag);
-			StandardExit();
-			EventTracker.SendEvent(EventTypeId.kGardened, Actor);
-			//UpdateTendGardenTimeSpent(this, SetWeedTimeSpent);
-			return flag;
+			return false;
 		}
 
 		public static void SetWeedTimeSpent(ITendGarden tendGardenInteraction, float timeSpent)

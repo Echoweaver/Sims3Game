@@ -1,21 +1,21 @@
-﻿using System;
+﻿using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
+using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Interfaces;
+using Sims3.Gameplay.Objects.Gardening;
+using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.ThoughtBalloons;
+using Sims3.Gameplay.Utilities;
+using Sims3.SimIFace;
+using Sims3.UI.Controller;
+using static Sims3.SimIFace.Route;
+
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-	using Sims3.Gameplay.Actors;
-	using Sims3.Gameplay.ActorSystems;
-	using Sims3.Gameplay.Autonomy;
-	using Sims3.Gameplay.Core;
-	using Sims3.Gameplay.EventSystem;
-	using Sims3.Gameplay.Interactions;
-	using Sims3.Gameplay.Interfaces;
-    using Sims3.Gameplay.Objects.Gardening;
-    using Sims3.Gameplay.Skills;
-	using Sims3.Gameplay.Socializing;
-	using Sims3.Gameplay.ThoughtBalloons;
-	using Sims3.Gameplay.Utilities;
-	using Sims3.SimIFace;
-	using Sims3.UI.Controller;
-    using static Sims3.SimIFace.Route;
 
     public class EWPetWatchPlant : Interaction<Sim, Plant>
 	{
@@ -29,7 +29,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			public override string GetInteractionName(Sim actor, Plant target, InteractionObjectPair iop)
 			{
 				return "EWPetWatchPlant";
-
 			}
 		}
 
@@ -56,16 +55,22 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool Run()
 		{
-			if (!Actor.RouteToPointRadialRange(Target.Position, Plant.kViewDistanceMin, Plant.kViewDistanceMax))
+			if (!Target.RouteSimToMeAndCheckInUse(Actor))
 			{
 				return false;
 			}
-			StandardEntry();
-			BeginCommodityUpdates();
-			bool flag = DoLoop(ExitReason.Default, LoopFunc, null, kTimeBetweenReactions);
-			EndCommodityUpdates(flag);
-			StandardExit();
-			return flag;
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
+            {
+				StandardEntry();
+				BeginCommodityUpdates();
+				bool flag = DoLoop(ExitReason.Default, LoopFunc, null, kTimeBetweenReactions);
+				EndCommodityUpdates(flag);
+				StandardExit();
+				skill.StopSkillGain();
+				return flag;
+			}
+			return false;
 		}
 
 		public void LoopFunc(StateMachineClient smc, LoopData ld)

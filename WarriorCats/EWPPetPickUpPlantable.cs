@@ -24,6 +24,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
+				if (!a.SkillManager.HasElement(EWHerbLoreSkill.SkillNameID))
+                {
+					return false;
+                }
 				PlantableComponent plantable = target.Plantable;
 				if (plantable == null)
 				{
@@ -42,7 +46,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				{
 					return false;
 				}
-				return a.IsCat && !target.InUse && CarrySystem.CouldPickUp(target as ICarryable);
+				return !target.InUse && CarrySystem.CouldPickUp(target as ICarryable);
 			}
 		}
 
@@ -55,27 +59,32 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			return Localization.LocalizeString("Gameplay/ObjectComponents/PickUpPlantable:" + name, parameters);
 		}
 
-
 		public override bool Run()
 		{
-			// Unable to use PetCarrySystem because plantable not recognized as IPetCarryable
-			// Not clear on how this interface works.
-			// Fortunately the CarryUtils methods used by both carry systems are less picky.
-			if (Actor.RouteToObjectRadius(Target, 0.3f))
+			EWHerbLoreSkill skill = EWHerbLoreSkill.StartSkillGain(Actor);
+			if (skill != null)
 			{
-				if (Target.Plantable.PlantDef.GetModelName(out string modelname))
+				// Unable to use PetCarrySystem because plantable not recognized as IPetCarryable
+				// Not clear on how this interface works.
+				// Fortunately the CarryUtils methods used by both carry systems are less picky.
+				if (Actor.RouteToObjectRadius(Target, 0.3f))
 				{
-					CarryUtils.Acquire(Actor, Target);
-					Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
-					Enter(Actor, Target, modelname);
-					CarryUtils.Request(Actor, "PickUp");
-					CarryUtils.Request(Actor, "Carry");
-					AnimateIntoSimInventory(Actor);
-					//CarryUtils.VerifyAnimationParent(Target, Actor);
-					// Note: PutInSimInventory includes ExitCarry. This means the
-					// state machine has exited and can't be used again without Acquire
-					bool success = CarryUtils.PutInSimInventory(Actor);  
-					return success;
+					if (Target.Plantable.PlantDef.GetModelName(out string modelname))
+					{
+						CarryUtils.Acquire(Actor, Target);
+						Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
+						Enter(Actor, Target, modelname);
+						CarryUtils.Request(Actor, "PickUp");
+						CarryUtils.Request(Actor, "Carry");
+						AnimateIntoSimInventory(Actor);
+						//CarryUtils.VerifyAnimationParent(Target, Actor);
+						// Note: PutInSimInventory includes ExitCarry. This means the
+						// state machine has exited and can't be used again without Acquire
+						bool success = CarryUtils.PutInSimInventory(Actor);
+						skill.StopSkillGain();
+						skill.AddPoints(200);  // This takes some know-how for a pet
+						return success;
+					}
 				}
 			}
 			return false;
