@@ -1,7 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.UI;
 using Sims3.UI.Hud;
 
 /*
@@ -30,13 +35,15 @@ using Sims3.UI.Hud;
 
 /* 
  * Types of medicine (converted to Sims)
- * - Fleas: RODENT
- * - Wounds, reduce by one level: [sulfur], GARLIC, <wolfsbane>, WATERMELON, APPLE
- * - Disease, whitecough: HONEY, ONION, [sweet william], LICORICE
- * - Disease, nausea: GREENLEAF, BUZZBERRY, SWEETGRASS, WATERMELON
- * - Disease, greencough: WONDERPETAL, [azalea],  PEPPERMINT, LAVENDER, [blue flax]
- * - Childbirth: RASPBERRY, BASIL, BELL PEPPER
- * - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIMEx
+ * 1 - Fleas: RODENT
+ * 2 - Disease, nausea: GREENLEAF, BUZZBERRY, SWEETGRASS, WATERMELON (35)
+ * 3 - Wounds, reduce by one level: [sulfur], GARLIC, <wolfsbane>, WATERMELON, APPLE (45)
+ * 4 - Disease, whitecough: HONEY, ONION, [sweet william], LICORICE (55)
+ * 5 - Disease, greencough: WONDERPETAL, [azalea],  PEPPERMINT, LAVENDER, [blue flax] (65)
+ * 6 - Childbirth: RASPBERRY, BASIL, BELL PEPPER (75)
+ * 7 - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIMEx (85)
+ * 8 - 95
+ * 9 - 100?
  */
 
 namespace Echoweaver.Sims3Game.WarriorCats
@@ -51,7 +58,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static float kEWMedicineCatGainRateNormal = 5f;
 
-        int mDiseasesCured = 0;
+        int mFleasCured = 0;
+		int mCureAttempts = 0;
+		int mCureSuccess = 0;
+		int mMinorWoundsHealed = 0;
 
         bool mTestOppIsNew = false;
 
@@ -63,12 +73,17 @@ namespace Echoweaver.Sims3Game.WarriorCats
         [Persistable(false)]
         public List<ILifetimeOpportunity> mLifetimeOpportunities;
 
+		[Persistable(true)]
+		public Dictionary<BuffInstance, List<string>> mFailedCures = new Dictionary<BuffInstance, List<string>>();
+
         public EWMedicineCatSkill(SkillNames guid) : base(guid)
         {
         }
+
         private EWMedicineCatSkill()
         {
         }
+
 		public new string LocalizeString(string name, params object[] parameters)
 		{
 			return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + ":" + name, parameters);
@@ -78,13 +93,52 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override List<ILifetimeOpportunity> LifetimeOpportunities => mLifetimeOpportunities;
 
-		public class DiseasesCured : ITrackedStat
+		public class FleasCured : ITrackedStat
 		{
 			public EWMedicineCatSkill mSkill;
 
-			public string Description => Localization.LocalizeString(sEWLocalizationKey + ":DiseasesCured", mSkill.mDiseasesCured);
+			//public string Description => Localization.LocalizeString(sEWLocalizationKey + ":FleasCured", mSkill.mFleasCured);
+			public string Description => "EWLocalize-FleasCured: " + mSkill.mFleasCured;
 
-			public DiseasesCured(EWMedicineCatSkill skill)
+			public FleasCured(EWMedicineCatSkill skill)
+			{
+				mSkill = skill;
+			}
+		}
+
+		public class MinorWoundsHealed : ITrackedStat
+		{
+			public EWMedicineCatSkill mSkill;
+
+			//public string Description => Localization.LocalizeString(sEWLocalizationKey + ":FleasCured", mSkill.mFleasCured);
+			public string Description => "EWLocalize-MinorWoundsHealed: " + mSkill.mMinorWoundsHealed;
+
+			public MinorWoundsHealed(EWMedicineCatSkill skill)
+			{
+				mSkill = skill;
+			}
+		}
+
+		public class SuccessRate : ITrackedStat
+		{
+			public EWMedicineCatSkill mSkill;
+
+			int successStat = 0;
+
+			//public string Description => Localization.LocalizeString(sEWLocalizationKey + ":SuccessRate",
+			//successStat.ToString("P"));
+			public string Description
+            {
+				get {
+					if (mSkill.mCureAttempts != 0 && mSkill.mCureSuccess != 0)
+                    {
+						successStat = mSkill.mCureSuccess / mSkill.mCureAttempts;
+                    }
+					return "EWLocalize-SuccessRate: " + successStat.ToString("P");
+				}
+            }
+
+			public SuccessRate(EWMedicineCatSkill skill)
 			{
 				mSkill = skill;
 			}
@@ -95,7 +149,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		[TunableComment("")]
 		public static int kNumForOpportunity = 20;
 
-		public class OppTest : ILifetimeOpportunity
+        public class OppTest : ILifetimeOpportunity
 		{
 			public EWMedicineCatSkill mSkill;
 
@@ -128,9 +182,57 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		public override void CreateSkillJournalInfo()
 		{
 			mTrackedStats = new List<ITrackedStat>();
-			mTrackedStats.Add(new DiseasesCured(this));
+			mTrackedStats.Add(new FleasCured(this));
+			mTrackedStats.Add(new SuccessRate(this));
 			mLifetimeOpportunities = new List<ILifetimeOpportunity>();
 			mLifetimeOpportunities.Add(new OppTest(this));
+		}
+
+
+		[Tunable]
+		[TunableComment("")]
+		public int kBaseTreatSuccessChance = 30;
+
+		[Tunable]
+		[TunableComment("")]
+		public int kWoundChanceAdjPerSkillLevel = 7;
+
+		public bool TreatSim(Sim target, BuffInstance buff, string cureName)
+		{
+			++mCureAttempts;
+
+			if (mFailedCures.ContainsKey(buff))
+            {
+				// The same buff can't be treated by the same cure that failed before
+				if (mFailedCures[buff].Contains(cureName))
+                {
+					return false;
+				}
+			}
+
+			int success_chance = kBaseTreatSuccessChance;
+			success_chance += kWoundChanceAdjPerSkillLevel * SkillLevel;
+
+			bool success = RandomUtil.RandomChance(success_chance);
+
+			if (!success)
+			{
+				if (!mFailedCures.ContainsKey(buff))
+				{
+					mFailedCures[buff] = new List<string>();
+				}
+				mFailedCures[buff].Add(cureName);
+			}
+			else
+			{
+				if (mFailedCures.ContainsKey(buff))
+				{
+					mFailedCures.Remove(buff);
+				}
+				++mFleasCured;  // TODO: Will need to record this differently;
+				++mCureSuccess;
+			}
+			return success;
 		}
 
 		public override bool ExportContent(IPropertyStreamWriter writer)

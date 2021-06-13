@@ -43,6 +43,8 @@
     <Compile Include="EWPetPlantSeed.cs" />
     <Compile Include="EWPPetPickUpPlantable.cs" />
     <Compile Include="EWPetDisposePlant.cs" />
+    <Compile Include="EWPetTreatFleas.cs" />
+    <Compile Include="EWPetBeTreated.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

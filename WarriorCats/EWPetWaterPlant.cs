@@ -167,7 +167,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				StartWateringSound();
 				//AddOneShotScriptEventHandler(1001u, new SacsEventHandler(StartWateringSound));
 				AddOneShotScriptEventHandler(201u, new SacsEventHandler(StopWateringSound));
-				//mCurrentStateMachine.RequestState("x", "Loop Water");
 				StartStagesForTendableInteraction(this);
 				float duration = Target.GetWaterDuration(Actor);
 				if (duration == 0f)
