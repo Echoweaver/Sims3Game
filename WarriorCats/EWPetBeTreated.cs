@@ -115,7 +115,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public bool SharedNearDistanceBehavior(float routingDistance, float loopTime)
 		{
-			if (!Actor.RouteToObjectRadius(Target, routingDistance))
+			if (!Actor.RouteTurnToFace(Target.Position))
 			{
 				return false;
 			}

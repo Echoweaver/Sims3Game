@@ -151,67 +151,13 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool Run()
 		{
-			if (mSimToPresent == null)
-			{
-				mSimToPresent = (GetSelectedObject() as Sim);
-				if (mSimToPresent == null)
-				{
-					return false;
-				}
-				if (!PetCarrySystem.PickUp(Actor, Target))
-				{
-					return false;
-				}
-				Target.UpdateVisualState(CatHuntingModelState.Carried);
-			}
-
-			if (mSimToPresent != null && !mSimToPresent.HasBeenDestroyed)
-			{
-				Route val = Actor.CreateRoute();
-				val.DoRouteFail = true;
-				val.SetOption(RouteOption.MakeDynamicObjectAdjustments, true);
-				val.PlanToPointRadialRange(mSimToPresent, mSimToPresent.Position, kDistanceFromSimToPresent,
-					kDistanceFromSimToPresent, Vector3.UnitZ, 360f, RouteDistancePreference.PreferNearestToRouteDestination,
-					RouteOrientationPreference.TowardsObject, mSimToPresent.LotCurrent.LotId,
-					new int[1]
-					{
-						mSimToPresent.RoomId
-					});
-				if (Actor.DoRoute(val))
-				{
-					val.SetOption(RouteOption.MakeDynamicObjectAdjustments, false);
-					val.PlanToPointRadialRange((IHasScriptProxy)(object)mSimToPresent, mSimToPresent.Position,
-						kDistanceFromSimToPresent, kDistanceFromSimToPresent, Vector3.UnitZ, 360f,
-						RouteDistancePreference.PreferNearestToRouteDestination, RouteOrientationPreference.TowardsObject,
-						mSimToPresent.LotCurrent.LotId, new int[1]
-						{
-							mSimToPresent.RoomId
-						});
-					Actor.DoRoute(val);
-				}
-			}
-			PetCarrySystem.PutDownOnFloor(Actor);
-			Target.UpdateVisualState(CatHuntingModelState.InWorld);
-			if (Actor.HasExitReason())
-			{
-				return false;
-			}
-			BeginCommodityUpdates();
-			Target.CatHuntingComponent.mHasBeenPresented = true;
-
-
-			EWPetBeTreated.Definition treatDefinition = new EWPetBeTreated.Definition();
-			EWPetBeTreated treatInstance = treatDefinition.CreateInstance(Target, mSimToPresent,
+			EWPetTreatPet.Definition treatDefinition = new EWPetTreatPet.Definition();
+			EWPetTreatPet treatInstance = treatDefinition.CreateInstance(mSimToPresent, Actor,
 				new InteractionPriority(InteractionPriorityLevel.UserDirected), Autonomous,
-				CancellableByPlayer) as EWPetBeTreated;
+				CancellableByPlayer) as EWPetTreatPet;
 			treatInstance.SetParams(SuccessfulTreatment(mSimToPresent), BuffNames.GotFleasPet,
-				Actor, true);
-			//LinkedInteractionInstance = treatInstance;
-			mSimToPresent.InteractionQueue.AddNext(treatInstance);
-			//WaitForSyncComplete();
-
-			EndCommodityUpdates(succeeded: true);
-
+				Target);
+			Actor.InteractionQueue.AddNext(treatInstance);
 			return true;
 		}
 
@@ -222,26 +168,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
-			Target.UpdateVisualState(CatHuntingModelState.Carried);
-			if (!PetCarrySystem.PickUpFromSimInventory(Actor, Target, removeFromInventory: true))
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InInventory);
-				return false;
-			}
 			return Run();
-		}
-
-		public override void Cleanup()
-		{
-			if (Target.InInventory)
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InInventory);
-			}
-			else
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InWorld);
-			}
-			base.Cleanup();
 		}
 	}
 }
