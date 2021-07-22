@@ -7,7 +7,7 @@ using Sims3.UI;
 using Sims3.UI.Hud;
 using Queries = Sims3.Gameplay.Queries;
 
-namespace Echoweaver.Sims3Game.PetBreeding
+namespace Echoweaver.Sims3Game.PetBreedfix
 {
     public class Loader
     {
@@ -27,9 +27,12 @@ namespace Echoweaver.Sims3Game.PetBreeding
             if (a.IsPet)
             {
                 a.AddInteraction(ShowPetBreed.Singleton, true);
-                a.AddInteraction(SetPetBreed.Singleton, true);                
+                a.AddInteraction(SetPetBreed.Singleton, true);
+                if (a.SimDescription.PetManager.BreedName != "")
+                {
+                    BreedManager.storePetBreed(a.SimDescription);
+                }
             }
-            Sim.CustomizeCollarAndCoats.Singleton = EWCustomizeCollarAndCoats.Singleton;
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
@@ -39,8 +42,10 @@ namespace Echoweaver.Sims3Game.PetBreeding
             {
                 AddBreedInteractions(pet);
             }
+            Sim.CustomizeCollarAndCoats.Singleton = EWCustomizeCollarAndCoats.Singleton;
             EventTracker.AddListener(EventTypeId.kNewOffspringPet, new ProcessEventDelegate(OnNewOffspringPet));
             EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));
+            EventTracker.AddListener(EventTypeId.kPlannedOutfitPet, new ProcessEventDelegate(OnPlannedOutfitPet));
         }
 
         public static ListenerAction OnSimInstantiated(Event e)
@@ -61,6 +66,16 @@ namespace Echoweaver.Sims3Game.PetBreeding
                 BreedManager.setOffspringBreed(pet);
             }
             AddBreedInteractions(pet);
+            return ListenerAction.Keep;
+        }
+
+        public static ListenerAction OnPlannedOutfitPet(Event e)
+        {
+            if (e.Actor.SimDescription.PetManager.BreedName == "")
+            {
+                e.Actor.SimDescription.PetManager.BreedName =
+                    BreedManager.retrievePetBreed(e.Actor.SimDescription.SimDescriptionId);
+            }
             return ListenerAction.Keep;
         }
     }

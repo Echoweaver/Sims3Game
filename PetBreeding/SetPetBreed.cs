@@ -6,7 +6,7 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using static Sims3.UI.CAS.CASController;
 
-namespace Echoweaver.Sims3Game.PetBreeding
+namespace Echoweaver.Sims3Game.PetBreedfix
 {
     public class SetPetBreed : ImmediateInteraction<Sim, Sim>
     {
@@ -56,7 +56,7 @@ namespace Echoweaver.Sims3Game.PetBreeding
                 Target.SimDescription.PetManager.BreedName = breed.BreedLocKey;
                 breedName = StringTable.GetLocalizedString(breed.BreedLocKey);
             }
-
+            BreedManager.storePetBreed(Target.SimDescription);
             StyledNotification.Show(new StyledNotification.Format(Target.FullName
                 + " " + Localization.LocalizeString(Loader.sEWBreedLocalizeKey + "SetPetBreed")
                 + " = " + breedName, StyledNotification.NotificationStyle.kGameMessagePositive));

@@ -6,7 +6,7 @@ using Sims3.UI;
 using System.Collections.Generic;
 using static Sims3.UI.CAS.CASController;
 
-namespace Echoweaver.Sims3Game.PetBreeding
+namespace Echoweaver.Sims3Game.PetBreedfix
 {
     public class BreedPickerDialog 
     {

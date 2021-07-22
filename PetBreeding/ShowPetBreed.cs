@@ -7,7 +7,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 
-namespace Echoweaver.Sims3Game.PetBreeding
+namespace Echoweaver.Sims3Game.PetBreedfix
 {
     public sealed class ShowPetBreed : ImmediateInteraction<Sim, Sim>
     {

@@ -3,7 +3,7 @@ using Sims3.Gameplay.Interactions;
 using Sims3.SimIFace;
 using static Sims3.Gameplay.Actors.Sim;
 
-namespace Echoweaver.Sims3Game.PetBreeding
+namespace Echoweaver.Sims3Game.PetBreedfix
 {
 	public class EWCustomizeCollarAndCoats : CustomizeCollarAndCoats
 	{
