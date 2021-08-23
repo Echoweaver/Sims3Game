@@ -20,7 +20,7 @@ namespace Echoweaver.Sims3Game.Breastfeed
             {
                 if (s.SimDescription.ToddlerOrBelow)
                 {
-                    s.AddInteraction(AnimationTest.Singleton, true);
+                    s.AddInteraction(BreastfeedBaby.Singleton, true);
                 }
             }
         }
