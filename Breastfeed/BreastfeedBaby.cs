@@ -33,7 +33,7 @@ namespace Echoweaver.Sims3Game.Breastfeed
     {
         [Tunable]
         [TunableComment("Whether to enable the censor during breast feeding.")]
-        public static bool kEnableBreastFeedCensor = true;
+        public static bool kEnableBreastFeedCensor = false;
     }
 
     public class HungryNurser
@@ -77,6 +77,10 @@ namespace Echoweaver.Sims3Game.Breastfeed
 
         public override bool Run()
         {
+            // Switch out the state machine used by CarryingChildPosture to my custom one
+            StateMachineClient feedMachine = AcquireBreastfeedStateMachine(Actor, Target);
+            ChildUtils.StartCarry(Actor, Target, feedMachine, false);
+
             SocialInteractionB interactionB = new CarriedChildInteractionB.Definition("BeGivenBottle")
                 .CreateInstance(Actor, Target, GetPriority(), EffectivelyAutonomous, CancellableByPlayer) as SocialInteractionB;
 
@@ -92,10 +96,6 @@ namespace Echoweaver.Sims3Game.Breastfeed
                 mCensorEnabled = true;
                 Actor.EnableCensor(CensorType.FullBody);
             }
-
-            // Switch out the state machine used by CarryingChildPosture to my custom one
-            StateMachineClient feedMachine = AcquireBreastfeedStateMachine(Actor, Target);
-            ChildUtils.StartCarry(Actor, Target, feedMachine, true);
 
             Actor.CarryingChildPosture.AnimateInteractionWithCarriedChild("Nurse");
 
