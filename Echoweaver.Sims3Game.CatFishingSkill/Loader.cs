@@ -87,15 +87,19 @@ namespace Echoweaver.Sims3Game.CatFishing
                     StyledNotification.NotificationStyle.kDebugAlert));
             }
 
-            Fish[] objects = Queries.GetObjects<Fish>();
-            foreach (Fish val in objects)
+            MinorPet[] objects = Queries.GetObjects<MinorPet>();
+            foreach (MinorPet val in objects)
             {
                 if (val.CatHuntingComponent != null)
                 {
-                    // Separate out eating fish from land prey.
-                    val.RemoveInteractionByType(PetEatPrey.Singleton);
-                    val.AddInteraction(EWCatEatFish.Singleton);
                     val.AddInventoryInteraction(EWCatDropHere.Singleton);
+
+                    if (val.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Fish)
+                    {
+                        // Separate out eating fish from land prey.
+                        val.RemoveInteractionByType(PetEatPrey.Singleton);
+                        val.AddInteraction(EWCatEatFish.Singleton);
+                    }
                 }
             }
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));

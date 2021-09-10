@@ -46,7 +46,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public int mFreshFishCaught = 0;
 
-		public Dictionary<FishType, FishInfo> mFishingInfo;
+		public Dictionary<FishType, FishInfo> mFishingInfo = new Dictionary<FishType, FishInfo>();
 
         [Persistable(false)]
         public List<ITrackedStat> mTrackedStats;
@@ -56,10 +56,17 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public bool mOppFishercatIsNew = true;
 
-
 		public EWCatFishingSkill(SkillNames guid) : base(guid)
         {
-        }
+			mNumberFishCaught = 0;
+			mUniqueFishCaught = 0;
+			mHeaviestTypeName = "";
+			mHeaviestFishWeight = 0;
+			mFishingInfo = new Dictionary<FishType, FishInfo>();
+			mSaltFishCaught = 0;
+			mFreshFishCaught = 0;
+			sGourmetSimIDs = new List<ulong>();
+		}
 
 		private EWCatFishingSkill()
 		{
@@ -71,7 +78,6 @@ namespace Echoweaver.Sims3Game.CatFishing
 			mSaltFishCaught = 0;
 			mFreshFishCaught = 0;
 			sGourmetSimIDs = new List<ulong>();
-
 		}
 
 		[Persistable]
@@ -463,52 +469,50 @@ namespace Echoweaver.Sims3Game.CatFishing
 			return mFishingInfo.ContainsKey(type);
 		}
 
-		public string RegisterCaughtPrey(ICatPrey prey, bool isFreshwater)
+		public string RegisterCaughtFish(Fish prey, bool isFreshwater)
 		{			
 			CatHuntingComponent.PreyData mPreyData = prey.CatHuntingComponent.mPreyData;
 			string message = "";
-			if (mPreyData != null && mPreyData.PreyType == PreyType.Fish)
-			{
-				++mNumberFishCaught;
-				Fish caughtFish = (Fish)prey;
-				WaterTypes waterType = Fish.sFishData[caughtFish.mFishType].LocationFound;
+            if (mPreyData != null && mPreyData.PreyType == PreyType.Fish)
+            {
+                ++mNumberFishCaught;
 
-				// Tried to find a cute way to do this but failed. There's really no easy test?
-				if (isFreshwater)
+                // Tried to find a cute way to do this but failed. There's really no easy test?
+                if (isFreshwater)
                 {
-					++mFreshFishCaught;
-                } else
+                    ++mFreshFishCaught;
+                }
+                else
                 {
-					++mSaltFishCaught;
-				}
-				if (!mFishingInfo.ContainsKey(caughtFish.mFishType))
-				{
-					++mUniqueFishCaught;
+                    ++mSaltFishCaught;
+                }
+				if (!mFishingInfo.ContainsKey(prey.mFishType))
+                {
+                    ++mUniqueFishCaught;
 					FishInfo fishInfo = new FishInfo();
-					fishInfo.mHeaviestTypeWeight = caughtFish.mWeight;
+					fishInfo.mHeaviestTypeWeight = prey.Weight;
 					fishInfo.mNumberCaught = 1;
-					mFishingInfo.Add(caughtFish.mFishType, fishInfo);
+					mFishingInfo.Add(prey.mFishType, fishInfo);
 					message += Localization.LocalizeString(sEWLocalizationKey + ":newBreed", mSkillOwner) + " ";
 				}
 				else
-				{
-					mFishingInfo[caughtFish.mFishType].mHeaviestTypeWeight =
-						Math.Max(mFishingInfo[caughtFish.mFishType].mHeaviestTypeWeight, caughtFish.mWeight);
-					++mFishingInfo[caughtFish.mFishType].mNumberCaught;
-				}
-				if (mHeaviestFishWeight < caughtFish.mWeight)
-				{
-					mHeaviestFishWeight = caughtFish.mWeight;
-					mHeaviestTypeName = Fish.sFishData[caughtFish.mFishType].StringKeyName;
-					message += Localization.LocalizeString(sEWLocalizationKey + ":newRecord", mSkillOwner) + " ";
-				}
-				EventTracker.SendEvent(new GuidEvent<PreyType>(EventTypeId.kPreyTypeCaught,
-					base.SkillOwner.CreatedSim, mPreyData.PreyType));
-				EventTracker.SendEvent(new GuidEvent<MinorPetRarity>(EventTypeId.kPreyRarityCaught,
-					base.SkillOwner.CreatedSim, mPreyData.Rarity));
-				// TestForNewLifetimeOpp();
-			}
-			return message;
+                {
+                    mFishingInfo[prey.mFishType].mHeaviestTypeWeight =
+                        Math.Max(mFishingInfo[prey.mFishType].mHeaviestTypeWeight, prey.mWeight);
+                    ++mFishingInfo[prey.mFishType].mNumberCaught;
+                }
+                if (mHeaviestFishWeight < prey.mWeight)
+                {
+                    mHeaviestFishWeight = prey.mWeight;
+                    mHeaviestTypeName = Fish.sFishData[prey.mFishType].StringKeyName;
+                    message += Localization.LocalizeString(sEWLocalizationKey + ":newRecord", mSkillOwner) + " ";
+                }
+                EventTracker.SendEvent(new GuidEvent<PreyType>(EventTypeId.kPreyTypeCaught,
+                    base.SkillOwner.CreatedSim, mPreyData.PreyType));
+                EventTracker.SendEvent(new GuidEvent<MinorPetRarity>(EventTypeId.kPreyRarityCaught,
+                    base.SkillOwner.CreatedSim, mPreyData.Rarity));
+            }
+            return message;
 		}
 
 		public void StartMapTagAlarm()
@@ -589,10 +593,6 @@ namespace Echoweaver.Sims3Game.CatFishing
 			mHeaviestTypeName = fishing.mHeaviestTypeName;
 			mUniqueFishCaught = fishing.mUniqueFishCaught;
 		}
-
-		//		//public bool ExportFishCaught(IPropertyStreamWriter writer);
-
-		//		//public bool ImportFishCaught(IPropertyStreamReader reader);
 	}
 }
 

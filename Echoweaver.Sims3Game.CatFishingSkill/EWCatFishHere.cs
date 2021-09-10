@@ -133,13 +133,13 @@ namespace Echoweaver.Sims3Game.CatFishing
 					Fish fish = Fish.CreateFishOfRandomWeight(caughtFishType, Actor.SimDescription);
 
 					// Register will return a message if the fish is new or interesting
-					string message = skill.RegisterCaughtPrey(fish, TerrainIsWaterPond);  
+					string message = skill.RegisterCaughtFish(fish, TerrainIsWaterPond);  
 					if (fish.CatHuntingComponent != null)
 					{
 						fish.CatHuntingComponent.SetCatcher(Actor);
 					}
 					fish.UpdateVisualState(CatHuntingComponent.CatHuntingModelState.Carried);
-					SetActor("fish", (IHasScriptProxy)(object)fish);
+					SetActor("fish", fish);
 					if (Actor.Motives.GetValue(CommodityKind.Hunger) <= kEatFishHungerThreshold)
 					{
 						message += Localization.LocalizeString("Gameplay/Abstracts/ScriptObject/CatFishHere:EatFishTns",
