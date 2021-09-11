@@ -22,7 +22,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		//		public const CommodityKind CommodityKindID = unchecked((CommodityKind)0xFD000E72);
 
-		public static List<ulong> sGourmetSimIDs;
+		public static List<ulong> sGourmetSimIDs = new List<ulong>();
 
 		public AlarmHandle mRemoveMapTagsHandle = AlarmHandle.kInvalidHandle;
 
@@ -58,26 +58,10 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public EWCatFishingSkill(SkillNames guid) : base(guid)
         {
-			mNumberFishCaught = 0;
-			mUniqueFishCaught = 0;
-			mHeaviestTypeName = "";
-			mHeaviestFishWeight = 0;
-			mFishingInfo = new Dictionary<FishType, FishInfo>();
-			mSaltFishCaught = 0;
-			mFreshFishCaught = 0;
-			sGourmetSimIDs = new List<ulong>();
 		}
 
-		private EWCatFishingSkill()
+		private EWCatFishingSkill() : this (SkillNameID)
 		{
-			mNumberFishCaught = 0;
-			mUniqueFishCaught = 0;
-			mHeaviestTypeName = "";
-			mHeaviestFishWeight = 0;
-			mFishingInfo = new Dictionary<FishType, FishInfo>();
-			mSaltFishCaught = 0;
-			mFreshFishCaught = 0;
-			sGourmetSimIDs = new List<ulong>();
 		}
 
 		[Persistable]
@@ -120,7 +104,7 @@ namespace Echoweaver.Sims3Game.CatFishing
 								num2++;
 							}
 						}
-						num = (double)num2 / NumberOfFishTypes;
+						num = num2 / NumberOfFishTypes;
 						num = Math.Round(num, 2) * 100.0;
 					}
 					return Localization.LocalizeString(sEWLocalizationKey + ":FishTypesCaught", num);
@@ -236,11 +220,11 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		[Tunable]
 		[TunableComment("Percent fish types cat must catch to get Seafood Gourmet skill achievement.")]
-		public static int kPctFishTypesForSeafoodGourmet = 20;
+		public static int kPctFishTypesForSeafoodGourmet = 12;
 
 		[Tunable]
 		[TunableComment("Percent hunger multiplier for fish caught by a Seafood Gourmet.")]
-		public static float kSeafoodGourmetHungerMultiplier = 1.3f;
+		public static float kSeafoodGourmetHungerMultiplier = 1.5f;
 
 		public bool mOppSeafoodGourmetIsNew = true;
 
@@ -558,7 +542,14 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public override void CreateSkillJournalInfo()
         {
-            mTrackedStats = new List<ITrackedStat>();
+			mNumberFishCaught = 0;
+			mUniqueFishCaught = 0;
+			mHeaviestTypeName = "";
+			mHeaviestFishWeight = 0;
+			mFishingInfo = new Dictionary<FishType, FishInfo>();
+			mSaltFishCaught = 0;
+			mFreshFishCaught = 0;
+			mTrackedStats = new List<ITrackedStat>();
 			mTrackedStats.Add(new FishCaught(this));
             mTrackedStats.Add(new FishTypesCaught(this));
 			mTrackedStats.Add(new HeaviestFish(this));
