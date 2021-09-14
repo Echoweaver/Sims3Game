@@ -63,6 +63,16 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
+        bool targetRunOnLose = false;
+        bool actorRunOnLose = false;
+
+
+        public void SetParams(bool pTargetRunOnLose, bool pActorRunOnLose)
+        {
+            targetRunOnLose = pTargetRunOnLose;
+            actorRunOnLose = pActorRunOnLose;
+        }
+
         public static InteractionDefinition Singleton = new EWPetAttackSimDefinition();
 
 		public static void OnAfterAttack(Sim actor, Sim target, string interaction, ActiveTopic topic, InteractionInstance i)

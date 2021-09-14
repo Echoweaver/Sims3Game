@@ -218,7 +218,9 @@ namespace Echoweaver.Sims3Game.PetFighting
                 case OutcomeType.Fight:
                     if (!Actor.HasExitReason(ExitReason.Default) && !Target.HasExitReason(ExitReason.Default))
                     {
-                        FightPet continuation = FightPet.Singleton.CreateInstance(Target, Actor, new InteractionPriority(InteractionPriorityLevel.High), base.Autonomous, cancellableByPlayer: true) as FightPet;
+                        EWFightPet continuation = EWFightPet.Singleton.CreateInstance(Target, Actor,
+                            new InteractionPriority(InteractionPriorityLevel.High), base.Autonomous,
+                            cancellableByPlayer: true) as EWFightPet;
                         Actor.InteractionQueue.TryPushAsContinuation(this, continuation);
                     }
                     break;
@@ -265,9 +267,9 @@ namespace Echoweaver.Sims3Game.PetFighting
                 sim = Target;
                 sim2 = Actor;
             }
-            mCurrentStateMachine = StateMachineClient.Acquire((IHasScriptProxy)(object)sim, "ChaseMean", (AnimationPriority)(-2));
-            mCurrentStateMachine.SetActor("x", (IHasScriptProxy)(object)sim);
-            mCurrentStateMachine.SetActor("y", (IHasScriptProxy)(object)sim2);
+            mCurrentStateMachine = StateMachineClient.Acquire(sim, "ChaseMean", (AnimationPriority)(-2));
+            mCurrentStateMachine.SetActor("x", sim);
+            mCurrentStateMachine.SetActor("y", sim2);
             mCurrentStateMachine.EnterState("x", "Enter");
             mCurrentStateMachine.EnterState("y", "Enter");
             BeginCommodityUpdates();
@@ -278,9 +280,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void PlayScoldAnims()
         {
-            mCurrentStateMachine = StateMachineClient.Acquire((IHasScriptProxy)(object)Target, "ChaseMean", (AnimationPriority)(-2));
-            mCurrentStateMachine.SetActor("x", (IHasScriptProxy)(object)Target);
-            mCurrentStateMachine.SetActor("y", (IHasScriptProxy)(object)Actor);
+            mCurrentStateMachine = StateMachineClient.Acquire(Target, "ChaseMean", (AnimationPriority)(-2));
+            mCurrentStateMachine.SetActor("x", Target);
+            mCurrentStateMachine.SetActor("y", Actor);
             mCurrentStateMachine.EnterState("x", "Enter");
             mCurrentStateMachine.EnterState("y", "Enter");
             BeginCommodityUpdates();

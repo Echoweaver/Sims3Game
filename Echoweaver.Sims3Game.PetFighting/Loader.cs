@@ -28,8 +28,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         [Tunable]
         public static bool kAllowPetDeath = true;
-        // Heh. Since pets don't use the human old age shader, might as well use it for default.
-        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.OldAge;
+        // Word on the street is that ghost shaders don't require the associated EP.
+        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.Thirst;
 
         static Loader()
         {
@@ -54,42 +54,29 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             SkillManager.ParseSkillData(data, true);
 
+            FightPet.Singleton = new EWFightPet.EWFightPetDefinition();
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
             LoadSocialData("EWPetFighting_SocialData");
 
-            FightPet.Singleton = EWFightPet.Singleton;
-
             foreach (Sim s in Sims3.Gameplay.Queries.GetObjects<Sim>())
             {
                 if (s.IsCat || s.IsADogSpecies)
                 {
-                    foreach (InteractionObjectPair pair in s.Interactions)
-                    {
-                        if (pair.InteractionDefinition.GetType() == EWFightPet.Singleton.GetType())
-                        {
-                            break;
-                        }
-                    }
-                    s.AddInteraction(EWFightPet.Singleton);
+                    s.AddInteraction(EWKillNow.Singleton, true);
                 }
                 if (s.IsHuman)
                 {
-                    foreach (InteractionObjectPair pair in s.Interactions)
-                    {
-                        if (pair.InteractionDefinition.GetType() == EWPetAttackSim.Singleton.GetType())
-                        {
-                            break;
-                        }
-                    }
-                    s.AddInteraction(EWPetAttackSim.Singleton);
+                    s.AddInteraction(EWPetAttackSim.Singleton, true);
+                    s.AddInteraction(EWPetFightSim.Singleton, true);
                 }
             }
             // Add listeners for the events you care about
             // EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(OnSocialInteraction));
             EventTracker.AddListener(EventTypeId.kSimPassedOut, new ProcessEventDelegate(OnSimPassedOut));
+            EventTracker.AddListener(EventTypeId.kSimDied, new ProcessEventDelegate(OnSimDied));
         }
 
         public static void LoadSocialData(string spreadsheet)
@@ -109,12 +96,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                     ActionData.Add(data);
                 }
             }
-            if(GameUtils.IsInstalled(ProductVersion.EP9))
-            {
-                fightDeathType = SimDescription.DeathType.BluntForceTrauma;
-            }
         }
-
 
         public static ListenerAction OnSocialInteraction(Event e)
         {
@@ -134,7 +116,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 // Human - Pet: Let Sniff Hand
                 StackTrace test_trace = new StackTrace();
                 string test_output = "";
-                foreach(StackFrame f in test_trace.GetFrames())
+                foreach (StackFrame f in test_trace.GetFrames())
                 {
                     test_output += " ||| " + f.GetMethod().ToString();
                 }
@@ -152,6 +134,22 @@ namespace Echoweaver.Sims3Game.PetFighting
             StyledNotification.Show(new StyledNotification.Format("Passed Out Actor: " + e.Actor.Name,
                 StyledNotification.NotificationStyle.kGameMessagePositive));
 
+            return ListenerAction.Keep;
+        }
+
+        public static ListenerAction OnSimDied(Event e)
+        {
+            StyledNotification.Show(new StyledNotification.Format("Sim Died Target: " + e.TargetObject.GetLocalizedName(),
+                StyledNotification.NotificationStyle.kDebugAlert));
+            // Human Statue is just a placeholder. The actual ghost on a cat is invisible!
+            if (e.Actor.SimDescription.IsPet && e.Actor.SimDescription.DeathStyle == SimDescription.DeathType.HumanStatue)
+            {
+                StyledNotification.Show(new StyledNotification.Format("Sim Died Human Statue: " + e.Actor.Name,
+                    StyledNotification.NotificationStyle.kDebugAlert));
+                // Below must be done after gravestone is generated to use the Robot ghost
+                World.ObjectSetGhostState(e.Actor.ObjectId, (uint)SimDescription.DeathType.Robot,
+                    (uint)e.Actor.SimDescription.AgeGenderSpecies);
+            }
             return ListenerAction.Keep;
         }
     }

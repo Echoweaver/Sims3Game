@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -9,6 +10,7 @@ namespace Echoweaver.Sims3Game.PetFighting
     public class EWPetFightingSkill : Skill
     {
         public const SkillNames skillNameID = (SkillNames)0x20F47569;
+        public const CommodityKind CommodityKindID = (CommodityKind)0x262891D3;
 
         [Persistable(false)]
         private List<ITrackedStat> mTrackedStats;

@@ -6,7 +6,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 {
 	internal class BuffEWGraveWound : Buff
 	{
-		private const ulong kEWGraveWoundGuid = 0xE07FEE99F17FD43E;
+		//		private const ulong kEWGraveWoundGuid = 0xE07FEE99F17FD43E;
+		private const ulong kEWGraveWoundGuid = 0x384B537AE0B8F97A;
 		public static ulong StaticGuid
 		{
 			get

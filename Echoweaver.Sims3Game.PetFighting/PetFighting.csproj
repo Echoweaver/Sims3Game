@@ -6,7 +6,7 @@
     <ProjectGuid>{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Echoweaver.Sims3Game.PetFighting</RootNamespace>
-    <AssemblyName>Echoweaver.Sims3Game.PetFighting</AssemblyName>
+    <AssemblyName>PetFighting</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -36,6 +36,8 @@
     <Compile Include="EWPetRecuperating.cs" />
     <Compile Include="GuardTerritory.cs" />
     <Compile Include="EWPetAttackSim.cs" />
+    <Compile Include="EWPetFightSim.cs" />
+    <Compile Include="EWChaseOffLot.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
