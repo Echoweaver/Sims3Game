@@ -102,6 +102,16 @@ namespace Echoweaver.Sims3Game.CatFishing
                     }
                 }
             }
+            Fish[] fish = Queries.GetObjects<Fish>();
+            foreach (Fish f in fish)
+            {
+                if (f.CatHuntingComponent != null)
+                {
+                    // Separate out eating fish from land prey.
+                    f.RemoveInteractionByType(PetEatPrey.Singleton);
+                    f.AddInteraction(EWCatEatFish.Singleton);
+                }
+            }
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
