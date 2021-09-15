@@ -60,7 +60,7 @@ namespace Echoweaver.Sims3Game.CatFishing
         {
 		}
 
-		private EWCatFishingSkill() : this (SkillNameID)
+		private EWCatFishingSkill() 
 		{
 		}
 
@@ -542,13 +542,13 @@ namespace Echoweaver.Sims3Game.CatFishing
 
 		public override void CreateSkillJournalInfo()
         {
-			mNumberFishCaught = 0;
-			mUniqueFishCaught = 0;
-			mHeaviestTypeName = "";
-			mHeaviestFishWeight = 0;
-			mFishingInfo = new Dictionary<FishType, FishInfo>();
-			mSaltFishCaught = 0;
-			mFreshFishCaught = 0;
+			//mNumberFishCaught = 0;
+			//mUniqueFishCaught = 0;
+			//mHeaviestTypeName = "";
+			//mHeaviestFishWeight = 0;
+			//mFishingInfo = new Dictionary<FishType, FishInfo>();
+			//mSaltFishCaught = 0;
+			//mFreshFishCaught = 0;
 			mTrackedStats = new List<ITrackedStat>();
 			mTrackedStats.Add(new FishCaught(this));
             mTrackedStats.Add(new FishTypesCaught(this));

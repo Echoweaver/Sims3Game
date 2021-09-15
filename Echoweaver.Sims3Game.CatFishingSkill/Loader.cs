@@ -94,12 +94,6 @@ namespace Echoweaver.Sims3Game.CatFishing
                 {
                     val.AddInventoryInteraction(EWCatDropHere.Singleton);
 
-                    if (val.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Fish)
-                    {
-                        // Separate out eating fish from land prey.
-                        val.RemoveInteractionByType(PetEatPrey.Singleton);
-                        val.AddInteraction(EWCatEatFish.Singleton);
-                    }
                 }
             }
             Fish[] fish = Queries.GetObjects<Fish>();
@@ -108,6 +102,7 @@ namespace Echoweaver.Sims3Game.CatFishing
                 if (f.CatHuntingComponent != null)
                 {
                     // Separate out eating fish from land prey.
+                    f.AddInventoryInteraction(EWCatDropHere.Singleton);
                     f.RemoveInteractionByType(PetEatPrey.Singleton);
                     f.AddInteraction(EWCatEatFish.Singleton);
                 }
