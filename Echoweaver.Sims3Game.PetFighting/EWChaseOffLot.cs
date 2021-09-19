@@ -9,6 +9,7 @@ using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.UI;
 using static Sims3.Gameplay.Actors.Sim;
 
 namespace Echoweaver.Sims3Game.PetFighting
@@ -20,7 +21,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Succeed,
 			Fight,
-			Reversal
+			Reversal,
+			ChaseAgain
 		}
 
 		public class EWChaseOffLotDefinition : Definition
@@ -45,12 +47,15 @@ namespace Echoweaver.Sims3Game.PetFighting
 				};
 			}
 
-            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
+			{
+				return "EWChaseOffLot";
+			}
+
+			public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
 				// You can only chase a sim off your home lot
-				if (isAutonomous)
-					return false;
-				if (actor.LotCurrent != target.LotHome)
+				if (actor.LotCurrent != actor.LotHome)
 					return false;
 				if (target.LotCurrent == target.LotHome)
 					return false;
@@ -140,6 +145,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		public override WalkStyle SimAWalkStyle => WalkStyle.PetRun;
 
+		EWPetFightingSkill skillActor;
+
 		public override WalkStyle SimBWalkStyle
 		{
 			get
@@ -154,22 +161,50 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		public override int MaxNumLoops => kMaxNumLoops;
 
+        public override bool Run()
+        {
+			skillActor = Actor.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+			if (skillActor == null)
+			{
+				skillActor = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
+				if (skillActor == null)
+				{
+					return false;
+				}
+			}
+			skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+			bool returnVal = base.Run();
+			skillActor.StopSkillGain();
+			return returnVal;
+		}
+
 		public override void RunPostChaseBehavior()
 		{
+			skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
 			OutcomeType outcomeType = OutcomeType.Succeed;
-			if (PreviouslyAccepted)
-			{
 				outcomeType = (OutcomeType)RandomUtil.GetWeightedIndex(GetOutcomeWeights());
-			}
+				StyledNotification.Show(new StyledNotification.Format("Outcome " + outcomeType,
+					StyledNotification.NotificationStyle.kDebugAlert));
+			PlayFaceoffAnims(false);
 			switch (outcomeType)
 			{
 				case OutcomeType.Succeed:
                     if (Target.LotCurrent != Target.LotHome)
                     {
-						Target.RequestWalkStyle(WalkStyle.MeanChasedRun);
+						if (Target.IsHuman)
+                        {
+							Target.RequestWalkStyle(WalkStyle.MeanChasedRun);
+						} else
+                        {
+							Target.RequestWalkStyle(WalkStyle.PetRun);
+						}
 						// Success! Actor drove the unwanted sim off the lot.
-                        MakeSimGoHome(Target, false);
+						StyledNotification.Show(new StyledNotification.Format("GO home",
+							StyledNotification.NotificationStyle.kDebugAlert));
+						skillActor.AddPoints(200f, true, true);   // Successful driving off a foe gains skill
+						MakeSimGoHome(Target, false);
                     }
+
 					break;
 				case OutcomeType.Fight:
                     if (!Actor.HasExitReason(ExitReason.Default) && !Target.HasExitReason(ExitReason.Default))
@@ -205,20 +240,32 @@ namespace Echoweaver.Sims3Game.PetFighting
                         }
 						else
                         {
-							ChaseMean chaseMean = InteractionUtil.CreateInstance(this, Singleton, Actor, Target) as ChaseMean;
-//							EWChaseMean chaseMean = InteractionUtil.CreateInstance(this, Singleton, Actor, Target) as EWChaseMean;
+                            EWChaseMean chaseMean = InteractionUtil.CreateInstance(this, Singleton, Actor, Target) as EWChaseMean;
 							if (chaseMean != null)
 							{
 								chaseMean.PreviouslyAccepted = true;
-								chaseMean.NumLoops = NumLoops - 1;
+								chaseMean.NumLoops = Math.Max(0, NumLoops - 1);
 								Target.InteractionQueue.TryPushAsContinuation(this, chaseMean);
 							}
+						}
+					}
+					break;
+				case OutcomeType.ChaseAgain:
+					if (!Actor.HasExitReason(ExitReason.Default) && !Target.HasExitReason(ExitReason.Default) && base.NumLoops > 0)
+					{
+						EWChaseOffLot chaseMean = InteractionUtil.CreateInstance(this, Singleton, Target, Actor) as EWChaseOffLot;
+						if (chaseMean != null)
+						{
+							chaseMean.PreviouslyAccepted = true;
+							chaseMean.NumLoops = Math.Max(0, NumLoops - 1);
+							Actor.InteractionQueue.TryPushAsContinuation(this, chaseMean);
 						}
 					}
 					break;
 			}
 			EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target, "Chase Mean", wasRecipient: false, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
 			EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Target, Actor, "Chase Mean", wasRecipient: true, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
+			skillActor.StopSkillGain();
 		}
 
 		public void PlayFaceoffAnims(bool reverseRoles)
@@ -278,7 +325,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				animalAffinity = 1;
             }
 
-			float[] chaseWeights = new float[3]; // Number of Outcome Types
+			float[] chaseWeights = new float[4]; // Number of Outcome Types
 			for (int i = 0; i < 3; i++)
 			{
 				chaseWeights[i] = kBaseOutcomeWeights[i];
@@ -310,10 +357,16 @@ namespace Echoweaver.Sims3Game.PetFighting
 				}
 			}
 
-			// Animal people less likely to run from or fight their animal
+			// Animal people less likely to run from or fight their animal and more likely to get the upper hand
 			chaseWeights[0] -= animalAffinity;
 			chaseWeights[1] -= animalAffinity;
 			chaseWeights[2] += animalAffinity;
+
+			chaseWeights[3] = 3f;  // Always the same chance for chase again, at least for now.
+
+			StyledNotification.Show(new StyledNotification.Format("Succeed " + chaseWeights[0] + " Fight " + chaseWeights[1]
+				+ " Reverse " + chaseWeights[2] + " Repeat " + chaseWeights[3],
+				StyledNotification.NotificationStyle.kDebugAlert));
 
 			return chaseWeights;
 		}

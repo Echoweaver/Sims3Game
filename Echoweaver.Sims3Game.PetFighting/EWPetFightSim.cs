@@ -136,10 +136,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public override bool Run()
         {
-
-            StyledNotification.Show(new StyledNotification.Format("This is EWFightPet",
-                StyledNotification.NotificationStyle.kDebugAlert));
-
             if (!SafeToSync())
             {
                 return false;

@@ -7,10 +7,12 @@ using Sims3.UI.Hud;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
+    [Persistable]
     public class EWPetFightingSkill : Skill
     {
         public const SkillNames skillNameID = (SkillNames)0x20F47569;
-        public const CommodityKind CommodityKindID = (CommodityKind)0x262891D3;
+        public const CommodityKind commodityKindID = (CommodityKind)0x262891D3;
+        public string sStatsLocalizeKey = "Echoweaver/PetFighting/SkillStats:";
 
         [Persistable(false)]
         private List<ITrackedStat> mTrackedStats;
@@ -20,9 +22,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public int mFightsWon = 0;
         public int mFightsLost = 0;
-        public string sStatsLocalizeKey = "Echoweaver/PetFighting/SkillStats:";
 
-        public static float kSkillGainRateNormal = 5f;
+        public static float kSkillGainRateNormal = 7f;
 
         public EWPetFightingSkill(SkillNames guid) : base(guid)
         {

@@ -42,6 +42,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (HasBeenLoaded) return; // you only want to run it once per gameplay session
             HasBeenLoaded = true;
 
+            AddEnumValue<SkillNames>("EWPetFightingSkill", EWPetFightingSkill.skillNameID);
+            AddEnumValue<CommodityKind>("SkillEWPetFight", EWPetFightingSkill.commodityKindID);
+
             // Load custom buffs
             (new BuffBooter()).LoadBuffData();
 
@@ -55,6 +58,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             SkillManager.ParseSkillData(data, true);
 
             FightPet.Singleton = new EWFightPet.EWFightPetDefinition();
+            ChaseMean.Singleton = new EWChaseMean.EWChaseMeanDefinition();
+            ChasePlay.Singleton = new EWChasePlay.EWChasePlayDefinition();
+
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
@@ -63,13 +69,15 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             foreach (Sim s in Sims3.Gameplay.Queries.GetObjects<Sim>())
             {
+                s.AddInteraction(EWChaseOffLot.Singleton, true);
+
                 if (s.IsCat || s.IsADogSpecies)
                 {
                     s.AddInteraction(EWKillNow.Singleton, true);
                 }
                 if (s.IsHuman)
                 {
-                    s.AddInteraction(EWPetAttackSim.Singleton, true);
+                    //s.AddInteraction(EWPetAttackSim.Singleton, true);
                     s.AddInteraction(EWPetFightSim.Singleton, true);
                 }
             }
@@ -77,6 +85,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             // EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(OnSocialInteraction));
             EventTracker.AddListener(EventTypeId.kSimPassedOut, new ProcessEventDelegate(OnSimPassedOut));
             EventTracker.AddListener(EventTypeId.kSimDied, new ProcessEventDelegate(OnSimDied));
+            EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));
+
         }
 
         public static void LoadSocialData(string spreadsheet)
@@ -98,33 +108,18 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public static ListenerAction OnSocialInteraction(Event e)
+        public static ListenerAction OnSimInstantiated(Event e)
         {
-            // Friendly interactions: Goof Around -- should gain fight skill
-            // Mean interaction: Chase, Fight
-            // Mean interaction with human: Chase, Attack
-            // Interaction with some objects: Guard Object
-
-            // New options -- chase off lot
-            // Guard territory
-            // Can't fight raccoon? Why not?
-            if (e is SocialEvent)
+            // Check to see if pet sims have same passed out event
+            StyledNotification.Show(new StyledNotification.Format("Instantiated Actor: " + e.Actor.Name,
+                StyledNotification.NotificationStyle.kGameMessagePositive));
+            Sim s = e.Actor as Sim;
+            if (s != null)
             {
-                SocialEvent cevent = (SocialEvent)e;
-
-                // Pounce Play, Chase Play, PlayPetToPet, Sniff
-                // Human - Pet: Let Sniff Hand
-                StackTrace test_trace = new StackTrace();
-                string test_output = "";
-                foreach (StackFrame f in test_trace.GetFrames())
-                {
-                    test_output += " ||| " + f.GetMethod().ToString();
-                }
-                StyledNotification.Show(new StyledNotification.Format("Social Actor: " + cevent.Actor.Name +
-                    ", SocialName: " + cevent.SocialName + "Stack: " + test_output,
-                    StyledNotification.NotificationStyle.kGameMessagePositive));
-
+                s.AddInteraction(EWPetFightSim.Singleton, true);
+                s.AddInteraction(EWChaseOffLot.Singleton, true);
             }
+
             return ListenerAction.Keep;
         }
 
@@ -151,6 +146,27 @@ namespace Echoweaver.Sims3Game.PetFighting
                     (uint)e.Actor.SimDescription.AgeGenderSpecies);
             }
             return ListenerAction.Keep;
+        }
+
+
+        public static void AddEnumValue<T>(string key, object value) where T : struct
+        {
+            Type typeFromHandle = typeof(T);
+            if (!ParserFunctions.sCaseInsensitiveEnumParsers.TryGetValue(typeFromHandle, out EnumParser ciparser))
+            {
+                ciparser = new EnumParser(typeFromHandle, ignoreCase: true);
+                ParserFunctions.sCaseInsensitiveEnumParsers.Add(typeFromHandle, ciparser);
+            }
+            if (!ParserFunctions.sCaseSensitiveEnumParsers.TryGetValue(typeFromHandle, out EnumParser csparser))
+            {
+                csparser = new EnumParser(typeFromHandle, ignoreCase: false);
+                ParserFunctions.sCaseSensitiveEnumParsers.Add(typeFromHandle, csparser);
+            }
+            if (!ciparser.mLookup.ContainsKey(key.ToLowerInvariant()) && !csparser.mLookup.ContainsKey(key))
+            {
+                ciparser.mLookup.Add(key.ToLowerInvariant(), value);
+                csparser.mLookup.Add(key, value);
+            }
         }
     }
 }

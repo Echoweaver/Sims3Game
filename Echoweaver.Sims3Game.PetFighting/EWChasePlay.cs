@@ -5,25 +5,25 @@ using static Sims3.Gameplay.Actors.Sim;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
-    public class EWChaseMean : ChaseMean
+    public class EWChasePlay : ChasePlay
     {
-
-        public class EWChaseMeanDefinition : ChaseMeanDefinition
+        public class EWChasePlayDefinition : ChasePlayDefinition
         {
-            public EWChaseMeanDefinition() : base()
+            public EWChasePlayDefinition() : base()
             {
             }
 
             public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
             {
-                ChaseBaseClass chaseBaseClass = new EWChaseMean();
+                ChaseBaseClass chaseBaseClass = new EWChasePlay();
                 chaseBaseClass.Init(ref parameters);
                 chaseBaseClass.IsMeanChase = true;
                 return chaseBaseClass;
             }
+
         }
 
-        public static new InteractionDefinition Singleton = new EWChaseMeanDefinition();
+        public static new InteractionDefinition Singleton = new EWChasePlayDefinition();
 
         public override bool Run()
         {
@@ -41,6 +41,5 @@ namespace Echoweaver.Sims3Game.PetFighting
             skillActor.StopSkillGain();
             return returnVal;
         }
-
     }
 }
