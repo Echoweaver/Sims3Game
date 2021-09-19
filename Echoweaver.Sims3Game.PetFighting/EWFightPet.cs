@@ -121,23 +121,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             BeginCommodityUpdates();
             Actor.RequestWalkStyle(WalkStyle.PetRun);
 
-            // Run to some reasonable distance from target so we don't have to wait all year
-            if (!Actor.RouteToObjectRadius(Target, CatHuntingComponent.PetEatPrey.kDistanceFromPreyForCatToHunting))
-            {
-                Actor.UnrequestWalkStyle(WalkStyle.PetRun);
-                EndCommodityUpdates(false);
-                return false;
-            }
-
-            if (Actor.IsCat)
-            {
-                Actor.UnrequestWalkStyle(WalkStyle.PetRun);
-                PouncePosture pouncePosture = PouncePosture.Create(Actor);
-                pouncePosture.EnterPounce();
-                Actor.Posture = pouncePosture;
-                Actor.RequestWalkStyle(WalkStyle.CatStalk);
-            }
-
             if (!BeginSocialInteraction(new SocialInteractionB.Definition(null, GetInteractionName(),
                 allowCarryChild: false), pairedSocial: true, doCallOver: false))
             {
@@ -158,6 +141,15 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return false;
             }
 
+            Actor.UnrequestWalkStyle(WalkStyle.PetRun);
+
+            if (Actor.IsCat)
+            {
+                PouncePosture pouncePosture = PouncePosture.Create(Actor);
+                pouncePosture.EnterPounce();
+                Actor.Posture = pouncePosture;
+            }
+
             // TODO: A fight should reduce fatigue
             InteractionTuning tuning = InteractionObjectPair.Tuning;
             if (tuning != null && tuning.mTradeoff != null)
@@ -174,6 +166,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                     }
                 }
             }
+
 
             StandardEntry(addToUseList: false);
             StartSocial("Fight Pet");
