@@ -183,8 +183,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
 			OutcomeType outcomeType = OutcomeType.Succeed;
 				outcomeType = (OutcomeType)RandomUtil.GetWeightedIndex(GetOutcomeWeights());
-				StyledNotification.Show(new StyledNotification.Format("Outcome " + outcomeType,
-					StyledNotification.NotificationStyle.kDebugAlert));
 			PlayFaceoffAnims(false);
 			switch (outcomeType)
 			{
@@ -199,8 +197,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 							Target.RequestWalkStyle(WalkStyle.PetRun);
 						}
 						// Success! Actor drove the unwanted sim off the lot.
-						StyledNotification.Show(new StyledNotification.Format("GO home",
-							StyledNotification.NotificationStyle.kDebugAlert));
 						skillActor.AddPoints(200f, true, true);   // Successful driving off a foe gains skill
 						MakeSimGoHome(Target, false);
                     }
@@ -364,101 +360,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			chaseWeights[3] = 3f;  // Always the same chance for chase again, at least for now.
 
-			StyledNotification.Show(new StyledNotification.Format("Succeed " + chaseWeights[0] + " Fight " + chaseWeights[1]
-				+ " Reverse " + chaseWeights[2] + " Repeat " + chaseWeights[3],
-				StyledNotification.NotificationStyle.kDebugAlert));
-
 			return chaseWeights;
 		}
 
 	}
 
-
-	//public class EWChaseOffLot : Interaction<Sim, Sim>
-	//{
-	//	public class Definition : InteractionDefinition<Sim, Sim, EWChaseOffLot>
-	//	{
-	//		public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
-	//		{
-	//			return ((a.LotCurrent == a.LotHome) && (target.LotCurrent != target.LotHome));
-	//		}
-	//	}
-
-	//	public static InteractionDefinition Singleton = (InteractionDefinition)(object)new Definition();
-
-	//	[TunableComment("The dog will chase the mailman for a random number of minutes within this range.  Note the mailmans route is not guaranteed to last this long, in which case the dog will stop earlier.")]
-	//	[Tunable]
-	//	public static float[] kChaseLength = new float[2] {
-	//	3f,
-	//	7f
-	//};
-
-	//	[Tunable]
-	//	[TunableComment("How much the LTR Liking between the dog and mailman will go down after the chase.")]
-	//	public static int kLTRLoss = 20;
-
-	//	public Vector3 TargetDestination;
-
-	//	public float TargetRouteTime;
-
-	//	public Route r;
-
-	//	public StateMachineClient mBarkOverlaySMC;
-
-	//	public override bool Run()
-	//	{
-
-	//		r = Actor.CreateRoute();
-	//		r.SetOption(RouteOption.EnablePlanningAsCar, false);
-	//		r.PlanToPointRadialRange(TargetDestination, 1f, 5f);
-	//		RoutePlanResult planResult = r.PlanResult;
-	//		if (planResult.Succeeded())
-	//		{
-	//			string locomotionStateForWalkStyle = SimWalkStyleRules.GetLocomotionStateForWalkStyle(WalkStyle.PetRun);
-	//			SimDescription simDescription = Actor.SimDescription;
-	//			RouteAnimationSpec val = new RouteAnimationSpec(locomotionStateForWalkStyle, (uint)simDescription.Age,
-	//                   (uint)simDescription.Gender, (uint)simDescription.Species);
-	//			float estimatedTravelTime = r.GetEstimatedTravelTime(0u, Actor.ObjectId, val);
-	//			float num = TargetRouteTime - estimatedTravelTime;
-	//			float num2 = SimClock.ConvertFromTicks((long)Math.Abs(num), TimeUnit.Minutes);
-	//			if (!(num > 0f))
-	//			{
-	//				_ = 0.1f;
-	//			}
-	//			BalloonData val2 = new BalloonData(Target.GetThumbnailKey());
-	//			val2.BalloonType = ThoughtBalloonTypes.kScreamBalloon;
-	//			val2.Duration = ThoughtBalloonDuration.Medium;
-	//			val2.mPriority = ThoughtBalloonPriority.High;
-	//			Actor.ThoughtBalloonManager.ShowBalloon(val2);
-	//			BeginCommodityUpdates();
-	//			mBarkOverlaySMC = StateMachineClient.Acquire(Actor, "dogbarkoverlay", AnimationPriority.kAPDefault);
-	//			mBarkOverlaySMC.SetActor("x", (IHasScriptProxy)(object)base.Actor);
-	//			mBarkOverlaySMC.EnterState("x", "Enter");
-	//			mBarkOverlaySMC.RequestState("x", "Bark");
-	//			RequestWalkStyle(WalkStyle.PetRun);
-	//			AlarmManager.Global.AddAlarm(RandomUtil.GetFloat(kChaseLength[0], kChaseLength[1]), TimeUnit.Minutes,
-	//				new AlarmTimerCallback(StopChase), "Dog Chase Mailman Alarm", AlarmType.NeverPersisted, Actor);
-	//			Actor.DoRoute(r);
-	//			EventTracker.SendEvent(EventTypeId.kChaseMailman, Actor);
-	//			EndCommodityUpdates(true);
-	//			Relationship val3 = Relationship.Get(Actor, Target, true);
-	//			val3.LTR.UpdateLiking(-kLTRLoss);
-	//			Actor.ThoughtBalloonManager.KillBalloon(val2);
-	//			mBarkOverlaySMC.RequestState("x", "Exit");
-	//		}
-	//		if (Target.LotCurrent != Target.LotHome)
-	//		{
-	//			MakeSimGoHome(Target, false);
-	//		}
-	//		return true;
-	//	}
-
-	//	public void StopChase()
-	//	{
-	//		if (r != null && r.IsActive)
-	//		{
-	//			Actor.AddExitReason(ExitReason.Finished);
-	//		}
-	//	}
-	//}
 }

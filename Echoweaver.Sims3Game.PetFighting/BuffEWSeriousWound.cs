@@ -9,9 +9,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 	{
 		private const ulong kEWSeriousWoundGuid = 0xAE4D28F1BCEC603D;
 
-		public static float kEnergyDecayPerHour = -10f;
-		public static float kHungerDecayPerHour = -10f;
-
 		public static ulong StaticGuid
 		{
 			get
@@ -20,6 +17,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 			}
 		}
 
+		public static float kSeriusWoundHungerDecayMultiplier = 2.0f;
+		public static float kSeriousWoundEnergyDecayMultiplier = 2.0f;
+
 		public BuffEWSeriousWound(BuffData data) : base(data)
 		{
 		}
@@ -27,20 +27,20 @@ namespace Echoweaver.Sims3Game.PetFighting
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
 			base.OnAddition(bm, bi, travelReaddition);
+
 			Sim actor = bm.Actor;
-			actor.Motives.GetMotive(CommodityKind.Energy).Decay += kEnergyDecayPerHour;
-			actor.RequestWalkStyle(Sim.WalkStyle.PetStumbleWalk);
+			// This should increase hunger and energy decay.
+			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, kSeriusWoundHungerDecayMultiplier);
+			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
 		}
 
 		public override void OnRemoval(BuffManager bm, BuffInstance bi)
 		{
-			Sim actor = bm.Actor;
-			actor.UnrequestWalkStyle(Sim.WalkStyle.PetStumbleWalk);
-			actor.Motives.GetMotive(CommodityKind.Energy).Decay -= kEnergyDecayPerHour;
-			// Grave wound becomes serious becomes mild before disappearing
-			actor.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
-				(Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
 			base.OnRemoval(bm, bi);
+
+			Sim actor = bm.Actor;
+			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Hunger, kSeriusWoundHungerDecayMultiplier);
+			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
 		}
 	}
 }

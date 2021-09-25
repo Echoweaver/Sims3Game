@@ -14,7 +14,7 @@ using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
-
+using static Sims3.UI.StyledNotification;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -167,7 +167,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-
             StandardEntry(addToUseList: false);
             StartSocial("Fight Pet");
             ((SocialInteraction)LinkedInteractionInstance).Rejected = Rejected;
@@ -188,11 +187,15 @@ namespace Echoweaver.Sims3Game.PetFighting
                 SetActor("y", Actor);
                 skillTarget.wonFight();
                 skillActor.lostFight();
+                Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightLose",
+                    Actor.Name), NotificationStyle.kGameMessageNegative);
             }
             else
             {
                 skillActor.wonFight();
                 skillTarget.lostFight();
+                Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightWin",
+                    Actor.Name), NotificationStyle.kGameMessagePositive);
             }
             AnimateSim("Exit");
 
@@ -223,9 +226,11 @@ namespace Echoweaver.Sims3Game.PetFighting
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
             AssignFightWounds();
+
+            // You can only die from a fight if you lose.
             if (DoesLoserDie())
             {
-                Target.Kill(Loader.fightDeathType);
+                BuffEWGraveWound.Succumb(Target);
                 return success;
             }
 
@@ -241,8 +246,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 // TODO: Walkstyle should be running fear
                 Target.PopPosture();
-                StyledNotification.Show(new StyledNotification.Format("Fight go home",
-                    StyledNotification.NotificationStyle.kDebugAlert));
                 if (Target.IsHuman)
                 {
                     Target.RequestWalkStyle(WalkStyle.MeanChasedRun);
@@ -289,8 +292,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void AssignFightWounds()
         {
-            StyledNotification.Show(new StyledNotification.Format("Wounds",
-                StyledNotification.NotificationStyle.kDebugAlert));
             foreach (Sim fighter in new Sim[] { Actor, Target })
             {
                 // Chance of being wounded is calculated based on the sim's fight skill.
@@ -311,10 +312,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
                     WoundType wound = (WoundType)RandomUtil.GetWeightedIndex(woundChances);
 
-                    StyledNotification.Show(new StyledNotification.Format("Wound for " + fighter.Name
-                        + ": " + wound,
-                        StyledNotification.NotificationStyle.kDebugAlert));
-
                     switch (wound)
                     {
                         case WoundType.Mild:
@@ -328,20 +325,24 @@ namespace Echoweaver.Sims3Game.PetFighting
                             break;
                     }
                 }
-                else
-                {
-
-                    StyledNotification.Show(new StyledNotification.Format("Wound for " + fighter.Name
-                        + ": None",
-                        StyledNotification.NotificationStyle.kDebugAlert));
-
-                }
             }
         }
 
         public bool DoesLoserDie()
         {
             // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
+            if (Target.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
+                return true;
+            else if (Target.Motives.InMotiveDistress)
+            {
+                BuffInstance motive = Target.Motives.MotiveInDistress;
+                // These names are confusing, but "Guid" appears to be ID the Buff,
+                // and BuffGuid is the ID of the Instance....
+                if (motive.Guid == BuffNames.ExhaustedPet)
+                {
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -361,7 +362,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 return "EWKillNow";
             }
-
         }
 
         public static InteractionDefinition Singleton = new Definition();

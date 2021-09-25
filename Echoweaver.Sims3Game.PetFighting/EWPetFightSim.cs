@@ -199,13 +199,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             ((SocialInteraction)LinkedInteractionInstance).Rejected = Rejected;
             mPetFightNoiseBroadcast = new ReactionBroadcaster(Actor, kPetFightLoudBroadcastParams,
                 FightBroadcastCallback);
-            mCurrentStateMachine = StateMachineClient.Acquire(Actor, "ChaseMean", AnimationPriority.kAPDefault);
-            mCurrentStateMachine.SetActor("x", Actor);
-            mCurrentStateMachine.SetActor("y", Target);
-            mCurrentStateMachine.EnterState("x", "Enter");
-            mCurrentStateMachine.EnterState("y", "Enter");
-            AnimateJoinSims("Face Off");
-            AnimateJoinSims("Exit");
             if (Actor.IsCat)
             {
                 UnrequestWalkStyle(WalkStyle.CatStalk);
@@ -231,6 +224,13 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
             bool flag = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]), ExitReason.Default);
+            mCurrentStateMachine = StateMachineClient.Acquire(Actor, "ChaseMean", AnimationPriority.kAPDefault);
+            mCurrentStateMachine.SetActor("x", Actor);
+            mCurrentStateMachine.SetActor("y", Target);
+            mCurrentStateMachine.EnterState("x", "Enter");
+            mCurrentStateMachine.EnterState("y", "Enter");
+            AnimateJoinSims("Face Off");
+            AnimateJoinSims("Exit");
             EndCommodityUpdates(flag);
             LinkedInteractionInstance.EndCommodityUpdates(flag);
             bool actorWon = DoesActorWinFight();
@@ -241,11 +241,13 @@ namespace Echoweaver.Sims3Game.PetFighting
                 //SetActor("y", (IHasScriptProxy)(object)Actor);
                 //skillTarget.wonFight();
                 skillActor.lostFight();
+                Actor.BuffManager.AddElement(BuffNames.CatScratch, Origin.FromFight);
             }
             else
             {
                 skillActor.wonFight();
                 //skillTarget.lostFight();
+                Target.BuffManager.AddElement(BuffNames.ShreddedDignity, Origin.FromFight);
             }
             AnimateSim("Exit");
             EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target, "EWPetFightSim", wasRecipient: false, wasAccepted: true, actorWon, CommodityTypes.Undefined));
@@ -263,10 +265,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
             AssignFightWounds();
-            //if (DoesLoserDie())
-            //{
-            //    Target.Kill(Sims3.Gameplay.CAS.SimDescription.DeathType.BluntForceTrauma);
-            //}
             return flag;
         }
 

@@ -1,11 +1,15 @@
-﻿using Sims3.Gameplay.ActorSystems;
+﻿using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
     public class BuffBooter
     {
+
         public BuffBooter()
         {
         }
@@ -23,6 +27,58 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (data != null)
             {
                 BuffManager.ParseBuffData(data, true);
+            }
+        }
+
+        public static void addCommodityMultiplier(Sim s, CommodityKind commodity, float multiplier)
+        {
+            BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier buffModifier
+                = s.BuffManager.GetElement(BuffNames.CommodityDecayModifier)
+                as BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier;
+
+            if (buffModifier == null)
+            {
+                BuffManager.BuffDictionary.TryGetValue((ulong)BuffNames.CommodityDecayModifier,
+                    out BuffInstance value);
+                if (value == null)
+                {
+                    StyledNotification.Show(new StyledNotification.Format("ERROR Add Commodity Multiplier buff failed for: "
+                        + s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    return;
+                }
+
+                buffModifier = (BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier)value;
+                buffModifier.mTimeoutPaused = true;
+                buffModifier.SetCustomBuffInstanceName("EWDecayModifierBuff");
+                buffModifier.SetCustomBuffInstanceDescription("EWDecayModifierBuff_BuffDescription");
+                buffModifier.SetThumbnail("moodlet_whackedout", 0x48000000, s);
+                s.BuffManager.AddBuff(buffModifier);
+            }
+            buffModifier.AddCommodityMultiplier(commodity, multiplier);
+        }
+
+        public static void removeCommodityMultiplier(Sim s, CommodityKind commodity, float multiplier)
+        {
+            BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier buffModifier
+                = s.BuffManager.GetElement(BuffNames.CommodityDecayModifier)
+                as BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier;
+            if (buffModifier == null)
+            {
+                StyledNotification.Show(new StyledNotification.Format("ERROR Remove " + commodity +
+                    " multiplier failed for: " + s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                return;
+            }
+
+            buffModifier.AddCommodityMultiplier(commodity, 1 / multiplier);
+            if (buffModifier.GetCommodityMultiplier(commodity) == 1f)
+            {
+                buffModifier.mCommodityDecayMultipliers.Remove(commodity);
+            }
+
+            if (buffModifier.mCommodityDecayMultipliers.Count == 0)
+            {
+                StyledNotification.Show(new StyledNotification.Format("Remove modifier buff " , StyledNotification.NotificationStyle.kDebugAlert));
+                s.BuffManager.RemoveElement(buffModifier.BuffGuid);
             }
         }
     }

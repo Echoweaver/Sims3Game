@@ -29,7 +29,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         [Tunable]
         public static bool kAllowPetDeath = true;
         // Word on the street is that ghost shaders don't require the associated EP.
-        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.Thirst;
+        public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.MummyCurse;
 
         static Loader()
         {
@@ -74,6 +74,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 if (s.IsCat || s.IsADogSpecies)
                 {
                     s.AddInteraction(EWKillNow.Singleton, true);
+                    s.AddInteraction(EWPetSuccumbToWounds.Singleton, true);
                 }
                 if (s.IsHuman)
                 {
@@ -86,7 +87,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             EventTracker.AddListener(EventTypeId.kSimPassedOut, new ProcessEventDelegate(OnSimPassedOut));
             EventTracker.AddListener(EventTypeId.kSimDied, new ProcessEventDelegate(OnSimDied));
             EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));
-
+            EventTracker.AddListener(EventTypeId.kPetTakenBySocialWorker, new ProcessEventDelegate(OnSocialWorker));
         }
 
         public static void LoadSocialData(string spreadsheet)
@@ -128,6 +129,11 @@ namespace Echoweaver.Sims3Game.PetFighting
             // Check to see if pet sims have same passed out event
             StyledNotification.Show(new StyledNotification.Format("Passed Out Actor: " + e.Actor.Name,
                 StyledNotification.NotificationStyle.kGameMessagePositive));
+            if (e.Actor.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
+            {
+                // Passing out with a Grave Wound means dying of the wound
+                BuffEWGraveWound.Succumb(e.Actor as Sim);
+            }
 
             return ListenerAction.Keep;
         }
@@ -147,6 +153,17 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             return ListenerAction.Keep;
         }
+
+        public static ListenerAction OnSocialWorker(Event e)
+        {
+            // Check to see if pet sims have same passed out event
+            StyledNotification.Show(new StyledNotification.Format("Social Worker Called Actor: " + e.Actor.Name +
+                "Target: " + e.TargetObject.GetLocalizedName(),
+                StyledNotification.NotificationStyle.kGameMessagePositive));
+
+            return ListenerAction.Remove;
+        }
+
 
 
         public static void AddEnumValue<T>(string key, object value) where T : struct
