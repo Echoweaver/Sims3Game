@@ -15,6 +15,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			}
 		}
+		public static BuffNames buffName = (BuffNames)kEWMinorWoundGuid;
 
 		public static float kMinorWoundHungerDecayMultiplier = 1.5f;
 		public static float kMinorWoundEnergyDecayMultiplier = 1.5f;

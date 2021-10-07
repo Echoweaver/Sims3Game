@@ -59,7 +59,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                return "EWPetFightSim";
+                return "Fight";
             }
         }
 
@@ -133,6 +133,16 @@ namespace Echoweaver.Sims3Game.PetFighting
         public ReactionBroadcaster mPetFightNoiseBroadcast;
 
         public static InteractionDefinition Singleton = new EWPetFightSimDefinition();
+
+        bool targetRunOnLose = false;
+        bool actorRunOnLose = false;
+
+
+        public void SetParams(bool pTargetRunOnLose, bool pActorRunOnLose)
+        {
+            targetRunOnLose = pTargetRunOnLose;
+            actorRunOnLose = pActorRunOnLose;
+        }
 
         public override bool Run()
         {
@@ -223,12 +233,15 @@ namespace Echoweaver.Sims3Game.PetFighting
                     }
                 }
             }
-            bool flag = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]), ExitReason.Default);
             mCurrentStateMachine = StateMachineClient.Acquire(Actor, "ChaseMean", AnimationPriority.kAPDefault);
             mCurrentStateMachine.SetActor("x", Actor);
             mCurrentStateMachine.SetActor("y", Target);
             mCurrentStateMachine.EnterState("x", "Enter");
             mCurrentStateMachine.EnterState("y", "Enter");
+            AnimateJoinSims("Face Off");
+            bool flag = true;
+            //            bool flag = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]), ExitReason.Default);
+            AnimateJoinSims("Face Off");
             AnimateJoinSims("Face Off");
             AnimateJoinSims("Exit");
             EndCommodityUpdates(flag);
@@ -236,17 +249,12 @@ namespace Echoweaver.Sims3Game.PetFighting
             bool actorWon = DoesActorWinFight();
             if (!actorWon)
             {
-                //AnimateSim("Swap");
-                //SetActor("x", (IHasScriptProxy)(object)Target);
-                //SetActor("y", (IHasScriptProxy)(object)Actor);
-                //skillTarget.wonFight();
                 skillActor.lostFight();
                 Actor.BuffManager.AddElement(BuffNames.CatScratch, Origin.FromFight);
             }
             else
             {
                 skillActor.wonFight();
-                //skillTarget.lostFight();
                 Target.BuffManager.AddElement(BuffNames.ShreddedDignity, Origin.FromFight);
             }
             AnimateSim("Exit");
@@ -264,7 +272,34 @@ namespace Echoweaver.Sims3Game.PetFighting
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
-            AssignFightWounds();
+
+            // If this is called from ChaseOffLot, then the target will flee if it loses
+            if (!actorWon && actorRunOnLose && Actor.LotCurrent != Actor.LotHome)
+            {
+                // TODO: Walkstyle should be running fear
+                Actor.PopPosture();
+                Actor.RequestWalkStyle(WalkStyle.PetRun);
+                MakeSimGoHome(Actor, false);
+            }
+            else if (actorWon && targetRunOnLose && Target.LotCurrent != Target.LotHome)
+            {
+                // TODO: Walkstyle should be running fear
+                Target.PopPosture();
+                if (Target.IsHuman)
+                {
+                    Target.RequestWalkStyle(WalkStyle.MeanChasedRun);
+                }
+                else
+                {
+                    Target.RequestWalkStyle(WalkStyle.PetRun);
+                }
+                MakeSimGoHome(Target, false);
+            } else if (!actorWon)
+            {
+                InteractionInstance test = RunAwayFromSim.Singleton.CreateInstance(Actor,
+                    Target, new InteractionPriority(InteractionPriorityLevel.High), true, false);
+                Target.InteractionQueue.TryPushAsContinuation(this, test);
+            }
             return flag;
         }
 
@@ -299,45 +334,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             return RandomUtil.RandomChance(winChance);
         }
 
-        public void AssignFightWounds()
-        {
-            //foreach (Sim fighter in new Sim[] { Actor, Target })
-            //{
-            //    // Chance of being wounded is calculated based on the sim's fight skill.
-            //    // Could eventually take into account opponent sim or win/loss
-            //    int wound_chance = kBaseWoundChance;
-            //    int fight_level = Math.Max(0, fighter.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            //    wound_chance -= kWoundChanceAdjPerSkillLevel * fight_level;
-            //    wound_chance = MathUtils.Clamp(wound_chance, 10, 90);
-            //    if (true)  // TODO: Replace debugging code
-            //               //                if (RandomUtil.RandomChance(wound_chance))
-            //    {
-            //        // Determine wound severity
-            //        // Would severity is also offset by skill. This may not be the best way to do it.
-
-            //        int light_wound_chance = 10 + (2 * fight_level);
-            //        int medium_wound_chance = 10 + fight_level;
-            //        int grave_wound_chance = 10;
-            //        int wound_type = RandomUtil.GetInt(light_wound_chance + medium_wound_chance + grave_wound_chance);
-            //        if (wound_type <= light_wound_chance)
-            //        {
-            //            fighter.BuffManager.AddElement(BuffEWMinorWound.StaticGuid,
-            //                (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-            //        }
-            //        else if (wound_type <= (light_wound_chance + medium_wound_chance))
-            //        {
-            //            fighter.BuffManager.AddElement(BuffEWSeriousWound.StaticGuid,
-            //                (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-            //        }
-            //        else
-            //        {
-            //            fighter.BuffManager.AddElement(BuffEWGraveWound.StaticGuid,
-            //                (Origin)ResourceUtils.HashString64("FromFightWithAnotherPet"));
-            //        }
-            //    }
-            //}
-        }
-
         public bool DoesLoserDie()
         {
             // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
@@ -349,5 +345,19 @@ namespace Echoweaver.Sims3Game.PetFighting
             ReactToDisturbance.NoiseBroadcastCallback(s, rb.BroadcastingObject as GameObject, rb.IsFirstTime(s),
                 Origin.FromPetsFighting, isCryingBabyBuffInfinite: false);
         }
+
+        public static void OnAfterAttack(Sim actor, Sim target, string interaction, ActiveTopic topic, InteractionInstance i)
+        {
+            StyledNotification.Show(new StyledNotification.Format("Custom OnAfterAttack",
+                StyledNotification.NotificationStyle.kDebugAlert));
+
+            if (actor.TraitManager.HasElement(TraitNames.AggressivePet))
+            {
+                actor.Motives.SetDecay(CommodityKind.Fun, decay: true);
+                actor.Motives.SetValue(CommodityKind.Fun, actor.Motives.GetValue(CommodityKind.Fun) + PetSocialTunables.kAttackShredFunUpdate);
+            }
+            target.BuffManager.AddElement(BuffNames.Backache, Origin.FromCatAttack);
+        }
+
     }
 }

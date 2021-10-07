@@ -23,7 +23,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         public int mFightsWon = 0;
         public int mFightsLost = 0;
 
-        public static float kSkillGainRateNormal = 7f;
+        public static float kSkillGainRateNormal = 10f;
 
         public EWPetFightingSkill(SkillNames guid) : base(guid)
         {
@@ -70,6 +70,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void wonFight()
         {
+            AddPoints(200, true, true);
             ++mFightsWon;
         }
 

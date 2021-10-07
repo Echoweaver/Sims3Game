@@ -1,0 +1,188 @@
+﻿using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Objects.RabbitHoles;
+using Sims3.Gameplay.Utilities;
+using Sims3.SimIFace;
+using Sims3.UI;
+using System.Collections.Generic;
+using static Sims3.Gameplay.Abstracts.RabbitHole;
+
+namespace Echoweaver.Sims3Game.PetFighting
+{
+	public class EWTakePetToVetWounds : Interaction<Sim, Sim>
+	{
+		public class Definition : InteractionDefinition<Sim, Sim, EWTakePetToVetWounds>
+		{
+
+			public override bool Test(Sim a, Sim target, bool isAutonomous,
+				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+            {
+				if (!a.IsHuman)
+					return false;
+				if (!target.IsPet)
+					return false;
+				//if (!PetHasWound(target))
+				//	return false;
+				if (GetRabbitHolesOfType(RabbitHoleType.Hospital).Count <= 0)
+					return false;
+				if (a.LotCurrent != target.LotCurrent)
+				{
+					// TODO: Localize
+					greyedOutTooltipCallback = CreateTooltipCallback("Must be on same lot as pet");
+					return false;
+				}
+                return true;
+            }
+
+            public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+			{
+				return "Take " + target.Name + " to vet (§" + kCostOfVetVisit + ")";
+//				return LocalizeString("InteractionName", kCostOfVetVisit);
+			}
+
+			private bool PetHasWound(Sim s)
+            {
+				if (!s.IsPet)
+					return false;
+				if (s.BuffManager.HasAnyElement(new BuffNames[] {BuffEWGraveWound.buffName,
+					BuffEWSeriousWound.buffName, BuffEWMinorWound.buffName }))
+					return true;
+				else return false;
+            }
+		}
+
+		public static string sLocalizeKey = "Echoweaver/PetFighting/TakeToVet:";
+
+		[Tunable]
+		public static int kCostOfVetVisit = 200;
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public static string LocalizeString(string name, params object[] parameters)
+		{
+			return Localization.LocalizeString(sLocalizeKey + name, parameters);
+		}
+
+        public override bool Run()
+        {
+			List<RabbitHole> hospitals = GetRabbitHolesOfType(RabbitHoleType.Hospital);
+			float travelDistance = 0.0f;
+			RabbitHole hospital = null;
+			foreach (RabbitHole item in hospitals)
+			{
+				float distanceToObject = item.RabbitHoleProxy.GetDistanceToObject(Target);
+				if (hospital == null || distanceToObject < travelDistance)
+				{
+					travelDistance = distanceToObject;
+					hospital = item;
+				}
+			}
+
+			if (hospital != null)
+			{
+				StyledNotification.Show(new StyledNotification.Format("Create VisitRabbitHoleWithPet",
+					StyledNotification.NotificationStyle.kDebugAlert));
+				VisitRabbitHoleWithPet test = new VisitRabbitHoleWithPet.Definition(Sims3.SimIFace.CAS.CASAGSAvailabilityFlags.All,
+					Actor, new Sims3.Gameplay.Opportunities.Opportunity(), 120f).CreateInstance(hospital, Actor,
+					new InteractionPriority(InteractionPriorityLevel.High), false, true) as VisitRabbitHoleWithPet;
+				test.SelectedObjects = new List<object>();
+				test.SelectedObjects.Add(Target);
+				Actor.InteractionQueue.TryPushAsContinuation(this, test);
+				StyledNotification.Show(new StyledNotification.Format("Done",
+					StyledNotification.NotificationStyle.kDebugAlert));
+				//EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
+				//	new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
+				//	cancellableByPlayer: true) as EWGoToVet;
+				//interactionInstance.mPet = Target;
+				//Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
+				return true; 
+			} else
+				return false;
+		}
+	}
+
+	public class EWGoToVet : RabbitHoleInteraction<Sim, Hospital>
+	{
+		public class Definition : InteractionDefinition<Sim, Hospital, EWGoToVet>
+		{
+			public override bool Test(Sim a, Hospital target, bool isAutonomous,
+				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				return true;
+			}
+
+			public override string GetInteractionName(Sim actor, Hospital target, InteractionObjectPair iop)
+			{
+				return "Go To Vet";
+			}
+		}
+
+		public Sim mPet;
+
+		[Tunable]
+		public static float kSimMinutesForVet = 120f;
+
+		[Tunable]
+		public static int kCostOfVet = EWTakePetToVetWounds.kCostOfVetVisit;
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public static string LocalizeString(string name, params object[] parameters)
+		{
+			return Localization.LocalizeString(EWTakePetToVetWounds.sLocalizeKey + name, parameters);
+		}
+
+		public override bool Run()
+		{
+			StyledNotification.Show(new StyledNotification.Format("Run",
+				StyledNotification.NotificationStyle.kDebugAlert));
+			TimedStage timedStage = new TimedStage(GetInteractionName(), kSimMinutesForVet,
+				showCompletionTime: false, selectable: true, visibleProgress: true);
+			Stages = new List<Stage>(new Stage[1] {
+			timedStage
+		});
+			ActiveStage = timedStage;
+			if (mPet == null || mPet.HasBeenDestroyed)
+			{
+				StyledNotification.Show(new StyledNotification.Format("Pet empty",
+					StyledNotification.NotificationStyle.kDebugAlert));
+				return false;
+			}
+			if (!mPet.IsHorse || Actor.Posture.Container != mPet)
+			{
+				AddFollower(mPet);
+				StyledNotification.Show(new StyledNotification.Format("Pet is follower",
+					StyledNotification.NotificationStyle.kDebugAlert));
+			}
+			return base.Run();
+		}
+
+		public override bool InRabbitHole()
+		{
+
+			StartStages();
+			bool result = DoLoop(ExitReason.Default);
+			if (Actor.HasExitReason(ExitReason.StageComplete))
+			{
+				if (Actor.FamilyFunds > kCostOfVet)
+				{
+					Actor.ModifyFunds(-kCostOfVet);
+				}
+				else if (!GameUtils.IsFutureWorld())
+				{
+					// TODO: Add correct Localization
+					Actor.ShowTNSIfSelectable("You will owe the vet §" + kCostOfVet + "for this visit",
+						StyledNotification.NotificationStyle.kGameMessagePositive);
+					Sim actor = Actor;
+					actor.UnpaidBills += kCostOfVet;
+				}
+				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
+			}
+			return result;
+		}
+	}
+}

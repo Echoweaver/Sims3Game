@@ -228,9 +228,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             AssignFightWounds();
 
             // You can only die from a fight if you lose.
-            if (DoesLoserDie())
+            if (DoesLoserDie(actorWon))
             {
-                BuffEWGraveWound.Succumb(Target);
                 return success;
             }
 
@@ -239,7 +238,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 // TODO: Walkstyle should be running fear
                 Actor.PopPosture();
-                Actor.RequestWalkStyle(WalkStyle.PetStumbleRun);
+                Actor.RequestWalkStyle(WalkStyle.PetRun);
                 MakeSimGoHome(Actor, false);
             }
             else if (actorWon && targetRunOnLose && Target.LotCurrent != Target.LotHome)
@@ -328,11 +327,13 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public bool DoesLoserDie()
+        public bool DoesLoserDie(bool actorWins)
         {
+            Sim loser = actorWins ? Actor : Target;
+            bool loserDies = false;
             // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
-            if (Target.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
-                return true;
+            if (loser.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
+                loserDies = true;
             else if (Target.Motives.InMotiveDistress)
             {
                 BuffInstance motive = Target.Motives.MotiveInDistress;
@@ -340,10 +341,16 @@ namespace Echoweaver.Sims3Game.PetFighting
                 // and BuffGuid is the ID of the Instance....
                 if (motive.Guid == BuffNames.ExhaustedPet)
                 {
-                    return true;
+                    loserDies = true;
                 }
             }
-            return false;
+            if (loserDies)
+            {
+                InteractionInstance succumbInteraction = EWPetSuccumbToWounds.Singleton.CreateInstance(loser, loser,
+                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
+                loser.InteractionQueue.AddNext(succumbInteraction);
+            }
+            return loserDies;
         }
     }
 
@@ -375,9 +382,16 @@ namespace Echoweaver.Sims3Game.PetFighting
             // Thirst: Red liquid with pulsing heart. Perfect for wounds, but concered that Bad Pet ghost is already
             // red.
             // Jetpack: Fast-moving clouds over gold ghost
-            // HumanStatue: Mid Gray, might be good to trade out for BadPet
+            // HumanStatue: Invisible except for eyes!!
 
-            Target.Kill(SimDescription.DeathType.HumanStatue);
+            //Target.Kill(SimDescription.DeathType.HumanStatue);
+            if (Target.IsHuman)
+            {
+                Target.PlaySoloAnimation("ad2ad_soc_neutral_fight_Loop1_y");
+            } else if (Target.IsLittleDog)
+            {
+                Target.PlaySoloAnimation("al2a_soc_neutral_attackSim_insulting_neutral_x");
+            }
 
             return true;
         }

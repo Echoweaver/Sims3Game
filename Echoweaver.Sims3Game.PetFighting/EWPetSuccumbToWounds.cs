@@ -29,7 +29,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
                 // TODO: Localize
-                return "EWPetSuccumbToWounds";
+                return "Succumb";
             }
         }
 
@@ -56,6 +56,10 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public override bool Run()
         {
+            StyledNotification.Show(new StyledNotification.Format(Target.Name +
+                " fought bravely but in the end, it was all too much. They will be missed",
+                StyledNotification.NotificationStyle.kGameMessageNegative));
+
             mPriority = new InteractionPriority(InteractionPriorityLevel.MaxDeath);
             CancellableByPlayer = false;
             if (!Target.IsSleeping)
@@ -66,12 +70,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             if (Loader.kAllowPetDeath)
             {
-                StyledNotification.Show(new StyledNotification.Format("Kill: "
-                    + Target.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 AnimateSim("Exit");
                 Target.Kill(Loader.fightDeathType);
-                StyledNotification.Show(new StyledNotification.Format("Death Complete ",
-                    StyledNotification.NotificationStyle.kDebugAlert));                
             }
             else
             {

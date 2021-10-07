@@ -49,7 +49,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
 			{
-				return "EWChaseOffLot";
+				return "Chase off Lot";
 			}
 
 			public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -58,6 +58,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 				if (actor.LotCurrent != actor.LotHome)
 					return false;
 				if (target.LotCurrent == target.LotHome)
+					return false;
+				if (actor.TraitManager.HasElement(TraitNames.FriendlyPet))
 					return false;
 				if (!actor.IsRaccoon && !target.IsRaccoon)
 				{
@@ -207,9 +209,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 					{
 						if (Target.IsHuman)
 						{
-							EWPetAttackSim continuation = EWPetAttackSim.Singleton.CreateInstance(Target, Actor,
+							EWPetFightSim continuation = EWPetFightSim.Singleton.CreateInstance(Target, Actor,
 								new InteractionPriority(InteractionPriorityLevel.High), Autonomous,
-								cancellableByPlayer: true) as EWPetAttackSim;
+								cancellableByPlayer: true) as EWPetFightSim;
 							continuation.SetParams(true, false);
 							Actor.InteractionQueue.TryPushAsContinuation(this, continuation);
 						}

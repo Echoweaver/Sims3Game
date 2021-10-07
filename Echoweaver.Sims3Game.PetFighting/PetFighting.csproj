@@ -29,17 +29,17 @@
     <Compile Include="BuffEWSeriousWound.cs" />
     <Compile Include="BuffEWGraveWound.cs" />
     <Compile Include="EWPetFightingSkill.cs" />
-    <Compile Include="EWMedicineCat.cs" />
     <Compile Include="EWFightPet.cs" />
     <Compile Include="EWChaseMean.cs" />
     <Compile Include="BuffEWRecuperating.cs" />
-    <Compile Include="EWPetRecuperating.cs" />
     <Compile Include="GuardTerritory.cs" />
-    <Compile Include="EWPetAttackSim.cs" />
     <Compile Include="EWPetFightSim.cs" />
     <Compile Include="EWChaseOffLot.cs" />
     <Compile Include="EWChasePlay.cs" />
     <Compile Include="EWPetSuccumbToWounds.cs" />
+    <Compile Include="EWTakePetToVetWounds.cs" />
+    <Compile Include="EWTakeToVetWounds.cs" />
+    <Compile Include="EWPetAttackSim.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
