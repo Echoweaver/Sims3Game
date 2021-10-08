@@ -10,7 +10,7 @@ namespace Echoweaver.Sims3Game.PetBreedfix
     public static class BreedManager
     {
         public static Dictionary<ulong, string> breedDict =
-            new System.Collections.Generic.Dictionary<ulong, string>();
+            new Dictionary<ulong, string>();
 
         public static string retrievePetBreed(ulong simID)
         {

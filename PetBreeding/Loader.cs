@@ -22,7 +22,7 @@ namespace Echoweaver.Sims3Game.PetBreedfix
         }
 
 
-        public static void AddBreedInteractions(Sim a)
+        public static void InitializePetBreed(Sim a)
         {
             if (a.IsPet)
             {
@@ -40,7 +40,7 @@ namespace Echoweaver.Sims3Game.PetBreedfix
             Sim[] pets = Queries.GetObjects<Sim>();
             foreach (Sim pet in pets)
             {
-                AddBreedInteractions(pet);
+                InitializePetBreed(pet);
             }
             Sim.CustomizeCollarAndCoats.Singleton = EWCustomizeCollarAndCoats.Singleton;
             EventTracker.AddListener(EventTypeId.kNewOffspringPet, new ProcessEventDelegate(OnNewOffspringPet));
@@ -53,7 +53,7 @@ namespace Echoweaver.Sims3Game.PetBreedfix
             Sim sim = e.TargetObject as Sim;
             if (sim.IsPet)
             {
-                AddBreedInteractions(sim);
+                InitializePetBreed(sim);
             }
             return ListenerAction.Keep;
         }
@@ -65,7 +65,7 @@ namespace Echoweaver.Sims3Game.PetBreedfix
             {
                 BreedManager.setOffspringBreed(pet);
             }
-            AddBreedInteractions(pet);
+            InitializePetBreed(pet);
             return ListenerAction.Keep;
         }
 
