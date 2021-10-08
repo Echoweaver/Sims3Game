@@ -93,6 +93,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			mossBall = GlobalFunctions.CreateObjectOutOfWorld("petToyBallFoil", ProductVersion.EP5);
 			//bool isChaining = Actor.CurrentInteraction is ITendGarden;
+			mossBall.SetColorTint(74, 93, 35, 0);  // RGB value for Dark Moss Green
             mossBall.AddToWorld();
 			mossBall.SetPosition(Actor.Position);
 			CarryUtils.Acquire(Actor, mossBall);
@@ -118,7 +119,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			CarryUtils.ExitCarry(Actor);
 			mossBall.Destroy();
 			//if (IsChainingPermitted(flag))
-			//{
+				//{
 			//	IgnorePlants.Add(Target);
 			//	if (flag2)
 			//	{

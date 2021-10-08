@@ -6,6 +6,7 @@ using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.ThoughtBalloons;
 using Sims3.SimIFace;
 using Sims3.SimIFace.CAS;
 using Sims3.UI.Controller;
@@ -100,13 +101,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			if (mDestroyPrey)
 			{
-				DestroyObject(Target);
+				DestroyObject(Target);  
 			}
 			base.Cleanup();
 		}
 
 		public bool SharedFarDistanceBehavior(float routingDistance)
 		{
+			Actor.ShowTNSIfSelectable("Shared Far Distance Behavior",
+				NotificationStyle.kGameMessagePositive);
 			RequestWalkStyle(Sim.WalkStyle.PetRun);
 			bool result = Actor.RouteToObjectRadius(Target, routingDistance);
 			UnrequestWalkStyle(Sim.WalkStyle.PetRun);
@@ -119,6 +122,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
+			MedicineCatIdle();
 			EnterStateMachine("eatofffloor", "Enter", "x");
 			SetParameter("isFish", false);
 			BeginCommodityUpdates();
@@ -156,7 +160,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			else
             {
-				Actor.ShowTNSIfSelectable("EWLocalize - Successful treatment",
+				Actor.ShowTNSIfSelectable("EWLocalize - Failed treatment",
 					NotificationStyle.kGameMessagePositive);
 				DoLtrAdjustment(goodReaction: false);
 			}
@@ -218,6 +222,27 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			bool isPositive = currentLTRLiking2 >= currentLTRLiking;
 			SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
 				Actor, mMedicineCat, isPositive, 0, currentLTR, currentLTR2);
+		}
+
+		public void MedicineCatIdle()
+		{
+			ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData(Actor.GetThumbnailKey());
+			balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
+			balloonData.mPriority = ThoughtBalloonPriority.Low;
+			balloonData.mFlags = ThoughtBalloonFlags.ShowIfSleeping;
+			Actor.ThoughtBalloonManager.ShowBalloon(balloonData);
+			AcquireStateMachine("catdoginvestigate");
+			EnterStateMachine("catdoginvestigate", "Enter", "x");
+			AnimateSim("Investigate");
+			AnimateSim("Exit");
+			if (mSuccess)
+            {
+				mMedicineCat.PlayReaction(ReactionTypes.PositivePet, ReactionSpeed.ImmediateWithoutOverlay);
+            } else
+            {
+				mMedicineCat.PlayReaction(ReactionTypes.NegativePet, ReactionSpeed.ImmediateWithoutOverlay);
+			}
+			return;
 		}
 	}
 }
