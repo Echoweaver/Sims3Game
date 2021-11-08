@@ -69,37 +69,28 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public override bool Run()
         {
-			List<RabbitHole> hospitals = GetRabbitHolesOfType(RabbitHoleType.Hospital);
-			float travelDistance = 0.0f;
-			RabbitHole hospital = null;
-			foreach (RabbitHole item in hospitals)
-			{
-				float distanceToObject = item.RabbitHoleProxy.GetDistanceToObject(Target);
-				if (hospital == null || distanceToObject < travelDistance)
-				{
-					travelDistance = distanceToObject;
-					hospital = item;
-				}
-			}
+			Hospital hospital = RabbitHole.GetClosestRabbitHoleOfType(RabbitHoleType.Hospital,
+				Target.Position) as Hospital;
 
 			if (hospital != null)
 			{
-				StyledNotification.Show(new StyledNotification.Format("Create VisitRabbitHoleWithPet",
-					StyledNotification.NotificationStyle.kDebugAlert));
-				VisitRabbitHoleWithPet test = new VisitRabbitHoleWithPet.Definition(Sims3.SimIFace.CAS.CASAGSAvailabilityFlags.All,
-					Actor, new Sims3.Gameplay.Opportunities.Opportunity(), 120f).CreateInstance(hospital, Actor,
-					new InteractionPriority(InteractionPriorityLevel.High), false, true) as VisitRabbitHoleWithPet;
-				test.SelectedObjects = new List<object>();
-				test.SelectedObjects.Add(Target);
-				Actor.InteractionQueue.TryPushAsContinuation(this, test);
-				StyledNotification.Show(new StyledNotification.Format("Done",
-					StyledNotification.NotificationStyle.kDebugAlert));
-				//EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
-				//	new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
-				//	cancellableByPlayer: true) as EWGoToVet;
-				//interactionInstance.mPet = Target;
-				//Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
-				return true; 
+                //StyledNotification.Show(new StyledNotification.Format("Create VisitRabbitHoleWithPet",
+                //	StyledNotification.NotificationStyle.kDebugAlert));
+                //VisitRabbitHoleWithPet test = new VisitRabbitHoleWithPet.Definition(Sims3.SimIFace.CAS.CASAGSAvailabilityFlags.All,
+                //    Actor, new Sims3.Gameplay.Opportunities.Opportunity(), 120f).CreateInstance(hospital, Actor,
+                //    new InteractionPriority(InteractionPriorityLevel.High), false, true) as VisitRabbitHoleWithPet;
+                //test.SelectedObjects = new List<object>();
+                //test.SelectedObjects.Add(Target);
+                //Actor.InteractionQueue.TryPushAsContinuation(this, test);
+                //StyledNotification.Show(new StyledNotification.Format("Done",
+                //	StyledNotification.NotificationStyle.kDebugAlert));
+
+                EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
+                    new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
+                    cancellableByPlayer: true) as EWGoToVet;
+                interactionInstance.mPet = Target;
+                Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
+                return true; 
 			} else
 				return false;
 		}
@@ -122,6 +113,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 		}
 
 		public Sim mPet;
+		public bool timeToGo;
 
 		[Tunable]
 		public static float kSimMinutesForVet = 120f;
@@ -140,11 +132,12 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			StyledNotification.Show(new StyledNotification.Format("Run",
 				StyledNotification.NotificationStyle.kDebugAlert));
+			timeToGo = false;
 			TimedStage timedStage = new TimedStage(GetInteractionName(), kSimMinutesForVet,
 				showCompletionTime: false, selectable: true, visibleProgress: true);
 			Stages = new List<Stage>(new Stage[1] {
-			timedStage
-		});
+				timedStage
+			});
 			ActiveStage = timedStage;
 			if (mPet == null || mPet.HasBeenDestroyed)
 			{
@@ -161,9 +154,21 @@ namespace Echoweaver.Sims3Game.PetFighting
 			return base.Run();
 		}
 
+		public override bool BeforeEnteringRabbitHole()
+		{
+			// Get the dang pet into the rabbithole. Surprised this is not handled by following
+			EWGoToHospitalPet goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
+				new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
+				cancellableByPlayer: true) as EWGoToHospitalPet;
+			goToHospital.goToVetInst = this;
+			mPet.InteractionQueue.Add(goToHospital);
+
+			return base.BeforeEnteringRabbitHole();
+		}
+
+
 		public override bool InRabbitHole()
 		{
-
 			StartStages();
 			bool result = DoLoop(ExitReason.Default);
 			if (Actor.HasExitReason(ExitReason.StageComplete))
@@ -182,7 +187,42 @@ namespace Echoweaver.Sims3Game.PetFighting
 				}
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
 			}
+			timeToGo = true;
 			return result;
 		}
 	}
+
+	public class EWGoToHospitalPet : RabbitHole.RabbitHoleInteraction<Sim, RabbitHole>
+	{
+		public class Definition : InteractionDefinition<Sim, RabbitHole, EWGoToHospitalPet>
+		{
+			public override bool Test(Sim a, RabbitHole target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				return true;
+			}
+		}
+
+		public EWGoToVet goToVetInst;
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public override bool Run()
+		{
+			return base.Run();
+		}
+
+		public override bool InRabbitHole()
+		{
+			if (goToVetInst != null)
+			{
+				goToVetInst.AddFollower(Actor);
+				while (!Actor.WaitForExitReason(Sim.kWaitForExitReasonDefaultTime, ExitReason.Canceled) && !goToVetInst.timeToGo)
+				{
+				}
+				return true;
+			}
+			return false;
+		}
+	}
+
 }

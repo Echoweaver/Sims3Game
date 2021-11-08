@@ -134,7 +134,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                         Actor.PopPosture();
                     }
                 } else
-                {
+                    {
                     Actor.UnrequestWalkStyle(WalkStyle.PetRun);
                 }
                 EndCommodityUpdates(false);
@@ -225,13 +225,13 @@ namespace Echoweaver.Sims3Game.PetFighting
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
-            AssignFightWounds();
 
             // You can only die from a fight if you lose.
             if (DoesLoserDie(actorWon))
             {
                 return success;
             }
+            AssignFightWounds();
 
             // If this is called from ChaseOffLot, then the target will flee if it loses
             if (!actorWon && actorRunOnLose && Actor.LotCurrent != Actor.LotHome)
@@ -329,7 +329,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public bool DoesLoserDie(bool actorWins)
         {
-            Sim loser = actorWins ? Actor : Target;
+            Sim loser = actorWins ? Target : Actor;
             bool loserDies = false;
             // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
             if (loser.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
@@ -346,8 +346,10 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             if (loserDies)
             {
+                StyledNotification.Show(new Format("Loser Dies", NotificationStyle.kDebugAlert));
                 InteractionInstance succumbInteraction = EWPetSuccumbToWounds.Singleton.CreateInstance(loser, loser,
                     new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
+                loser.InteractionQueue.CancelAllInteractions();
                 loser.InteractionQueue.AddNext(succumbInteraction);
             }
             return loserDies;

@@ -91,6 +91,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 else if (s.IsHuman)
                 {
                     s.AddInteraction(EWPetFightSim.Singleton, true);
+                    s.AddInteraction(EWPetAttackSim.Singleton, true);
                 }
             }
         }
