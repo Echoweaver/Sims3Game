@@ -21,8 +21,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             public override bool Test(Sim a, Sim target, bool isAutonomous,
                 ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
-                if (isAutonomous || !target.IsPet)
-                    return false;
                 return true;
             }
 
@@ -49,17 +47,14 @@ namespace Echoweaver.Sims3Game.PetFighting
                     0x2F7D0004, 0u), ThumbnailSize.Medium);
             } else
             {
+                // TODO: We want a dog icon too
                 return new ThumbnailKey(new ResourceKey(ResourceUtils.HashString64("moodlet_EWRecuperateCat"),
                     0x2F7D0004, 0u), ThumbnailSize.Medium);
             }
         }
-
+        
         public override bool Run()
         {
-            StyledNotification.Show(new StyledNotification.Format(Target.Name +
-                " fought bravely but in the end, it was all too much. They will be missed",
-                StyledNotification.NotificationStyle.kGameMessageNegative));
-
             mPriority = new InteractionPriority(InteractionPriorityLevel.MaxDeath);
             CancellableByPlayer = false;
             if (!Target.IsSleeping)
@@ -68,18 +63,26 @@ namespace Echoweaver.Sims3Game.PetFighting
                 AnimateSim("PassOutLoop");
                 Target.SetIsSleeping(value: true);
             }
+
             if (Loader.kAllowPetDeath)
             {
+                // TODO: LOCALIZE!
+                StyledNotification.Show(new StyledNotification.Format(Target.Name +
+                    " fought bravely but in the end, it was all too much. They will be missed.",
+                    StyledNotification.NotificationStyle.kGameMessageNegative));
                 AnimateSim("Exit");
                 Target.Kill(Loader.fightDeathType);
             }
             else
             {
+                StyledNotification.Show(new StyledNotification.Format(Target.Name +
+                    " can do no more until they have a long time to recover.",
+                    StyledNotification.NotificationStyle.kGameMessageNegative));
                 // TODO: Needs an origin for succumb to wounds
-                // if target is cat
                 Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
                     Origin.FromFight);
 
+                // TODO: This doesn't seem to be working.
                 VisualEffect mSleepFX = VisualEffect.Create(Target.OccultManager.GetSleepFXName());
                 mSleepFX.ParentTo(Target, Sim.ContainmentSlots.Mouth);
                 mSleepFX.Start();

@@ -14,7 +14,6 @@ using Sims3.UI;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
-using static Sims3.UI.StyledNotification;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -41,6 +40,8 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return socialInteractionA;
             }
         }
+
+        public static new InteractionDefinition Singleton = new EWFightPetDefinition();
 
         bool targetRunOnLose = false;
         bool actorRunOnLose = false;
@@ -81,7 +82,8 @@ namespace Echoweaver.Sims3Game.PetFighting
         [Tunable]
         public static int kWoundChanceAdjPerSkillLevel = 7;
 
-        // As of now, no traits affect the chance of being wounded. This could change. Maybe skittish reduces chance? Aggressive might
+        // As of now, no traits affect the chance of being wounded. This could change.
+        // Maybe skittish reduces chance? Aggressive might
         // increase.
 
         public override bool Run()
@@ -91,10 +93,12 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return false;
             }
 
-            EWPetFightingSkill skillActor = Actor.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+            EWPetFightingSkill skillActor = Actor.SkillManager.
+                GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillActor == null)
             {
-                skillActor = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
+                skillActor = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
+                    as EWPetFightingSkill;
                 if (skillActor == null)
                 {
                     return false;
@@ -151,6 +155,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
 
             // TODO: A fight should reduce fatigue
+            // OK, Su
             InteractionTuning tuning = InteractionObjectPair.Tuning;
             if (tuning != null && tuning.mTradeoff != null)
             {
@@ -176,7 +181,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             EnterStateMachine("PetFight", "Enter", "x");
             SetActor("y", (IHasScriptProxy)(object)Target);
             AnimateSim("Loop Fight");
-            bool success = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]), ExitReason.Default);
+            bool success = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]),
+                ExitReason.Default);
             EndCommodityUpdates(success);
             LinkedInteractionInstance.EndCommodityUpdates(success);
             bool actorWon = DoesActorWinFight();
@@ -188,14 +194,14 @@ namespace Echoweaver.Sims3Game.PetFighting
                 skillTarget.wonFight();
                 skillActor.lostFight();
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightLose",
-                    Actor.Name), NotificationStyle.kGameMessageNegative);
+                    Actor.Name), StyledNotification.NotificationStyle.kGameMessageNegative);
             }
             else
             {
                 skillActor.wonFight();
                 skillTarget.lostFight();
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightWin",
-                    Actor.Name), NotificationStyle.kGameMessagePositive);
+                    Actor.Name), StyledNotification.NotificationStyle.kGameMessagePositive);
             }
             AnimateSim("Exit");
 
@@ -226,11 +232,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
 
-            // You can only die from a fight if you lose.
-            if (DoesLoserDie(actorWon))
-            {
-                return success;
-            }
+            // Check for death conditions BEFORE new wounds assigned
+            CheckForDeath(actorWon);  
             AssignFightWounds();
 
             // If this is called from ChaseOffLot, then the target will flee if it loses
@@ -257,7 +260,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             return success;
         }
-        public static new InteractionDefinition Singleton = new EWFightPetDefinition();
 
         public override void Cleanup()
         {
@@ -327,32 +329,15 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public bool DoesLoserDie(bool actorWins)
+        public void CheckForDeath(bool actorWins)
         {
-            Sim loser = actorWins ? Target : Actor;
-            bool loserDies = false;
-            // TODO: If the loser has Grave Wound moodlet or runs out of fatigue, they die
-            if (loser.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
-                loserDies = true;
-            else if (Target.Motives.InMotiveDistress)
+            if (actorWins && Target.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                BuffInstance motive = Target.Motives.MotiveInDistress;
-                // These names are confusing, but "Guid" appears to be ID the Buff,
-                // and BuffGuid is the ID of the Instance....
-                if (motive.Guid == BuffNames.ExhaustedPet)
-                {
-                    loserDies = true;
-                }
-            }
-            if (loserDies)
+                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Target, Target);
+            } else if (!actorWins && Actor.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                StyledNotification.Show(new Format("Loser Dies", NotificationStyle.kDebugAlert));
-                InteractionInstance succumbInteraction = EWPetSuccumbToWounds.Singleton.CreateInstance(loser, loser,
-                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
-                loser.InteractionQueue.CancelAllInteractions();
-                loser.InteractionQueue.AddNext(succumbInteraction);
+                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Actor, Actor);
             }
-            return loserDies;
         }
     }
 
@@ -369,7 +354,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                return "EWKillNow";
+                return "EWTest Animations";
             }
         }
 

@@ -58,9 +58,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             SkillManager.ParseSkillData(data, true);
 
             FightPet.Singleton = new EWFightPet.EWFightPetDefinition();
+            //FightPet.Singleton = new EWPetFightPet.PetFightPetDefinition();
             ChaseMean.Singleton = new EWChaseMean.EWChaseMeanDefinition();
             ChasePlay.Singleton = new EWChasePlay.EWChasePlayDefinition();
-
         }
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
@@ -81,10 +81,10 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (s != null)
             {
                 s.AddInteraction(EWChaseOffLot.Singleton, true);
-                s.AddInteraction(EWKillNow.Singleton, true);
+                //s.AddInteraction(EWKillNow.Singleton, true);
                 if (s.IsCat || s.IsADogSpecies)
                 {
-                    //s.AddInteraction(EWPetSuccumbToWounds.Singleton, true);
+                    s.AddInteraction(EWPetSuccumbToWounds.Singleton, true);
                     s.AddInteraction(EWTakePetToVetWounds.Singleton, true);
 
                 }
@@ -131,15 +131,19 @@ namespace Echoweaver.Sims3Game.PetFighting
         public static ListenerAction OnSimPassedOut(Event e)
         {
             // Check to see if pet sims have same passed out event
-            if (e.Actor.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
+            Sim targetPet = e.Actor as Sim;
+
+            if (targetPet.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
                 StyledNotification.Show(new StyledNotification.Format("DEBUG: Passed Out with Grave Wound: "
-                    + e.Actor.Name, StyledNotification.NotificationStyle.kGameMessagePositive));
+                    + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Passing out with a Grave Wound means dying of the wound
                 InteractionInstance die = EWPetSuccumbToWounds.Singleton.CreateInstance(e.Actor, e.Actor,
                     new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
                 e.Actor.InteractionQueue.AddNext(die);
             }
+            StyledNotification.Show(new StyledNotification.Format("DEBUG: End of PassedOut event: "
+                + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
 
             return ListenerAction.Keep;
         }
@@ -147,10 +151,9 @@ namespace Echoweaver.Sims3Game.PetFighting
         public static ListenerAction OnPetSocialWorker(Event e)
         {
             // Check to see if pet sims have same passed out event
-            StyledNotification.Show(new StyledNotification.Format("DEBUG: Social Worker event for Actor: "
-                + e.Actor.Name + "Target: " + e.TargetObject.GetLocalizedName(),
+            StyledNotification.Show(new StyledNotification.Format("DEBUG: Social Worker",
                 StyledNotification.NotificationStyle.kDebugAlert));
-            Sim targetPet = e.TargetObject as Sim;
+            Sim targetPet = e.Actor as Sim;
 
             // Starving pet with Grave Wound active dies/succumbs to wound.
             if (targetPet.BuffManager.HasElement(BuffNames.StarvingPet) &&

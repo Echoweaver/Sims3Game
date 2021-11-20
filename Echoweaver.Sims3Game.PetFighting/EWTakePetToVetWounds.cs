@@ -5,9 +5,11 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.RabbitHoles;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using Sims3.UI.Controller;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 
@@ -25,9 +27,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 					return false;
 				if (!target.IsPet)
 					return false;
-				//if (!PetHasWound(target))
-				//	return false;
-				if (GetRabbitHolesOfType(RabbitHoleType.Hospital).Count <= 0)
+                if (!PetHasWound(target))
+                    return false;
+                if (GetRabbitHolesOfType(RabbitHoleType.Hospital).Count <= 0)
 					return false;
 				if (a.LotCurrent != target.LotCurrent)
 				{
@@ -59,6 +61,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		[Tunable]
 		public static int kCostOfVetVisit = 200;
+		public static int kLTRBoostOfVetVisit = 100;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -74,17 +77,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			if (hospital != null)
 			{
-                //StyledNotification.Show(new StyledNotification.Format("Create VisitRabbitHoleWithPet",
-                //	StyledNotification.NotificationStyle.kDebugAlert));
-                //VisitRabbitHoleWithPet test = new VisitRabbitHoleWithPet.Definition(Sims3.SimIFace.CAS.CASAGSAvailabilityFlags.All,
-                //    Actor, new Sims3.Gameplay.Opportunities.Opportunity(), 120f).CreateInstance(hospital, Actor,
-                //    new InteractionPriority(InteractionPriorityLevel.High), false, true) as VisitRabbitHoleWithPet;
-                //test.SelectedObjects = new List<object>();
-                //test.SelectedObjects.Add(Target);
-                //Actor.InteractionQueue.TryPushAsContinuation(this, test);
-                //StyledNotification.Show(new StyledNotification.Format("Done",
-                //	StyledNotification.NotificationStyle.kDebugAlert));
-
                 EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
                     new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
                     cancellableByPlayer: true) as EWGoToVet;
@@ -108,7 +100,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			public override string GetInteractionName(Sim actor, Hospital target, InteractionObjectPair iop)
 			{
-				return "Go To Vet";
+				return "Take Pet to Vet";
 			}
 		}
 
@@ -166,7 +158,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			return base.BeforeEnteringRabbitHole();
 		}
 
-
 		public override bool InRabbitHole()
 		{
 			StartStages();
@@ -185,14 +176,24 @@ namespace Echoweaver.Sims3Game.PetFighting
 					Sim actor = Actor;
 					actor.UnpaidBills += kCostOfVet;
 				}
+				// TODO: Add relationship boost
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
+				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);
+				// This seems awfully complicated. Do you need all this to update a
+				// relationship and display the icon?
+				Relationship relationship = Relationship.Get(Actor, mPet, createIfNone: true);
+				LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
+				relationship.LTR.UpdateLiking(EWTakePetToVetWounds.kLTRBoostOfVetVisit);
+				LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
+				SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
+								Actor, mPet, true, 0, currentLTR, currentLTR2);
 			}
 			timeToGo = true;
 			return result;
 		}
 	}
 
-	public class EWGoToHospitalPet : RabbitHole.RabbitHoleInteraction<Sim, RabbitHole>
+	public class EWGoToHospitalPet : RabbitHoleInteraction<Sim, RabbitHole>
 	{
 		public class Definition : InteractionDefinition<Sim, RabbitHole, EWGoToHospitalPet>
 		{
@@ -219,6 +220,10 @@ namespace Echoweaver.Sims3Game.PetFighting
 				while (!Actor.WaitForExitReason(Sim.kWaitForExitReasonDefaultTime, ExitReason.Canceled) && !goToVetInst.timeToGo)
 				{
 				}
+				Actor.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
+				Actor.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
+				Actor.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
+
 				return true;
 			}
 			return false;
