@@ -33,7 +33,6 @@
     <Compile Include="EWFightPet.cs" />
     <Compile Include="EWChaseMean.cs" />
     <Compile Include="BuffEWRecuperating.cs" />
-    <Compile Include="GuardTerritory.cs" />
     <Compile Include="EWPetFightSim.cs" />
     <Compile Include="EWChaseOffLot.cs" />
     <Compile Include="EWChasePlay.cs" />

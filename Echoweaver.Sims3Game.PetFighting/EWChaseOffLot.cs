@@ -87,9 +87,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		[TunableComment("Traits that make sim more likely to inimidate or be intimidated.")]
 		[Tunable]
-		public static TraitNames[] kIntimidateModifierTraits = new TraitNames[12] {
+		public static TraitNames[] kIntimidateModifierTraits = new TraitNames[11] {
 			TraitNames.AggressivePet,
-			TraitNames.MeanPet,
+			TraitNames.BravePet,
 			TraitNames.ShyPet,
 			TraitNames.SkittishPet,
 			TraitNames.Coward,
@@ -97,14 +97,13 @@ namespace Echoweaver.Sims3Game.PetFighting
 			TraitNames.HunterPet,
 			TraitNames.Daredevil,
 			TraitNames.EasilyImpressed,
-			TraitNames.MeanSpirited,
 			TraitNames.Rebellious,
 			TraitNames.Shy
 		};
 
 		[TunableComment("Weight for how intimidating a sim is.")]
 		[Tunable]
-		public static float[] kIntimidateModifierWeights = new float[12] {
+		public static float[] kIntimidateModifierWeights = new float[11] {
 			1f,
 			1f,
 			-1f,
@@ -114,7 +113,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			1f,
 			1f,
 			-1f,
-			1f,
 			1f,
 			-1f
 		};

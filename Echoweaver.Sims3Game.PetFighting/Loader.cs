@@ -97,7 +97,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         }
 
         public static void LoadSocialData(string spreadsheet)
-        {
+        {   
             XmlDocument root = Simulator.LoadXML(spreadsheet);
             bool isEp5Installed = GameUtils.IsInstalled(ProductVersion.EP5);
             if (spreadsheet != null)
@@ -138,9 +138,13 @@ namespace Echoweaver.Sims3Game.PetFighting
                 StyledNotification.Show(new StyledNotification.Format("DEBUG: Passed Out with Grave Wound: "
                     + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Passing out with a Grave Wound means dying of the wound
-                InteractionInstance die = EWPetSuccumbToWounds.Singleton.CreateInstance(e.Actor, e.Actor,
-                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
-                e.Actor.InteractionQueue.AddNext(die);
+                EWPetSuccumbToWounds die = EWPetSuccumbToWounds.Singleton.CreateInstance(targetPet, targetPet,
+                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as EWPetSuccumbToWounds;
+                targetPet.InteractionQueue.AddNext(die);
+                if (kAllowPetDeath)
+                {
+                    return ListenerAction.Remove;
+                }
             }
             StyledNotification.Show(new StyledNotification.Format("DEBUG: End of PassedOut event: "
                 + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
@@ -159,9 +163,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (targetPet.BuffManager.HasElement(BuffNames.StarvingPet) &&
                targetPet.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                InteractionInstance succumbInteraction = EWPetSuccumbToWounds.Singleton.CreateInstance(e.Actor, e.Actor,
-                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), true, false);
-                e.Actor.InteractionQueue.AddNext(succumbInteraction);
+                EventTracker.SendEvent(EventTypeId.kSimPassedOut, e.Actor);
                 return ListenerAction.Remove;
             }
             return ListenerAction.Keep;

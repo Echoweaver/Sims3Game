@@ -82,6 +82,11 @@ namespace Echoweaver.Sims3Game.PetFighting
         [Tunable]
         public static int kWoundChanceAdjPerSkillLevel = 7;
 
+        public static float[] kPetFightTimeMinMax = new float[2] {
+            5f,
+            10f
+        };
+
         // As of now, no traits affect the chance of being wounded. This could change.
         // Maybe skittish reduces chance? Aggressive might
         // increase.
@@ -154,8 +159,16 @@ namespace Echoweaver.Sims3Game.PetFighting
                 Actor.Posture = pouncePosture;
             }
 
+            StandardEntry(addToUseList: false);
+            StartSocial("Fight Pet");
+            ((SocialInteraction)LinkedInteractionInstance).Rejected = Rejected;
+            mPetFightNoiseBroadcast = new ReactionBroadcaster(Actor, kPetFightLoudBroadcastParams,
+                FightBroadcastCallback);
+            PetStartleBehavior.CheckForStartle(Actor, StartleType.Fight);
+            EnterStateMachine("PetFight", "Enter", "x");
+            SetActor("y", (IHasScriptProxy)(object)Target);
+            AnimateSim("Loop Fight");
             // TODO: A fight should reduce fatigue
-            // OK, Su
             InteractionTuning tuning = InteractionObjectPair.Tuning;
             if (tuning != null && tuning.mTradeoff != null)
             {
@@ -172,16 +185,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            StandardEntry(addToUseList: false);
-            StartSocial("Fight Pet");
-            ((SocialInteraction)LinkedInteractionInstance).Rejected = Rejected;
-            mPetFightNoiseBroadcast = new ReactionBroadcaster(Actor, kPetFightLoudBroadcastParams,
-                FightBroadcastCallback);
-            PetStartleBehavior.CheckForStartle(Actor, StartleType.Fight);
-            EnterStateMachine("PetFight", "Enter", "x");
-            SetActor("y", (IHasScriptProxy)(object)Target);
-            AnimateSim("Loop Fight");
-            bool success = DoTimedLoop(RandomUtil.GetFloat(kFightTimeMinMax[0], kFightTimeMinMax[1]),
+            bool success = DoTimedLoop(RandomUtil.GetFloat(kPetFightTimeMinMax[0], kPetFightTimeMinMax[1]),
                 ExitReason.Default);
             EndCommodityUpdates(success);
             LinkedInteractionInstance.EndCommodityUpdates(success);
@@ -191,15 +195,15 @@ namespace Echoweaver.Sims3Game.PetFighting
                 AnimateSim("Swap");
                 SetActor("x", Target);
                 SetActor("y", Actor);
-                skillTarget.wonFight();
-                skillActor.lostFight();
+                skillTarget.wonFight(Actor, Target.LotCurrent == Target.LotHome);
+                skillActor.lostFight(Target);
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightLose",
                     Actor.Name), StyledNotification.NotificationStyle.kGameMessageNegative);
             }
             else
             {
-                skillActor.wonFight();
-                skillTarget.lostFight();
+                skillActor.wonFight(Target, Actor.LotCurrent == Actor.LotHome);
+                skillTarget.lostFight(Actor);
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightWin",
                     Actor.Name), StyledNotification.NotificationStyle.kGameMessagePositive);
             }
@@ -333,10 +337,10 @@ namespace Echoweaver.Sims3Game.PetFighting
         {
             if (actorWins && Target.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Target, Target);
+                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Target);
             } else if (!actorWins && Actor.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Actor, Actor);
+                EventTracker.SendEvent(EventTypeId.kSimPassedOut, Actor);
             }
         }
     }
@@ -354,7 +358,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                return "EWTest Animations";
+                return "KillNow";
             }
         }
 
@@ -371,14 +375,19 @@ namespace Echoweaver.Sims3Game.PetFighting
             // Jetpack: Fast-moving clouds over gold ghost
             // HumanStatue: Invisible except for eyes!!
 
-            //Target.Kill(SimDescription.DeathType.HumanStatue);
-            if (Target.IsHuman)
+            if (Loader.kAllowPetDeath)
             {
-                Target.PlaySoloAnimation("ad2ad_soc_neutral_fight_Loop1_y");
-            } else if (Target.IsLittleDog)
-            {
-                Target.PlaySoloAnimation("al2a_soc_neutral_attackSim_insulting_neutral_x");
+                // TODO: LOCALIZE!
+                Target.Kill(Loader.fightDeathType);
             }
+            //Target.Kill(SimDescription.DeathType.HumanStatue);
+            //if (Target.IsHuman)
+            //{
+            //    Target.PlaySoloAnimation("ad2ad_soc_neutral_fight_Loop1_y");
+            //} else if (Target.IsLittleDog)
+            //{
+            //    Target.PlaySoloAnimation("al2a_soc_neutral_attackSim_insulting_neutral_x");
+            //}
 
             return true;
         }

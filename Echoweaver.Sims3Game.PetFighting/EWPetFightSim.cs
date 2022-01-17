@@ -249,12 +249,12 @@ namespace Echoweaver.Sims3Game.PetFighting
             bool actorWon = DoesActorWinFight();
             if (!actorWon)
             {
-                skillActor.lostFight();
+                skillActor.lostFight(Target);
                 Actor.BuffManager.AddElement(BuffNames.CatScratch, Origin.FromFight);
             }
             else
             {
-                skillActor.wonFight();
+                skillActor.wonFight(Target, Actor.LotCurrent == Actor.LotHome);
                 Target.BuffManager.AddElement(BuffNames.ShreddedDignity, Origin.FromFight);
             }
             AnimateSim("Exit");
