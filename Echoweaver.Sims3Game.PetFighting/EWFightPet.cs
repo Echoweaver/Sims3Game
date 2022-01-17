@@ -1,12 +1,9 @@
 ﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.ObjectComponents;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -91,6 +88,9 @@ namespace Echoweaver.Sims3Game.PetFighting
         // Maybe skittish reduces chance? Aggressive might
         // increase.
 
+        EWPetFightingSkill skillActor;
+        EWPetFightingSkill skillTarget;
+
         public override bool Run()
         {
             if (!SafeToSync())
@@ -98,8 +98,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 return false;
             }
 
-            EWPetFightingSkill skillActor = Actor.SkillManager.
-                GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+            skillActor = Actor.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillActor == null)
             {
                 skillActor = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
@@ -110,8 +109,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            EWPetFightingSkill skillTarget = Target.SkillManager
-                .GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+            skillTarget = Target.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillTarget == null)
             {
                 skillTarget = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
@@ -124,8 +122,14 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             // TODO: There are accelerated gain rates for Hunter and Aggressive pets.
             // Possibly slower for Nonaggressive and Skittish?
-            skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
-            skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            if (skillActor.OppExperiencedFighterCompleted)
+            {
+                skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateExperienced);
+            } else skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            if (skillTarget.OppExperiencedFighterCompleted)
+            {
+                skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateExperienced);
+            } else skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
 
             BeginCommodityUpdates();
             Actor.RequestWalkStyle(WalkStyle.PetRun);
@@ -277,10 +281,43 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public new bool DoesActorWinFight()
         {
-            int winChance = kBaseWinChance;
-            int actorSkill = Math.Max(0, Actor.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            int targetSkill = Math.Max(0, Target.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
-            winChance += (actorSkill - targetSkill) * kWinChanceBonusPerSkillLevelDiff;
+            float winChance = kBaseWinChance;
+
+            float actorSkillLevel = Math.Max(0, skillActor.SkillLevel);
+            if (Actor.LotCurrent == Actor.LotHome && skillActor.OppHomeDefenderCompleted)
+            {
+                actorSkillLevel *= EWPetFightingSkill.kOppHomeDefenderBonus;
+            }
+            if (Target.IsHuman && skillActor.OppHumanFighterCompleted)
+            {
+                actorSkillLevel *= EWPetFightingSkill.kOppHumanFighterBonus;
+            } else if (Target.IsFullSizeDog && skillActor.OppBigPetFighterCompleted)
+            {
+                actorSkillLevel *= EWPetFightingSkill.kOppBigPetFighterBonus;
+            } else if ((Target.IsLittleDog || Target.IsCat || Target.IsRaccoon) && skillActor.OppSmallPetFighterCompleted)
+            {
+                actorSkillLevel *= EWPetFightingSkill.kOppSmallPetFighterBonus;
+            }
+
+            float targetSkillLevel = Math.Max(0, skillTarget.SkillLevel);
+            if (Target.LotCurrent == Target.LotHome && skillTarget.OppHomeDefenderCompleted)
+            {
+                targetSkillLevel *= EWPetFightingSkill.kOppHomeDefenderBonus;
+            }
+            if (Actor.IsHuman && skillTarget.OppHumanFighterCompleted)
+            {
+                targetSkillLevel *= EWPetFightingSkill.kOppHumanFighterBonus;
+            }
+            else if (Actor.IsFullSizeDog && skillTarget.OppBigPetFighterCompleted)
+            {
+                targetSkillLevel *= EWPetFightingSkill.kOppBigPetFighterBonus;
+            }
+            else if ((Actor.IsLittleDog || Actor.IsCat || Actor.IsRaccoon) && skillTarget.OppSmallPetFighterCompleted)
+            {
+                targetSkillLevel *= EWPetFightingSkill.kOppSmallPetFighterBonus;
+            }
+            winChance += (actorSkillLevel - targetSkillLevel) * kWinChanceBonusPerSkillLevelDiff;
+
             for (int i = 0; i < kWinChanceModifyTraits.Length; i++)
             {
                 if (Actor.HasTrait(kWinChanceModifyTraits[i]))

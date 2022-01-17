@@ -33,6 +33,12 @@ namespace Echoweaver.Sims3Game.PetFighting
         public int mFightsWonHomeLot = 0;
 
         public static float kSkillGainRateNormal = 10f;
+        public static float kSkillGainRateExperienced = 13f;
+        public static float kOppHomeDefenderBonus = 1.3f;
+        public static float kOppHumanFighterBonus = 1.3f;
+        public static float kOppBigPetFighterBonus = 1.3f;
+        public static float kOppSmallPetFighterBonus = 1.3f;
+
 
         public EWPetFightingSkill(SkillNames guid) : base(guid)
         {
@@ -220,6 +226,48 @@ namespace Echoweaver.Sims3Game.PetFighting
             get
             {
                 return mLifetimeOpportunities;
+            }
+        }
+
+        public bool mOppExperiencedFighterIsNew = true;
+
+        public static int kOppExperiencedFighterWinCount = 15;
+
+        public class OppExperiencedFighter : ILifetimeOpportunity
+        {
+            public EWPetFightingSkill mSkill;
+
+            public string Title => mSkill.LocalizeString("OppExperiencedFighter");
+
+            public string RewardDescription => mSkill.LocalizeString("OppExperiencedFighterDescription", kOppExperiencedFighterWinCount);
+
+            public string AchievedDescription => mSkill.LocalizeString("OppExperiencedFighterAchieved", mSkill.mSkillOwner);
+
+            public bool IsNew
+            {
+                get
+                {
+                    return mSkill.mOppExperiencedFighterIsNew;
+                }
+                set
+                {
+                    mSkill.mOppExperiencedFighterIsNew = value;
+                }
+            }
+
+            public bool Completed => mSkill.OppExperiencedFighterCompleted;
+
+            public OppExperiencedFighter(EWPetFightingSkill skill)
+            {
+                mSkill = skill;
+            }
+        }
+
+        public bool OppExperiencedFighterCompleted
+        {
+            get
+            {
+                return (mFightsWon + mFightsLost) >= kOppExperiencedFighterWinCount;
             }
         }
 
