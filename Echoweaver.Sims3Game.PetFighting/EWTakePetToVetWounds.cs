@@ -86,71 +86,24 @@ namespace Echoweaver.Sims3Game.PetFighting
 			if (hospital != null)
 			{
 				Actor.RouteTurnToFace(Target.Position);
-				if ((Target.IsCat || Target.IsLittleDog) && !PickUpLittlePet())
-					return false;
-
 				EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
 					new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
-                    cancellableByPlayer: true) as EWGoToVet;
-                interactionInstance.mPet = Target;
-                Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
-                return true; 
+					cancellableByPlayer: true) as EWGoToVet;
+				interactionInstance.mPet = Target;
+
+				if ((Target.IsCat || Target.IsLittleDog))
+                {
+					ChildUtils.SetPosturePrecondition(interactionInstance, CommodityKind.CarryingPet, new CommodityKind[0]);
+					PickUpPet pickUp = PickUpPet.Singleton.CreateInstance(Target, Actor, new InteractionPriority(InteractionPriorityLevel.High),
+						false, true) as PickUpPet;
+					Actor.InteractionQueue.TryPushAsContinuation(this, pickUp);
+					Actor.InteractionQueue.TryPushAsContinuation(pickUp, interactionInstance);
+				}
+
+				return true; 
 			} else
 				return false;
-		}
-
-		public bool PickUpLittlePet()
-        {
-			Actor.LookAtManager.DisableLookAts();
-			SocialJig socialJig = SocialJigTwoPerson.CreateJigForTwoPersonSocial(Actor, Target);
-			socialJig.RegisterParticipants(Actor, Target);
-			string name = ChildUtils.Localize(Target.SimDescription.IsFemale, "BePickedUp");
-			if (!BeginSocialInteraction(new SocialInteractionB.NoAgeOrClosedVenueCheckDefinition(name, allowCarryChild: false),
-				pairedSocial: true, doCallOver: false))
-			{
-				return false;
-			}
-			if (!StartSocial("Pick Up Pet"))
-			{
-				RunGenericPetReject();
-				return false;
-			}
-			FinishSocialContext();
-			BeginCommodityUpdates();
-			if (SeasonsManager.Enabled && Target.DeepSnowEffectManager != null)
-			{
-				Target.DeepSnowEffectManager.StopAllDeepSnowEffects(fromDispose: false);
-			}
-			StateMachineClient val = StateMachineClient.Acquire((IHasScriptProxy)(object)Actor, "PickUpPet");
-			bool flag = Target.TraitManager.HasAnyElement(PickUpPet.kPetTraitsThatShouldNeverBarkWhileCarried);
-			val.SetParameter("QuietPet", flag);
-			bool flag2 = Target.TraitManager.HasAnyElement(PickUpPet.kPetsTraitsThatShouldBeLoudWhileCarried);
-			val.SetParameter("LoudPet", flag2);
-			val.SetActor("x", (IHasScriptProxy)(object)Actor);
-			val.SetActor("y", (IHasScriptProxy)(object)Target);
-			val.EnterState("x", "Enter");
-			val.EnterState("y", "Enter");
-			val.SetActor("socialJig", (IHasScriptProxy)(object)SocialJig);
-			val.RequestState(false, "y", "PickUp");
-			val.RequestState(true, "x", "PickUp");
-			val.RemoveActor("socialJig");
-			val.RequestState(false, "x", "Carry");
-			val.RequestState(true, "y", "Carry");
-			Slots.AttachToSlot(Target.ObjectId, Actor.ObjectId, (uint)(int)ContainmentSlots.RightCarry, true, false);
-			EventTracker.SendEvent(EventTypeId.kPickedUpPet, Actor, Target);
-			CarryingPetPosture carryingPetPosture = new CarryingPetPosture(Actor, Target, val);
-			BeingCarriedPetPosture posture = new BeingCarriedPetPosture(Actor, Target, val);
-			Actor.Posture = carryingPetPosture;
-			Target.Posture = posture;
-			carryingPetPosture.AddSocialBoost();
-			FinishSocial("Pick Up Pet", bApplySocialEffect: false);
-			Target.SimRoutingComponent.DisableDynamicFootprint();
-			FinishLinkedInteraction();
-			EndCommodityUpdates(succeeded: true);
-			WaitForSyncComplete();
-			return true;
-		}
-		
+		}		
 	}
 
 	public class EWGoToVet : RabbitHoleInteraction<Sim, Hospital>
@@ -188,6 +141,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 		public override bool Run()
 		{
 			timeToGo = false;
+			StyledNotification.Show(new StyledNotification.Format("In GoToVet",
+				StyledNotification.NotificationStyle.kGameMessagePositive));
+			Target.RouteOutside(Actor, new List<Sim>());
 			TimedStage timedStage = new TimedStage(GetInteractionName(), kSimMinutesForVet,
 				showCompletionTime: false, selectable: true, visibleProgress: true);
 			Stages = new List<Stage>(new Stage[1] {

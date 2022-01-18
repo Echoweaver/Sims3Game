@@ -81,10 +81,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (s != null)
             {
                 s.AddInteraction(EWChaseOffLot.Singleton, true);
-                //s.AddInteraction(EWKillNow.Singleton, true);
                 if (s.IsCat || s.IsADogSpecies)
                 {
-                    s.AddInteraction(EWPetSuccumbToWounds.Singleton, true);
+
                     s.AddInteraction(EWTakePetToVetWounds.Singleton, true);
 
                 }
