@@ -6,6 +6,7 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Skills;
@@ -98,15 +99,18 @@ namespace Echoweaver.Sims3Game.PetFighting
 						false, true) as PickUpPet;
 					Actor.InteractionQueue.TryPushAsContinuation(this, pickUp);
 					Actor.InteractionQueue.TryPushAsContinuation(pickUp, interactionInstance);
-				}
-
+				} else
+                {
+					// TODO: Would like to put sniff hand here
+					Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
+                }
 				return true; 
 			} else
 				return false;
 		}		
 	}
 
-	public class EWGoToVet : RabbitHoleInteraction<Sim, Hospital>
+	public class EWGoToVet : RabbitHoleInteraction<Sim, Hospital>, IOverrideGetSlaveInteractionName
 	{
 		public class Definition : InteractionDefinition<Sim, Hospital, EWGoToVet>
 		{
@@ -133,6 +137,12 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		public static InteractionDefinition Singleton = new Definition();
 
+
+		public override string GetSlaveInteractionName()
+		{
+			return "Be Taken to Vet";
+		}
+
 		public static string LocalizeString(string name, params object[] parameters)
 		{
 			return Localization.LocalizeString(EWTakePetToVetWounds.sLocalizeKey + name, parameters);
@@ -141,9 +151,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 		public override bool Run()
 		{
 			timeToGo = false;
-			StyledNotification.Show(new StyledNotification.Format("In GoToVet",
-				StyledNotification.NotificationStyle.kGameMessagePositive));
-			Target.RouteOutside(Actor, new List<Sim>());
 			TimedStage timedStage = new TimedStage(GetInteractionName(), kSimMinutesForVet,
 				showCompletionTime: false, selectable: true, visibleProgress: true);
 			Stages = new List<Stage>(new Stage[1] {
@@ -154,18 +161,15 @@ namespace Echoweaver.Sims3Game.PetFighting
 			{
 				return false;
 			}
-			if (!mPet.IsHorse || Actor.Posture.Container != mPet)
-			{
-				AddFollower(mPet);
-			}
+			AddFollower(mPet);
 			return base.Run();
-
 		}
 
 		public override bool BeforeEnteringRabbitHole()
 		{
 			// Get the dang pet into the rabbithole. Surprised this is not handled by following
-			if (Actor.Posture.Container != mPet)
+			CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
+			if (carryingPet == null)
 			{
 				EWGoToHospitalPet goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
 					new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
@@ -195,6 +199,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 					Sim actor = Actor;
 					actor.UnpaidBills += kCostOfVet;
 				}
+				mPet.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
+				mPet.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
+				mPet.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
 				// TODO: Add relationship boost
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);

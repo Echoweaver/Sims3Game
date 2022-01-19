@@ -77,7 +77,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             if (buffModifier.mCommodityDecayMultipliers.Count == 0)
             {
-                StyledNotification.Show(new StyledNotification.Format("Remove modifier buff " , StyledNotification.NotificationStyle.kDebugAlert));
                 s.BuffManager.RemoveElement(buffModifier.BuffGuid);
             }
         }
