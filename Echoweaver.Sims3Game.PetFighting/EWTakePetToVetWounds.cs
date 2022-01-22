@@ -79,7 +79,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 			return Localization.LocalizeString(sLocalizeKey + name, parameters);
 		}
 
-        public override bool Run()
+
+		public override bool Run()
         {
 			Hospital hospital = RabbitHole.GetClosestRabbitHoleOfType(RabbitHoleType.Hospital,
 				Target.Position) as Hospital;
@@ -87,6 +88,10 @@ namespace Echoweaver.Sims3Game.PetFighting
 			if (hospital != null)
 			{
 				Actor.RouteTurnToFace(Target.Position);
+				//if (!BeginSocialInteraction(new SocialInteractionB.Definition(), false, 0.75f, true))
+				//{
+				//	return false;
+				//}
 				EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
 					new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
 					cancellableByPlayer: true) as EWGoToVet;
@@ -102,8 +107,13 @@ namespace Echoweaver.Sims3Game.PetFighting
 				} else
                 {
 					// TODO: Would like to put sniff hand here
-					Actor.InteractionQueue.TryPushAsContinuation(this, interactionInstance);
+					SocialInteractionA greetPet = new SocialInteractionA.Definition("Let Sniff Hand", new string[0],
+						null, false).CreateInstance(Target, Actor, new InteractionPriority(InteractionPriorityLevel.High),
+						false, true) as SocialInteractionA;
+					Actor.InteractionQueue.TryPushAsContinuation(this, greetPet);
+					Actor.InteractionQueue.TryPushAsContinuation(greetPet, interactionInstance);
                 }
+				//FinishLinkedInteraction(true);
 				return true; 
 			} else
 				return false;
@@ -165,23 +175,23 @@ namespace Echoweaver.Sims3Game.PetFighting
 			return base.Run();
 		}
 
-		public override bool BeforeEnteringRabbitHole()
-		{
-			// Get the dang pet into the rabbithole. Surprised this is not handled by following
-			CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
-			if (carryingPet == null)
-			{
-				EWGoToHospitalPet goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
-					new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
-					cancellableByPlayer: true) as EWGoToHospitalPet;
-				goToHospital.goToVetInst = this;
-				mPet.InteractionQueue.Add(goToHospital);
-			}
+        public override bool BeforeEnteringRabbitHole()
+        {
+            // Get the dang pet into the rabbithole. Surprised this is not handled by following
+            CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
+            if (carryingPet == null)
+            {
+                EWGoToHospitalPet goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
+                    new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
+                    cancellableByPlayer: true) as EWGoToHospitalPet;
+                goToHospital.goToVetInst = this;
+                mPet.InteractionQueue.Add(goToHospital);
+            }
 
-			return base.BeforeEnteringRabbitHole();
-		}
+            return base.BeforeEnteringRabbitHole();
+        }
 
-		public override bool InRabbitHole()
+        public override bool InRabbitHole()
 		{
 			StartStages();
 			bool result = DoLoop(ExitReason.Default);
@@ -205,17 +215,22 @@ namespace Echoweaver.Sims3Game.PetFighting
 				// TODO: Add relationship boost
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);
-				// This seems awfully complicated. Do you need all this to update a
-				// relationship and display the icon?
-				Relationship relationship = Relationship.Get(Actor, mPet, createIfNone: true);
-				LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
-				relationship.LTR.UpdateLiking(EWTakePetToVetWounds.kLTRBoostOfVetVisit);
-				LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
-				SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
-								Actor, mPet, true, 0, currentLTR, currentLTR2);
 			}
 			timeToGo = true;
 			return result;
+		}
+
+		public override bool AfterExitingRabbitHole()
+		{
+			// This seems awfully complicated. Do you need all this to update a
+			// relationship and display the icon?
+			Relationship relationship = Relationship.Get(Actor, mPet, createIfNone: true);
+			LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
+			relationship.LTR.UpdateLiking(EWTakePetToVetWounds.kLTRBoostOfVetVisit);
+			LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
+			SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
+							Actor, mPet, true, 0, currentLTR, currentLTR2);
+			return base.AfterExitingRabbitHole();
 		}
 	}
 
@@ -226,6 +241,11 @@ namespace Echoweaver.Sims3Game.PetFighting
 			public override bool Test(Sim a, RabbitHole target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
 				return true;
+			}
+
+			public override string GetInteractionName(Sim actor, RabbitHole target, InteractionObjectPair iop)
+			{
+				return "See Vet";
 			}
 		}
 
@@ -242,14 +262,10 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			if (goToVetInst != null)
 			{
-				goToVetInst.AddFollower(Actor);
+				//goToVetInst.AddFollower(Actor);
 				while (!Actor.WaitForExitReason(Sim.kWaitForExitReasonDefaultTime, ExitReason.Canceled) && !goToVetInst.timeToGo)
 				{
 				}
-				Actor.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
-				Actor.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
-				Actor.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
-
 				return true;
 			}
 			return false;
