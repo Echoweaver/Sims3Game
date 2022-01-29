@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Skills;
@@ -53,6 +54,26 @@ namespace Echoweaver.Sims3Game.PetFighting
         public new string LocalizeString(string name, params object[] parameters)
         {
             return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + ":" + name, parameters);
+        }
+
+        public float getEffectiveSkillLevel(bool isHomeLot, Sim target)
+        {
+            float mod_skill = Math.Max(0, SkillLevel);
+            if (isHomeLot && OppHomeDefenderCompleted)
+            {
+                mod_skill *= kOppHomeDefenderBonus;
+            }
+            if (target.IsFullSizeDog && OppBigPetFighterCompleted)
+            {
+                mod_skill *= kOppBigPetFighterBonus;
+            } else if (target.IsHuman && OppHumanFighterCompleted)
+            {
+                mod_skill *= kOppHumanFighterBonus;
+            } else if ((target.IsLittleDog || target.IsCat || target.IsRaccoon) && OppSmallPetFighterCompleted)
+            {
+                mod_skill *= kOppSmallPetFighterBonus;
+            }
+            return mod_skill;
         }
 
         public class FightsWon : ITrackedStat

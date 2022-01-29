@@ -207,9 +207,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 					{
 						if (Target.IsHuman)
 						{
-							EWPetFightSim continuation = EWPetFightSim.Singleton.CreateInstance(Target, Actor,
+							EWPetAttackSim continuation = EWPetAttackSim.Singleton.CreateInstance(Target, Actor,
 								new InteractionPriority(InteractionPriorityLevel.High), Autonomous,
-								cancellableByPlayer: true) as EWPetFightSim;
+								cancellableByPlayer: true) as EWPetAttackSim;
 							continuation.SetParams(true, false);
 							Actor.InteractionQueue.TryPushAsContinuation(this, continuation);
 						}

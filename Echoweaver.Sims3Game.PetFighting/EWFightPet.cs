@@ -8,6 +8,7 @@ using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using Sims3.UI.Controller;
 using System;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
@@ -78,6 +79,11 @@ namespace Echoweaver.Sims3Game.PetFighting
         [TunableComment("Wound chance reducion with each level of fight skill")]
         [Tunable]
         public static int kWoundChanceAdjPerSkillLevel = 7;
+
+        [Tunable]
+        [TunableComment("LTR penalty between two fighting sims.")]
+        public static int kLikingPenaltyPetFight = -10;
+
 
         public static float[] kPetFightTimeMinMax = new float[2] {
             5f,
@@ -170,7 +176,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 FightBroadcastCallback);
             PetStartleBehavior.CheckForStartle(Actor, StartleType.Fight);
             EnterStateMachine("PetFight", "Enter", "x");
-            SetActor("y", (IHasScriptProxy)(object)Target);
+            SetActor("y", Target);
             AnimateSim("Loop Fight");
             // TODO: A fight should reduce fatigue
             InteractionTuning tuning = InteractionObjectPair.Tuning;
@@ -201,6 +207,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 SetActor("y", Actor);
                 skillTarget.wonFight(Actor, Target.LotCurrent == Target.LotHome);
                 skillActor.lostFight(Target);
+                skillTarget.AddPoints(200f, true, true);
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightLose",
                     Actor.Name), StyledNotification.NotificationStyle.kGameMessageNegative);
             }
@@ -239,6 +246,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);
+
+            LikingChange();
 
             // Check for death conditions BEFORE new wounds assigned
             CheckForDeath(actorWon);  
@@ -283,39 +292,10 @@ namespace Echoweaver.Sims3Game.PetFighting
         {
             float winChance = kBaseWinChance;
 
-            float actorSkillLevel = Math.Max(0, skillActor.SkillLevel);
-            if (Actor.LotCurrent == Actor.LotHome && skillActor.OppHomeDefenderCompleted)
-            {
-                actorSkillLevel *= EWPetFightingSkill.kOppHomeDefenderBonus;
-            }
-            if (Target.IsHuman && skillActor.OppHumanFighterCompleted)
-            {
-                actorSkillLevel *= EWPetFightingSkill.kOppHumanFighterBonus;
-            } else if (Target.IsFullSizeDog && skillActor.OppBigPetFighterCompleted)
-            {
-                actorSkillLevel *= EWPetFightingSkill.kOppBigPetFighterBonus;
-            } else if ((Target.IsLittleDog || Target.IsCat || Target.IsRaccoon) && skillActor.OppSmallPetFighterCompleted)
-            {
-                actorSkillLevel *= EWPetFightingSkill.kOppSmallPetFighterBonus;
-            }
+            float actorSkillLevel = skillActor.getEffectiveSkillLevel(Actor.LotCurrent == Actor.LotHome, Target);
 
-            float targetSkillLevel = Math.Max(0, skillTarget.SkillLevel);
-            if (Target.LotCurrent == Target.LotHome && skillTarget.OppHomeDefenderCompleted)
-            {
-                targetSkillLevel *= EWPetFightingSkill.kOppHomeDefenderBonus;
-            }
-            if (Actor.IsHuman && skillTarget.OppHumanFighterCompleted)
-            {
-                targetSkillLevel *= EWPetFightingSkill.kOppHumanFighterBonus;
-            }
-            else if (Actor.IsFullSizeDog && skillTarget.OppBigPetFighterCompleted)
-            {
-                targetSkillLevel *= EWPetFightingSkill.kOppBigPetFighterBonus;
-            }
-            else if ((Actor.IsLittleDog || Actor.IsCat || Actor.IsRaccoon) && skillTarget.OppSmallPetFighterCompleted)
-            {
-                targetSkillLevel *= EWPetFightingSkill.kOppSmallPetFighterBonus;
-            }
+            float targetSkillLevel = skillTarget.getEffectiveSkillLevel(Target.LotCurrent == Target.LotHome, Actor);
+
             winChance += (actorSkillLevel - targetSkillLevel) * kWinChanceBonusPerSkillLevelDiff;
 
             for (int i = 0; i < kWinChanceModifyTraits.Length; i++)
@@ -379,6 +359,18 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 EventTracker.SendEvent(EventTypeId.kSimPassedOut, Actor);
             }
+        }
+
+        public void LikingChange()
+        {
+            // This seems awfully complicated. Do you need all this to update a
+            // relationship and display the icon?
+            Relationship relationship = Relationship.Get(Actor, Target, createIfNone: true);
+            LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
+            relationship.LTR.UpdateLiking(kLikingPenaltyPetFight);
+            LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
+            SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
+                            Actor, Target, true, 0, currentLTR, currentLTR2);
         }
     }
 

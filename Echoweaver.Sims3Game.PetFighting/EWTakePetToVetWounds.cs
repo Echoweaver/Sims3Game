@@ -3,13 +3,10 @@ using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.ActorSystems.Children;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.RabbitHoles;
-using Sims3.Gameplay.Seasons;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -70,7 +67,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		[Tunable]
 		public static int kCostOfVetVisit = 200;
-		public static int kLTRBoostOfVetVisit = 100;
+		public static int kLTRBoostOfVetVisit = 20;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -88,10 +85,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			if (hospital != null)
 			{
 				Actor.RouteTurnToFace(Target.Position);
-				//if (!BeginSocialInteraction(new SocialInteractionB.Definition(), false, 0.75f, true))
-				//{
-				//	return false;
-				//}
 				EWGoToVet interactionInstance = EWGoToVet.Singleton.CreateInstance(hospital, Actor,
 					new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
 					cancellableByPlayer: true) as EWGoToVet;
@@ -106,14 +99,12 @@ namespace Echoweaver.Sims3Game.PetFighting
 					Actor.InteractionQueue.TryPushAsContinuation(pickUp, interactionInstance);
 				} else
                 {
-					// TODO: Would like to put sniff hand here
 					SocialInteractionA greetPet = new SocialInteractionA.Definition("Let Sniff Hand", new string[0],
 						null, false).CreateInstance(Target, Actor, new InteractionPriority(InteractionPriorityLevel.High),
 						false, true) as SocialInteractionA;
 					Actor.InteractionQueue.TryPushAsContinuation(this, greetPet);
 					Actor.InteractionQueue.TryPushAsContinuation(greetPet, interactionInstance);
                 }
-				//FinishLinkedInteraction(true);
 				return true; 
 			} else
 				return false;

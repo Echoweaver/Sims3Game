@@ -2,15 +2,12 @@
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.PetObjects;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
-using System.Diagnostics;
 using static Sims3.Gameplay.Actors.Sim;
 using System.Xml;
 using Sims3.Gameplay.Socializing;
@@ -89,7 +86,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
                 else if (s.IsHuman)
                 {
-                    s.AddInteraction(EWPetFightSim.Singleton, true);
                     s.AddInteraction(EWPetAttackSim.Singleton, true);
                 }
             }
@@ -119,8 +115,6 @@ namespace Echoweaver.Sims3Game.PetFighting
         public static ListenerAction OnSimInstantiated(Event e)
         {
             // Check to see if pet sims have same passed out event
-            StyledNotification.Show(new StyledNotification.Format("Instantiated Actor: "
-                + e.Actor.Name, StyledNotification.NotificationStyle.kGameMessagePositive));
             Sim s = e.Actor as Sim;
             AddInteraction(s);
 
@@ -134,8 +128,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             if (targetPet.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                StyledNotification.Show(new StyledNotification.Format("DEBUG: Passed Out with Grave Wound: "
-                    + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Passing out with a Grave Wound means dying of the wound
                 EWPetSuccumbToWounds die = EWPetSuccumbToWounds.Singleton.CreateInstance(targetPet, targetPet,
                     new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as EWPetSuccumbToWounds;
@@ -145,9 +137,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                     return ListenerAction.Remove;
                 }
             }
-            StyledNotification.Show(new StyledNotification.Format("DEBUG: End of PassedOut event: "
-                + e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
-
             return ListenerAction.Keep;
         }
 
