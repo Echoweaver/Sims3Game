@@ -1,5 +1,4 @@
-﻿using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
@@ -173,7 +172,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             bool actorWon = DoesActorWinFight();
 
-            if (true)
+            if (actorWon)
             {
                 skillActor.wonFight(Target, Actor.LotCurrent == Actor.LotHome);
                 skillActor.AddPoints(200f, true, true);
@@ -182,7 +181,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
                 // TODO: Need appropriate origin for dog attack
                 Target.BuffManager.AddElement(BuffNames.ShreddedDignity, Origin.FromFight);
-                PlayTackleAnims();
+                PlayHumanLossAnims();
             }
             else
             {
@@ -248,7 +247,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             AnimateJoinSims("Exit");
         }
 
-        public void PlayTackleAnims()
+        public void PlayHumanLossAnims()
         {
             //Target.PlaySoloAnimation("a_react_shocked_standing_x", true);
             Target.PlaySoloAnimation("a_react_whyMe_standing_x", true);
