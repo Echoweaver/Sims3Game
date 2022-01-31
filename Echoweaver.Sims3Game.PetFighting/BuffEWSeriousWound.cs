@@ -18,6 +18,44 @@ namespace Echoweaver.Sims3Game.PetFighting
 		}
 		public static BuffNames buffName = (BuffNames)kEWSeriousWoundGuid;
 
+		public class BuffInstanceEWSeriousWound : BuffInstance
+		{
+			public ReactionBroadcaster Irb;
+
+			public VisualEffect mEffect;
+
+			public BuffInstanceEWSeriousWound()
+			{
+			}
+
+			public BuffInstanceEWSeriousWound(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount)
+				: base(buff, buffGuid, effectValue, timeoutCount)
+			{
+			}
+
+			public override BuffInstance Clone()
+			{
+				return new BuffInstanceEWSeriousWound(mBuff, mBuffGuid, mEffectValue, mTimeoutCount);
+			}
+
+			public override void Dispose(BuffManager bm)
+			{
+				if (Irb != null)
+				{
+					Irb.Dispose();
+					Irb = null;
+				}
+				if (mEffect != null)
+				{
+					mEffect.Stop();
+					mEffect.Dispose();
+					mEffect = null;
+				}
+				base.Dispose(bm);
+			}
+
+		}
+
 		public static float kSeriusWoundHungerDecayMultiplier = 2.0f;
 		public static float kSeriousWoundEnergyDecayMultiplier = 2.0f;
 
@@ -25,11 +63,22 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 		}
 
+		public override BuffInstance CreateBuffInstance()
+		{
+			return new BuffInstanceEWSeriousWound(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+		}
+
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
+			Sim actor = bm.Actor;
+			BuffInstanceEWSeriousWound buffInstance = bi as BuffInstanceEWSeriousWound;
+			buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
+				isFriendly: false, isToTarget: false));
+			buffInstance.mEffect.SetEffectColorScale(0.35f, 0.12f, 0f);  // RGB for amber color
+			buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
+			buffInstance.mEffect.Start();
 			base.OnAddition(bm, bi, travelReaddition);
 
-			Sim actor = bm.Actor;
 			// This should increase hunger and energy decay.
 			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, kSeriusWoundHungerDecayMultiplier);
 			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);

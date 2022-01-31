@@ -80,10 +80,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
                     Origin.FromFight);
 
-                // TODO: This doesn't seem to be working.
-                VisualEffect mSleepFX = VisualEffect.Create(Target.OccultManager.GetSleepFXName());
-                mSleepFX.ParentTo(Target, Sim.ContainmentSlots.Mouth);
-                mSleepFX.Start();
                 Target.Motives.FreezeDecay(CommodityKind.Hunger, false);
                 Target.Motives.FreezeDecay(CommodityKind.Energy, true);
 
