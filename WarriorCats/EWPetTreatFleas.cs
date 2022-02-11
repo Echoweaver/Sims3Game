@@ -78,26 +78,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		[TunableComment("The distance the cat should get to the Sim before dropping the object on the ground.")]
 		[Tunable]
-		public static float kDistanceFromSimToPresent = 1f;
-
-		[TunableComment("The maximum distance from the prey the target needs to be in order to react. Should be greater than kDistanceFromSimToPresent")]
-		[Tunable]
-		public static float kMaxDistanceForSimToReact = 10f;
+		public static float kDistanceFromSimToPresent = 2f;
 
 		[TunableComment("The radius around the cat to look for valid sims.")]
 		[Tunable]
 		public static float kRadiusForValidSims = 10f;
-
-		[TunableComment("The base chance for a cat sim to nuzzle the cat after being presented something.")]
-		[Tunable]
-		public static float kCatBaseChanceToNuzzleCat = 0.5f;
-
-		[TunableComment("The cat traits that will get a modifier on the base chance to nuzzle a cat")]
-		[Tunable]
-		public static TraitNames[] kCatTraits = new TraitNames[2] {
-			TraitNames.FriendlyPet,
-			TraitNames.AggressivePet
-		};
 
 		[TunableComment("The modifier applied to the base chance, if the relationship is higher than the kCatRequiredRelationshipToQualifyForModifier")]
 		[Tunable]
@@ -134,7 +119,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			return list;
 		}
 
-		public bool SuccessfulTreatment(Sim simToPresentTo)
+		public bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
 			BuffInstance fleaBuff = simToPresentTo.BuffManager.GetElement(BuffNames.GotFleasPet);
 			if (fleaBuff == null)
@@ -151,13 +136,73 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool Run()
 		{
-			EWPetTreatPet.Definition treatDefinition = new EWPetTreatPet.Definition();
-			EWPetTreatPet treatInstance = treatDefinition.CreateInstance(mSimToPresent, Actor,
-				new InteractionPriority(InteractionPriorityLevel.UserDirected), Autonomous,
-				CancellableByPlayer) as EWPetTreatPet;
-			treatInstance.SetParams(SuccessfulTreatment(mSimToPresent), BuffNames.GotFleasPet,
-				Target);
-			Actor.InteractionQueue.AddNext(treatInstance);
+			if (mSimToPresent == null)
+			{
+				mSimToPresent = (GetSelectedObject() as Sim);
+				if (mSimToPresent == null)
+				{
+					return false;
+				}
+				if (!PetCarrySystem.PickUp(Actor, Target))
+				{
+					return false;
+				}
+				Target.UpdateVisualState(CatHuntingModelState.Carried);
+			}
+
+			if (mSimToPresent != null && !mSimToPresent.HasBeenDestroyed)
+			{
+				mSimToPresent.InteractionQueue.CancelAllInteractions();
+				EWWait.Definition waitDefinition = new EWWait.Definition();
+				EWWait waitInstance = waitDefinition.CreateInstance(mSimToPresent, mSimToPresent,
+					new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
+					CancellableByPlayer) as EWWait;
+				waitInstance.SetInteractionName("Wait for Medicine");
+				mSimToPresent.InteractionQueue.AddNext(waitInstance);
+
+				Route val = Actor.CreateRoute();
+				val.DoRouteFail = true;
+				val.SetOption(RouteOption.MakeDynamicObjectAdjustments, true);
+				val.PlanToPointRadialRange(mSimToPresent, mSimToPresent.Position, kDistanceFromSimToPresent,
+					kDistanceFromSimToPresent, Vector3.UnitZ, 360f, RouteDistancePreference.PreferNearestToRouteDestination,
+					RouteOrientationPreference.TowardsObject, mSimToPresent.LotCurrent.LotId,
+					new int[1]
+					{
+						mSimToPresent.RoomId
+					});
+				if (Actor.DoRoute(val))
+				{
+					val.SetOption(RouteOption.MakeDynamicObjectAdjustments, false);
+					val.PlanToPointRadialRange(mSimToPresent, mSimToPresent.Position,
+						kDistanceFromSimToPresent, kDistanceFromSimToPresent, Vector3.UnitZ, 360f,
+						RouteDistancePreference.PreferNearestToRouteDestination, RouteOrientationPreference.TowardsObject,
+						mSimToPresent.LotCurrent.LotId, new int[1]
+						{
+							mSimToPresent.RoomId
+						});
+					Actor.DoRoute(val);
+				}
+				waitInstance.waitComplete = true;
+			}
+			PetCarrySystem.PutDownOnFloor(Actor);
+			Target.UpdateVisualState(CatHuntingModelState.InWorld);
+			Target.CatHuntingComponent.mHasBeenPresented = true;
+			if (Actor.HasExitReason())
+			{
+				return false;
+			}
+			BeginCommodityUpdates();
+
+			EWPetBeTreated.Definition treatDefinition = new EWPetBeTreated.Definition();
+			EWPetBeTreated treatInstance = treatDefinition.CreateInstance(Target, mSimToPresent,
+				new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
+				CancellableByPlayer) as EWPetBeTreated;
+			treatInstance.SetParams(isSuccessfulTreatment(mSimToPresent), BuffNames.GotFleasPet,
+				Actor, true);
+			mSimToPresent.InteractionQueue.AddNext(treatInstance);
+
+			EndCommodityUpdates(succeeded: true);
+
 			return true;
 		}
 
@@ -168,7 +213,66 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
+			Target.UpdateVisualState(CatHuntingModelState.Carried);
+			if (!PetCarrySystem.PickUpFromSimInventory(Actor, Target, removeFromInventory: true))
+			{
+				Target.UpdateVisualState(CatHuntingModelState.InInventory);
+				return false;
+			}
 			return Run();
+		}
+
+		public override void Cleanup()
+		{
+			if (Target.InInventory)
+			{
+				Target.UpdateVisualState(CatHuntingModelState.InInventory);
+			}
+			else
+			{
+				Target.UpdateVisualState(CatHuntingModelState.InWorld);
+			}
+			base.Cleanup();
+		}
+	}
+
+	public class EWWait : Interaction<Sim, Sim>, IInteractionNameCanBeOverriden
+	{
+		public class Definition : InteractionDefinition<Sim, Sim, EWWait>
+		{
+			public static InteractionDefinition Singleton = new Definition();
+
+			public override bool Test(Sim actor, Sim target, bool isAutonomous,
+				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+			{
+				return true;
+			}
+		}
+
+		public static InteractionDefinition Singleton = new Definition();
+
+		public string mOverrideInteractionName = "Wait";
+
+		public bool waitComplete = false;
+
+		public override bool Run()
+		{
+			while (!Actor.WaitForExitReason(Sim.kWaitForExitReasonDefaultTime, ExitReason.Canceled)
+				&& !waitComplete)
+			{
+				Actor.LoopIdle();
+			}
+			return true;
+		}
+
+		public override string GetInteractionName()
+		{
+			return mOverrideInteractionName;
+		}
+
+		public void SetInteractionName(string interactionName)
+		{
+			mOverrideInteractionName = interactionName;
 		}
 	}
 }

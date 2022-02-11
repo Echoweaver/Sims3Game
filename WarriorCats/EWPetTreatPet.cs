@@ -73,6 +73,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             Actor.SynchronizationLevel = Sim.SyncLevel.NotStarted;
             Target.SynchronizationLevel = Sim.SyncLevel.NotStarted;
             Target.InteractionQueue.CancelAllInteractions();
+            Target.DisableInteractions();
 
             if (mHerb.CatHuntingComponent != null)
             {
@@ -89,7 +90,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 PickUpFromSimInventory(Actor, mHerb as IPetCarryable, true);
             }
 
+            //Actor.RouteTurnToFace(Target.Position);
+            //Target.RouteTurnToFace(Actor.Position);
 
+            Actor.RouteToObjectRadius(Target, PetEatPrey.kCatEatingDistance);
+            Target.EnableInteractions();
             if (!BeginSocialInteraction(new SocialInteractionB.Definition(), false, 0.75f, true))
             {
                 return false;
@@ -98,10 +103,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
             {
                 return false;
             }
-
-
-            Actor.RouteTurnToFace(Target.Position);
-            Target.RouteTurnToFace(Actor.Position);
 
             StandardEntry();
             BeginCommodityUpdates();
@@ -113,15 +114,17 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             if (mHerb.CatHuntingComponent != null)
             {
-                //PetCarrySystem.PutDownOnFloor(Actor);
-                Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
-                CarryUtils.Request(Actor, "PutDown");
+                PetCarrySystem.PutDownOnFloor(Actor);
+                //Actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
+                //CarryUtils.Request(Actor, "PutDown");
                 ((ICatPrey)mHerb).UpdateVisualState(CatHuntingModelState.InWorld);
+                StyledNotification.Show(new StyledNotification.Format("mHerb location: " + mHerb.PositionOnFloor,
+                    StyledNotification.NotificationStyle.kDebugAlert));
 
             }
 
 
-            if (!Target.RouteToPointRadius(mHerb.Position, PetEatPrey.kCatEatingDistance))
+            if (!Target.RouteTurnToFace(mHerb.PositionOnFloor))
             {
                 StyledNotification.Show(new StyledNotification.Format("Routing failed",
                     StyledNotification.NotificationStyle.kDebugAlert));
@@ -170,6 +173,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             }
 
             FinishLinkedInteraction(true);
+            WaitForSyncComplete();
             StandardExit();
             EndCommodityUpdates(true);
             return true;

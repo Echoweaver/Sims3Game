@@ -34,6 +34,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		public BuffNames mBuffID;
 		public Sim mMedicineCat;
 		public bool mDestroyPrey;
+		public bool treatmentComplete = false;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -60,40 +61,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool Run()
 		{
-			bool flag = false;
-			float distanceToObjectSquared = Actor.GetDistanceToObjectSquared(Target);
-			StandardEntry();
-			Target.DisableInteractions();
-			CASAgeGenderFlags species = Actor.SimDescription.Species;
-			if ((int)species <= 1024)
-			{
-				if ((int)species != 768)
-				{
-					if ((int)species == 1024)
-					{
-						flag = DogBehavior(distanceToObjectSquared);
-					}
-					flag = false;
-					StandardExit();
-					return flag;
-				}
-				flag = CatBehavior(distanceToObjectSquared);
-			}
-			else
-			{
-				if ((int)species == 1280)
-				{
-					flag = DogBehavior(distanceToObjectSquared);
-				}
-				if ((int)species != 1792)
-				{
-					flag = false;
-					StandardExit();
-					return flag;
-				}
-				flag = SharedNearDistanceBehavior(PetEatPrey.kCatEatingDistance, 3f);
-			}
-			StandardExit();
+
+			bool flag = SharedNearDistanceBehavior(PetEatPrey.kCatEatingDistance, 1f);
 			return flag;
 		}
 
@@ -106,23 +75,20 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			base.Cleanup();
 		}
 
-		public bool SharedFarDistanceBehavior(float routingDistance)
-		{
-			Actor.ShowTNSIfSelectable("Shared Far Distance Behavior",
-				NotificationStyle.kGameMessagePositive);
-			RequestWalkStyle(Sim.WalkStyle.PetRun);
-			bool result = Actor.RouteToObjectRadius(Target, routingDistance);
-			UnrequestWalkStyle(Sim.WalkStyle.PetRun);
-			return result;
-		}
-
 		public bool SharedNearDistanceBehavior(float routingDistance, float loopTime)
 		{
-			if (!Actor.RouteTurnToFace(Target.Position))
+			EWWait.Definition waitDefinition = new EWWait.Definition();
+			EWWait waitInstance = waitDefinition.CreateInstance(mMedicineCat, mMedicineCat,
+				new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
+				CancellableByPlayer) as EWWait;
+			waitInstance.SetInteractionName("Treat " + Actor.Name);
+			mMedicineCat.InteractionQueue.AddNext(waitInstance);
+
+			if (!Actor.RouteToObjectRadius(Target, routingDistance))
 			{
+				waitInstance.waitComplete = true;
 				return false;
 			}
-			MedicineCatIdle();
 			EnterStateMachine("eatofffloor", "Enter", "x");
 			SetParameter("isFish", false);
 			BeginCommodityUpdates();
@@ -131,31 +97,24 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			EndCommodityUpdates(flag);
 			mDestroyPrey = true;
 			AnimateSim("Exit");
+			waitInstance.waitComplete = true;
 
 			if (mSuccess)
             {
 				Actor.ShowTNSIfSelectable("EWLocalize - Successful treatment",
 					NotificationStyle.kGameMessagePositive);
-				Actor.ShowTNSIfSelectable("Remove buff " + mBuffID,
-					NotificationStyle.kGameMessagePositive);
 				Actor.BuffManager.RemoveElement(mBuffID);
-				Actor.ShowTNSIfSelectable("Removed buff.",
-					NotificationStyle.kGameMessagePositive);
 				if (Actor.GetDistanceToObjectSquared(mMedicineCat) <= kMaxDistanceForSimToReact
 								* kMaxDistanceForSimToReact)
 				{
-					Actor.ShowTNSIfSelectable("Say Thank you.",
-						NotificationStyle.kGameMessagePositive);
 					// Say thank you
 					SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Nuzzle Auto Accept",
 						new string[0], null, initialGreet: false);
-					InteractionInstance nuzzleInteraction = definition2.CreateInstance(Actor, mMedicineCat,
-						new InteractionPriority(InteractionPriorityLevel.UserDirected), Autonomous,
-						CancellableByPlayer);
-					Actor.InteractionQueue.AddNextIfPossible(nuzzleInteraction);
+					InteractionInstance nuzzleInteraction = definition2.CreateInstance(mMedicineCat, Actor,
+						new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
+						true);
+					Actor.InteractionQueue.TryPushAsContinuation(this, nuzzleInteraction);
 				}
-				Actor.ShowTNSIfSelectable("Adjust .",
-					NotificationStyle.kGameMessagePositive);
 				DoLtrAdjustment(goodReaction: true);
 			}
 			else
@@ -164,50 +123,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					NotificationStyle.kGameMessagePositive);
 				DoLtrAdjustment(goodReaction: false);
 			}
+			treatmentComplete = true;
 			return flag;
 		}
 
-		public bool DogBehavior(float distanceSquared)
-		{
-			// Keeping this around on the theory of offering ITUN option to enable for dogs
-
-			bool flag = (int)Actor.SimDescription.Species == 1280;
-			if (distanceSquared > PetEatPrey.kDistanceForDogSniffingBehavior
-				* PetEatPrey.kDistanceForDogSniffingBehavior)
-			{
-				if (!SharedFarDistanceBehavior(PetEatPrey.kDistanceFromPreyForDogToSniffAir))
-				{
-					return false;
-				}
-				Actor.PlayReaction(ReactionTypes.Sniff, ReactionSpeed.ImmediateWithoutOverlay);
-			}
-			float num = 0f;
-			num = ((!flag) ? (Actor.IsPuppy ? PetEatPrey.kPuppyEatingDistance : PetEatPrey.kDogEatingDistance)
-				: (Actor.IsPuppy ? PetEatPrey.kLittlePuppyEatingDistance : PetEatPrey.kLittleDogEatingDistance));
-			return SharedNearDistanceBehavior(num, PetEatPrey.kSimMinutesForDogToEatPrey);
-		}
-
-		public bool CatBehavior(float distanceSquared)
-		{
-			if (Target.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Fish
-				&& distanceSquared > PetEatPrey.kDistanceForCatHuntingBehavior
-				* PetEatPrey.kDistanceForCatHuntingBehavior)
-			{
-				if (!SharedFarDistanceBehavior(PetEatPrey.kDistanceFromPreyForCatToHunting))
-				{
-					return false;
-				}
-				CatchPrey catchPrey = CatchPrey.Singleton.CreateInstance(Target, Actor,
-					GetPriority(), base.Autonomous, base.CancellableByPlayer) as CatchPrey;
-				catchPrey.FromEatPreyInteraction = true;
-				if (Actor.InteractionQueue.TryPushAsContinuation(this, catchPrey))
-				{
-					return true;
-				}
-			}
-			return SharedNearDistanceBehavior(Actor.IsKitten ? PetEatPrey.kKittenEatingDistance
-				: PetEatPrey.kCatEatingDistance, PetEatPrey.kSimMinutesForCatToEatPrey);
-		}
 
 		public void DoLtrAdjustment(bool goodReaction)
 		{
@@ -224,25 +143,5 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				Actor, mMedicineCat, isPositive, 0, currentLTR, currentLTR2);
 		}
 
-		public void MedicineCatIdle()
-		{
-			ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData(Actor.GetThumbnailKey());
-			balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
-			balloonData.mPriority = ThoughtBalloonPriority.Low;
-			balloonData.mFlags = ThoughtBalloonFlags.ShowIfSleeping;
-			Actor.ThoughtBalloonManager.ShowBalloon(balloonData);
-			AcquireStateMachine("catdoginvestigate");
-			EnterStateMachine("catdoginvestigate", "Enter", "x");
-			AnimateSim("Investigate");
-			AnimateSim("Exit");
-			if (mSuccess)
-            {
-				mMedicineCat.PlayReaction(ReactionTypes.PositivePet, ReactionSpeed.ImmediateWithoutOverlay);
-            } else
-            {
-				mMedicineCat.PlayReaction(ReactionTypes.NegativePet, ReactionSpeed.ImmediateWithoutOverlay);
-			}
-			return;
-		}
 	}
 }
