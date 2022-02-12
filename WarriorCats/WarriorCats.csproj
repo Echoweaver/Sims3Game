@@ -34,6 +34,7 @@
     <Compile Include="EWPetTreatFleas.cs" />
     <Compile Include="EWPetBeTreated.cs" />
     <Compile Include="EWPetTreatPet.cs" />
+    <Compile Include="EWWait.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
