@@ -1,4 +1,5 @@
 ﻿using System;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -10,6 +11,7 @@ using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.SimIFace.Enums;
+using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -107,5 +109,38 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			actor.CarryStateMachine.RequestState("x", "PutDown");
 		}
 
+		public static bool PickUpFromSimInventory(Sim a, GameObject target, string modelname, bool removeFromInventory)
+		{
+			if (removeFromInventory && !a.Inventory.TryToRemove(target))
+			{
+				return false;
+			}
+			target.AddToWorld();
+			CarryUtils.Acquire(a, target);
+			a.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
+			Enter(a,target, modelname);
+            CarryUtils.Request(a, "PickUp");
+            target.SetHiddenFlags(HiddenFlags.Nothing);
+			CarryUtils.Request(a, "Carry");
+            return true;
+		}
+
+		public static bool PutDownOnFloor(Sim actor)
+        {
+			GameObject objectInMouth = actor.GetObjectInMouth();
+			GameObject gameObject = GlobalFunctions.CreateJigFromObject(objectInMouth) as GameObject;
+			actor.CarryStateMachine.SetParameter("model", "prey", ProductVersion.EP5);
+			actor.CarryStateMachine.SetParameter("Height", SurfaceHeight.Floor);
+			Vector3 position2 = actor.Position;
+			Vector3 forward2 = actor.ForwardVector;
+			GlobalFunctions.FindGoodLocationNearby(gameObject, ref position2, ref forward2, 0.7f,
+				GlobalFunctions.FindGoodLocationStrategies.All, (FindGoodLocationBooleans)20);
+			CarryUtils.Request(actor, "PutDown");
+			CarryUtils.ExitCarry(actor);
+			gameObject.SetPosition(World.SnapToFloor(position2));
+			gameObject.SetForward(forward2);
+			CarryUtils.VerifyAnimationUnParent(objectInMouth, actor, gameObject);
+			return true;
+		}
 	}
 }

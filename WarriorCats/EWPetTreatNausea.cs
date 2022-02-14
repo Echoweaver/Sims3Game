@@ -1,4 +1,7 @@
-﻿using Sims3.Gameplay.Actors;
+﻿using System;
+using System.Collections.Generic;
+using Sims3.Gameplay.Abstracts;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
@@ -7,54 +10,49 @@ using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using System.Collections.Generic;
-using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
-using static Sims3.Gameplay.Skills.CatHuntingSkill;
 using static Sims3.SimIFace.Route;
 using static Sims3.UI.ObjectPicker;
 using Queries = Sims3.Gameplay.Queries;
 
-
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-    public class EWPetTreatFleas : Interaction<Sim, ICatPrey>
+	public class EWPetTreatNausea : Interaction<Sim, GameObject>
 	{
-		public class Definition : InteractionDefinition<Sim, ICatPrey, EWPetTreatFleas>
+		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatNausea>
 		{
-			public override string GetInteractionName(Sim actor, ICatPrey target, InteractionObjectPair iop)
+			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "EWPetTreatFleas" + Localization.Ellipsis;
+				return "EWPetTreatNausea" + Localization.Ellipsis;
 			}
 
-			public override bool Test(Sim a, ICatPrey target, bool isAutonomous,
+			public override bool Test(Sim a, GameObject target, bool isAutonomous,
 				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (a.SkillManager.GetSkillLevel(EWMedicineCatSkill.SkillNameID) < 1)
-                {
-					return false;
-                }
-				CatHuntingComponent catHuntingComponent = target.CatHuntingComponent;
-				if (catHuntingComponent == null)
+				if (a.SkillManager.GetSkillLevel(EWMedicineCatSkill.SkillNameID) < 2)
 				{
 					return false;
 				}
-				if(catHuntingComponent.mPreyData.mPreyType != PreyType.Rodent)
-                {
-					return false;
-                }
-				if (!catHuntingComponent.HasBeenCaught)
+
+				PlantableComponent plantable = target.Plantable;
+				if (plantable == null)
 				{
 					return false;
 				}
+				if (plantable.PlantDef == null)
+				{
+					return false;
+				}
+				if (plantable.PlantDef.LimitedAvailability)
+				{
+					return false;
+				}
+				// TODO: Test for correct medicine
+
+
 				// TODO: Localize
 				if (GetTreatableSims(a, target.InInventory ? a.LotCurrent : target.LotCurrent) == null)
 				{
-					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with fleas");
-					return false;
-				}
-				if (catHuntingComponent.mHasBeenPresented)
-				{
-					greyedOutTooltipCallback = CreateTooltipCallback(LocalizeString(a.IsFemale, "AlreadyPresented"));
+					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with nausea");
 					return false;
 				}
 				return true;
@@ -64,10 +62,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				out List<TabInfo> listObjs, out List<HeaderInfo> headers, out int NumSelectableRows)
 			{
 				Sim sim = parameters.Actor as Sim;
-				ICatPrey catPrey = parameters.Target as ICatPrey;
 				NumSelectableRows = 1;
 				PopulateSimPicker(ref parameters, out listObjs, out headers,
-					GetTreatableSims(sim, catPrey.InInventory ? sim.LotCurrent : catPrey.LotCurrent),
+					GetTreatableSims(sim, sim.LotCurrent),
 					includeActor: false);
 			}
 		}
@@ -95,7 +92,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasElement(BuffNames.GotFleasPet))
+					if (s != actor && s.BuffManager.HasElement(BuffNames.NauseousPet))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -105,7 +102,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasElement(BuffNames.GotFleasPet)
+				if (sim != actor && sim.BuffManager.HasElement(BuffNames.NauseousPet)
 					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
@@ -116,9 +113,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			BuffInstance fleaBuff = simToPresentTo.BuffManager.GetElement(BuffNames.GotFleasPet);
-			if (fleaBuff == null)
-            {
+			BuffInstance badBuff = simToPresentTo.BuffManager.GetElement(BuffNames.NauseousPet);
+			if (badBuff == null)
+			{
 				return false;
 			}
 			EWMedicineCatSkill skill = Actor.SkillManager.GetSkill<EWMedicineCatSkill>(EWMedicineCatSkill.SkillNameID);
@@ -126,7 +123,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
-			return skill.TreatSim(simToPresentTo, fleaBuff, Target.GetLocalizedName());
+			return skill.TreatSim(simToPresentTo, badBuff, Target.GetLocalizedName());
 		}
 
 		public override bool Run()
@@ -135,15 +132,16 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				mSimToPresent = (GetSelectedObject() as Sim);
 				if (mSimToPresent == null)
-				{
 					return false;
-				}
-				if (!PetCarrySystem.PickUp(Actor, Target))
-				{
-					return false;
-				}
-				Target.UpdateVisualState(CatHuntingModelState.Carried);
 			}
+
+			string modelname;
+			if (Target.Plantable.PlantDef.GetModelName(out modelname))
+			{
+				if (!EWPetPickUpPlantable.PickUpFromSimInventory(Actor, Target, modelname, true))
+					return false;
+			}
+			else return false;
 
 			if (mSimToPresent != null && !mSimToPresent.HasBeenDestroyed)
 			{
@@ -179,9 +177,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				}
 				waitInstance.waitComplete = true;
 			}
-			PetCarrySystem.PutDownOnFloor(Actor);
-			Target.UpdateVisualState(CatHuntingModelState.InWorld);
-			Target.CatHuntingComponent.mHasBeenPresented = true;
+
+			EWPetPickUpPlantable.PutDownOnFloor(Actor);
 			if (Actor.HasExitReason())
 			{
 				return false;
@@ -192,7 +189,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			EWPetBeTreated treatInstance = treatDefinition.CreateInstance(Target, mSimToPresent,
 				new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
 				CancellableByPlayer) as EWPetBeTreated;
-			treatInstance.SetParams(isSuccessfulTreatment(mSimToPresent), BuffNames.GotFleasPet,
+			treatInstance.SetParams(isSuccessfulTreatment(mSimToPresent), BuffNames.NauseousPet,
 				Actor, true);
 			mSimToPresent.InteractionQueue.AddNext(treatInstance);
 
@@ -203,33 +200,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool RunFromInventory()
 		{
-			mSimToPresent = (GetSelectedObject() as Sim);
-			if (mSimToPresent == null)
-			{
-				return false;
-			}
-			Target.UpdateVisualState(CatHuntingModelState.Carried);
-			if (!PetCarrySystem.PickUpFromSimInventory(Actor, Target, removeFromInventory: true))
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InInventory);
-				return false;
-			}
 			return Run();
 		}
-
-		public override void Cleanup()
-		{
-			if (Target.InInventory)
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InInventory);
-			}
-			else
-			{
-				Target.UpdateVisualState(CatHuntingModelState.InWorld);
-			}
-			base.Cleanup();
-		}
 	}
-
-
 }

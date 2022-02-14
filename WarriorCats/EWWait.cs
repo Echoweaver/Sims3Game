@@ -19,6 +19,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public static InteractionDefinition Singleton = new Definition();
 
+		// TODO: Localize
 		public string mOverrideInteractionName = "Wait";
 
 		public bool waitComplete = false;

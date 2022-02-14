@@ -65,6 +65,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 {
                     p.AddInteraction(EWPetPickUpPlantable.Singleton);
                     p.AddInventoryInteraction(EWPetPlantSeed.Singleton);
+                    p.AddInventoryInteraction(EWPetTreatNausea.Singleton);
                 }
                 if (p.CatHuntingComponent != null)
                 {
@@ -72,7 +73,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
                     {
                         p.AddInventoryInteraction(EWPetTreatFleas.Singleton);
                     }
-
                 }
             }
 
@@ -86,6 +86,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static ListenerAction OnObjectChanged(Event e)
         {
+            Sim a = e.Actor as Sim;
             Plant p = e.TargetObject as Plant;
             if (p != null)
             {
@@ -97,27 +98,27 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 p.AddInteraction(EWPetDisposePlant.Singleton, true);
             }
 
-            if (e.TargetObject.InInventory && !(e.TargetObject.Plantable == null))
+            // Turning this off until I can test it
+            if (a.IsPet && e.TargetObject.InInventory && !(e.TargetObject.Plantable == null) && false)
             {
-                if (e.TargetObject.Plantable == null)
+                bool has_plant = false;
+                foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(a))
                 {
-                    bool has_plant = false;
-                    foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(e.Actor))
+                    if (pair.InteractionDefinition.GetType() == EWPetPlantSeed.Singleton.GetType())
                     {
-                        if (pair.InteractionDefinition.GetType() == EWPetPlantSeed.Singleton.GetType())
-                        {
-                            has_plant = true;
-                            break;
-                        }
-                    }
-                    if (!has_plant)
-                    {
-                        GameObject o = e.TargetObject as GameObject;
-                        o.AddInventoryInteraction(EWPetPlantSeed.Singleton);
-                        o.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+                        has_plant = true;
+                        break;
                     }
                 }
-            } else if (e.TargetObject.CatHuntingComponent != null)
+                if (!has_plant)
+                {
+                    GameObject o = e.TargetObject as GameObject;
+                    o.AddInventoryInteraction(EWPetPlantSeed.Singleton);
+                    o.AddInventoryInteraction(EWPetTreatNausea.Singleton);
+                    o.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+                }
+            }
+            else if (e.TargetObject.CatHuntingComponent != null)
             {
                 if (e.TargetObject.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Rodent)
                 {

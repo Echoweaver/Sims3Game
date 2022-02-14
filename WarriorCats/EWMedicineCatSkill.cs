@@ -16,9 +16,10 @@ using Sims3.UI.Hud;
  *  - Treatment of wounds (Pet Fighting Mod)
  *    - Lower levels: Reduce wound by one level
  *    - Higher levels: Remove wound entirely
- *      > goldenrod, marigold [sulfur], GARLIC, (WOLFSBANE), (WATERMELON), 
- *      > BLACKBERRY, burdock root (MANDRAKE ROOT), poppy [cosmos], chervil, comfrey root, dandelion, dock leaf 
- *      > elder leaf (BUMBLELEAF), fennel, goldenrod, horsetail, oak leaf (APPLE), stinging nettle (LEMON LIME), willow bark
+ *      > goldenrod, marigold [sulfur], GARLIC, (WOLFSBANE), (WATERMELON), burdock root (MANDRAKE ROOT) 
+ *      > BLACKBERRY, poppy [cosmos], chervil, comfrey root, dandelion, dock leaf 
+ *      > elder leaf (BUMBLELEAF), fennel, goldenrod, horsetail, oak leaf (APPLE), stinging nettle (LEMON LIME), 
+ *      > willow bark
  *  - Treatment of disease 
  *    - Whitecough Coughing and sneezing, fatigue
  *      > HONEY, (ONION), bright eyes [sweet william]
@@ -44,7 +45,7 @@ using Sims3.UI.Hud;
  * 7 - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIMEx (85)
  * 8 - 95
  * 9 - 100?
- */
+*/
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -52,7 +53,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
     public class EWMedicineCatSkill : Skill
     {
         public const SkillNames SkillNameID = (SkillNames)0x277ECF3A;
-
 
         public const string sEWLocalizationKey = "Echoweaver/Skills/EWMedicineCatSkill:";
 
