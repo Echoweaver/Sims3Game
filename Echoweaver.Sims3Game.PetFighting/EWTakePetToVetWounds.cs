@@ -49,7 +49,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
 			{
 				return "Take " + target.Name + " to vet (§" + kCostOfVetVisit + ")";
-//				return LocalizeString("InteractionName", kCostOfVetVisit);
+//				return LocalizeString("InteractionName", target.Name, kCostOfVetVisit);
 			}
 
 			private bool PetHasWound(Sim s)

@@ -55,7 +55,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             SkillManager.ParseSkillData(data, true);
 
             FightPet.Singleton = new EWFightPet.EWFightPetDefinition();
-            //FightPet.Singleton = new EWPetFightPet.PetFightPetDefinition();
             ChaseMean.Singleton = new EWChaseMean.EWChaseMeanDefinition();
             ChasePlay.Singleton = new EWChasePlay.EWChasePlayDefinition();
         }

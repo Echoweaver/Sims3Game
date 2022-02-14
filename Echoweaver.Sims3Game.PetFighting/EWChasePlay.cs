@@ -17,7 +17,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             {
                 ChaseBaseClass chaseBaseClass = new EWChasePlay();
                 chaseBaseClass.Init(ref parameters);
-                chaseBaseClass.IsMeanChase = true;
+                chaseBaseClass.IsMeanChase = false;
                 return chaseBaseClass;
             }
 
