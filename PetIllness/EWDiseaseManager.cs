@@ -8,7 +8,9 @@ using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.SimIFace.CustomContent;
+using Sims3.UI.Hud;
 using System;
 using System.Collections.Generic;
 
@@ -63,13 +65,24 @@ namespace Echoweaver.Sims3Game.PetIllness
 	// </EWDisease>
 	//
 	// <EWDisease>
-	//   <DiseaseName>Pet Flu</DiseaseName>
+	//   <DiseaseName>Petstilence</DiseaseName>
 	//   <BuffGUID></BuffGUID>
 	//   <CASAGSAvailabilityFlags>AC,EC,AD,ED,AL,EL</CASAGSAvailabilityFlags>
 	//   <Generator>Ambient</Generator>
 	//   <Transmission>Proximity,Romantic,Fight</Transmission>
 	//   <Immunity Traits></Immunity Traits>
-	//   <Resistance Traits>Piggy</Resistance Traits>
+	//   <Resistance Traits></Resistance Traits>
+	//   <Vunerable Traits></Vunerable Traits>
+	// </EWDisease>
+	//
+	// <EWDisease>
+	//   <DiseaseName>Feverish</DiseaseName>
+	//   <BuffGUID></BuffGUID>
+	//   <CASAGSAvailabilityFlags>AC,EC,AD,ED,AL,EL</CASAGSAvailabilityFlags>
+	//   <Generator>Ambient</Generator>
+	//   <Transmission>Proximity,Romantic,Fight</Transmission>
+	//   <Immunity Traits></Immunity Traits>
+	//   <Resistance Traits></Resistance Traits>
 	//   <Vunerable Traits></Vunerable Traits>
 	// </EWDisease>
 	// </EWDiseaseList>
@@ -107,7 +120,7 @@ namespace Echoweaver.Sims3Game.PetIllness
 				string text = row["DiseaseName"];
 				string mDescription = row["DiseaseDescription"];
 				BuffNames guid = (BuffNames)BuffManager.GetGuid(row["Hex"], false);
-				double mVersion = 0.0;
+				//double mVersion = 0.0;
 				if (guid == BuffNames.Undefined)
 				{
 					flag = true;
@@ -141,31 +154,31 @@ namespace Echoweaver.Sims3Game.PetIllness
 							val = ResourceKey.CreatePNGKey(text3, 0u);
 						}
 					}
-					buffData.mBuffGuid = guid;
-					buffData.mBuffName = text;
-					buffData.mDescription = mDescription;
-					buffData.mHelpText = mHelpText;
-					buffData.mBuffCategory = value2;
-					buffData.mVersion = mVersion;
-					buffData.SetFlags(Buff.BuffData.FlagField.PermaMoodlet, ParserFunctions.ParseBool(row["PermaMoodlet"]));
-					string @string = row.GetString("PermaMoodletColor");
-					ParserFunctions.TryParseEnum<MoodColor>(@string, out buffData.mMoodletColor, (MoodColor)(-1));
-					buffData.mAxisEffected = value4;
-					buffData.mPolarityOverride = value5;
-					buffData.mEffectValue = ParserFunctions.ParseInt(row["EffectValue"], 0);
-					buffData.mDelayTimer = ParserFunctions.ParseInt(row["DelayTimer"], 0);
-					buffData.mTimeoutSimMinutes = ParserFunctions.ParseFloat(row["TimeoutLength"], -1f);
-					buffData.mSolveCommodity = value3;
-					buffData.mSolveTime = ParserFunctions.ParseFloat(row["SolveTime"], float.MinValue);
-					buffData.SetFlags(Buff.BuffData.FlagField.AttemptAutoSolve, ParserFunctions.ParseBool(row["AttemptAutoSolve"]));
-					ParserFunctions.ParseCommaSeparatedString(row["FacialIdle"], out buffData.mFacialIdles);
-					buffData.SetFlags(Buff.BuffData.FlagField.IsExtreme, ParserFunctions.ParseBool(row["IsExtreme"]));
-					buffData.mNeededTraitList = list;
-					buffData.mIncreasedEffectivenessList = vulnerableList;
-					buffData.mReducedEffectivenessList = resistantList;
-					buffData.mThumbKey = val;
-					buffData.mThumbString = text3;
-					buffData.mTopic = mTopic;
+					//buffData.mBuffGuid = guid;
+					//buffData.mBuffName = text;
+					//buffData.mDescription = mDescription;
+					//buffData.mHelpText = mHelpText;
+					//buffData.mBuffCategory = value2;
+					//buffData.mVersion = mVersion;
+					//buffData.SetFlags(Buff.BuffData.FlagField.PermaMoodlet, ParserFunctions.ParseBool(row["PermaMoodlet"]));
+					//string @string = row.GetString("PermaMoodletColor");
+					//ParserFunctions.TryParseEnum<MoodColor>(@string, out buffData.mMoodletColor, (MoodColor)(-1));
+					//buffData.mAxisEffected = value4;
+					//buffData.mPolarityOverride = value5;
+					//buffData.mEffectValue = ParserFunctions.ParseInt(row["EffectValue"], 0);
+					//buffData.mDelayTimer = ParserFunctions.ParseInt(row["DelayTimer"], 0);
+					//buffData.mTimeoutSimMinutes = ParserFunctions.ParseFloat(row["TimeoutLength"], -1f);
+					//buffData.mSolveCommodity = value3;
+					//buffData.mSolveTime = ParserFunctions.ParseFloat(row["SolveTime"], float.MinValue);
+					//buffData.SetFlags(Buff.BuffData.FlagField.AttemptAutoSolve, ParserFunctions.ParseBool(row["AttemptAutoSolve"]));
+					//ParserFunctions.ParseCommaSeparatedString(row["FacialIdle"], out buffData.mFacialIdles);
+					//buffData.SetFlags(Buff.BuffData.FlagField.IsExtreme, ParserFunctions.ParseBool(row["IsExtreme"]));
+					//buffData.mNeededTraitList = list;
+					//buffData.mIncreasedEffectivenessList = vulnerableList;
+					//buffData.mReducedEffectivenessList = resistantList;
+					//buffData.mThumbKey = val;
+					//buffData.mThumbString = text3;
+					//buffData.mTopic = mTopic;
 					buffData.SetFlags(Buff.BuffData.FlagField.ShowBalloon, row.GetBool("ShowBallon"));
 					buffData.SetFlags(Buff.BuffData.FlagField.Travel, row.GetBool("Travel"));
 					ParserFunctions.TryParseCommaSeparatedList<OccultTypes>(row["DisallowedOccults"], out buffData.mDisallowedOccults, (OccultTypes)0);
@@ -202,10 +215,10 @@ namespace Echoweaver.Sims3Game.PetIllness
 							string str = text5.Substring(0, num);
 							text5.Substring(num + 1);
 							Type type = null;
-							if (bStore)
-							{
-								type = Type.GetType(str + ",Sims3StoreObjects");
-							}
+							//if (bStore)
+							//{
+							//	type = Type.GetType(str + ",Sims3StoreObjects");
+							//}
 							if ((object)type == null)
 							{
 								type = Type.GetType(text5);
@@ -219,11 +232,11 @@ namespace Echoweaver.Sims3Game.PetIllness
 								Type[] types = new Type[1] {
 							typeof(Buff.BuffData)
 						};
-								ConstructorInfo constructor = type.GetConstructor(types);
-								object obj = constructor.Invoke(new object[1] {
-							buffData
-						});
-								buff = (Buff)obj;
+								//ConstructorInfo constructor = type.GetConstructor(types);
+								// object obj; // = constructor.Invoke(new object[1] {
+						//	buffData
+						//});
+								//buff = (Buff)obj;
 							}
 						}
 					}
@@ -247,7 +260,7 @@ namespace Echoweaver.Sims3Game.PetIllness
 				else
 				{
 					GenericManager<BuffNames, BuffInstance, BuffInstance>.sDictionary.Add((ulong)guid, value6);
-					sBuffEnumValues.AddNewEnumValue(text, guid);
+					//sBuffEnumValues.AddNewEnumValue(text, guid);
 				}
 			}
 		}
@@ -306,13 +319,13 @@ namespace Echoweaver.Sims3Game.PetIllness
 
 			public void ActivateSickness()
 			{
-				mSickIncubationAlarm = AlarmHandle.kInvalidHandle;
+				//mSickIncubationAlarm = AlarmHandle.kInvalidHandle;
 				if (GameUtils.IsInstalled(ProductVersion.EP8))
 				{
 					Sim createdSim = mSimID.CreatedSim;
 					if (createdSim != null && createdSim.BuffManager.AddElement(BuffNames.Germy, Origin.None))
 					{
-						mSickDate = SimClock.CurrentTime();
+						//mSickDate = SimClock.CurrentTime();
 						createdSim.ShowTNSAndPlayStingIfSelectable("sting_get_sick", TNSNames.GotSickTNS,
 							createdSim, null, null, null, new bool[1] { createdSim.IsFemale },
 							false, createdSim);
@@ -321,58 +334,58 @@ namespace Echoweaver.Sims3Game.PetIllness
 			}
 			public void TimedSickCheck()
 			{
-				Sim createdSim = mOwnerDescription.CreatedSim;
-				if (createdSim != null && GameUtils.IsInstalled((ProductVersion)32768))
-				{
-					createdSim.RemoveAlarm(mSickCheckAlarm);
-					float num = HealthManager.kMaxSickCheckInterval;
-					float num2 = HealthManager.kMinSickCheckInterval;
-					if (createdSim.BuffManager.HasAnyElement(BuffNames.Frostbitten, BuffNames.TeethChattering))
-					{
-						num = HealthManager.kMaxSickCheckFreezingInterval;
-						num2 = HealthManager.kMinSickCheckFreezingInterval;
-					}
-					else if (createdSim.BuffManager.HasElement(BuffNames.GettingChilly))
-					{
-						num = HealthManager.kMaxSickCheckChillyInterval;
-						num2 = HealthManager.kMinSickCheckChillyInterval;
-					}
-					PossiblyGetSick(HealthManager.kAmbientSicknessOdds);
-					mSickCheckAlarm = createdSim.AddAlarm(RandomUtil.GetFloat(num - num2) + num2, TimeUnit.Minutes, TimedSickCheck, "Periodic Sick Alarm", AlarmType.AlwaysPersisted);
-				}
+				//Sim createdSim = mOwnerDescription.CreatedSim;
+				//if (createdSim != null && GameUtils.IsInstalled((ProductVersion)32768))
+				//{
+				//	createdSim.RemoveAlarm(mSickCheckAlarm);
+				//	float num = HealthManager.kMaxSickCheckInterval;
+				//	float num2 = HealthManager.kMinSickCheckInterval;
+				//	if (createdSim.BuffManager.HasAnyElement(BuffNames.Frostbitten, BuffNames.TeethChattering))
+				//	{
+				//		num = HealthManager.kMaxSickCheckFreezingInterval;
+				//		num2 = HealthManager.kMinSickCheckFreezingInterval;
+				//	}
+				//	else if (createdSim.BuffManager.HasElement(BuffNames.GettingChilly))
+				//	{
+				//		num = HealthManager.kMaxSickCheckChillyInterval;
+				//		num2 = HealthManager.kMinSickCheckChillyInterval;
+				//	}
+				//	PossiblyGetSick(HealthManager.kAmbientSicknessOdds);
+				//	mSickCheckAlarm = createdSim.AddAlarm(RandomUtil.GetFloat(num - num2) + num2, TimeUnit.Minutes, TimedSickCheck, "Periodic Sick Alarm", AlarmType.AlwaysPersisted);
+				//}
 			}
 
 			public void PossiblyGetSick(float odds)
 			{
-				Sim createdSim = mOwnerDescription.CreatedSim;
-				if (createdSim != null)
-				{
-					TraitManager traitManager = createdSim.TraitManager;
-					if (traitManager.HasElement(TraitNames.LovesTheHeat))
-					{
-						odds *= HealthManager.kWarmbloodedModifier;
-					}
-					else if (traitManager.HasElement(TraitNames.LovesTheCold))
-					{
-						odds *= HealthManager.kColdBloodedModifier;
-					}
-				}
-				if (RandomUtil.RandomChance01(odds))
-				{
-					GetSick();
-				}
+				//Sim createdSim = mOwnerDescription.CreatedSim;
+				//if (createdSim != null)
+				//{
+				//	TraitManager traitManager = createdSim.TraitManager;
+				//	if (traitManager.HasElement(TraitNames.LovesTheHeat))
+				//	{
+				//		odds *= HealthManager.kWarmbloodedModifier;
+				//	}
+				//	else if (traitManager.HasElement(TraitNames.LovesTheCold))
+				//	{
+				//		odds *= HealthManager.kColdBloodedModifier;
+				//	}
+				//}
+				//if (RandomUtil.RandomChance01(odds))
+				//{
+				//	GetSick();
+				//}
 			}
 
 			public void GetSick()
 			{
-				if (GameUtils.IsInstalled((ProductVersion)32768) && mOwnerDescription.ChildOrAbove && !mOwnerDescription.IsImmuneToAllergiesAndSickness())
-				{
-					Sim createdSim = mOwnerDescription.CreatedSim;
-					if (createdSim != null && mSickIncubationAlarm == AlarmHandle.kInvalidHandle && !createdSim.BuffManager.HasElement(BuffNames.Germy) && (mSickDate.Ticks == 0 || SimClock.ElapsedTime(TimeUnit.Hours, mSickDate) > kSicknessCooldown) && (mVaccinationDate.Ticks == 0 || SimClock.ElapsedTime(TimeUnit.Days, mVaccinationDate) > (float)SeasonsManager.GetYearLength()))
-					{
-						mSickIncubationAlarm = mOwnerDescription.CreatedSim.AddAlarm(RandomUtil.GetFloat(kMaxIncubationTime - kMinIncubationTime) + kMinIncubationTime, TimeUnit.Hours, ActivateSickness, "sickness incubation alarm", AlarmType.AlwaysPersisted);
-					}
-				}
+				//if (GameUtils.IsInstalled((ProductVersion)32768) && mOwnerDescription.ChildOrAbove && !mOwnerDescription.IsImmuneToAllergiesAndSickness())
+				//{
+				//	Sim createdSim = mOwnerDescription.CreatedSim;
+				//	if (createdSim != null && mSickIncubationAlarm == AlarmHandle.kInvalidHandle && !createdSim.BuffManager.HasElement(BuffNames.Germy) && (mSickDate.Ticks == 0 || SimClock.ElapsedTime(TimeUnit.Hours, mSickDate) > kSicknessCooldown) && (mVaccinationDate.Ticks == 0 || SimClock.ElapsedTime(TimeUnit.Days, mVaccinationDate) > (float)SeasonsManager.GetYearLength()))
+				//	{
+				//		mSickIncubationAlarm = mOwnerDescription.CreatedSim.AddAlarm(RandomUtil.GetFloat(kMaxIncubationTime - kMinIncubationTime) + kMinIncubationTime, TimeUnit.Hours, ActivateSickness, "sickness incubation alarm", AlarmType.AlwaysPersisted);
+				//	}
+				//}
 			}
 
 			public void PossibleDirtyObjectContagion(object targetObject)
@@ -390,14 +403,14 @@ namespace Echoweaver.Sims3Game.PetIllness
 						targetObject = posture.Container;
 					}
 				}
-				foreach (Type sDirtyObjectType in sDirtyObjectTypes)
-				{
-					if (sDirtyObjectType.IsAssignableFrom(targetObject.GetType()))
-					{
-						PossiblyGetSick(HealthManager.kInteractSicknessOdds);
-						break;
-					}
-				}
+				//foreach (Type sDirtyObjectType in sDirtyObjectTypes)
+				//{
+				//	if (sDirtyObjectType.IsAssignableFrom(targetObject.GetType()))
+				//	{
+				//		PossiblyGetSick(HealthManager.kInteractSicknessOdds);
+				//		break;
+				//	}
+				//}
 			}
 
 			public void PossibleProximityContagion()
@@ -417,18 +430,18 @@ namespace Echoweaver.Sims3Game.PetIllness
 
 			public void TemperatureChange(bool isWarm)
 			{
-				BuffGermy.BuffInstanceGermy buffInstanceGermy = mOwnerDescription.CreatedSim.BuffManager.GetElement(BuffNames.Germy) as BuffGermy.BuffInstanceGermy;
-				if (buffInstanceGermy != null)
-				{
-					if (isWarm)
-					{
-						buffInstanceGermy.ModifyDuration(HealthManager.kWarmInteractionDelta);
-					}
-					else
-					{
-						buffInstanceGermy.ModifyDuration(HealthManager.kColdInteractionDelta);
-					}
-				}
+				//BuffGermy.BuffInstanceGermy buffInstanceGermy = mOwnerDescription.CreatedSim.BuffManager.GetElement(BuffNames.Germy) as BuffGermy.BuffInstanceGermy;
+				//if (buffInstanceGermy != null)
+				//{
+				//	if (isWarm)
+				//	{
+				//		buffInstanceGermy.ModifyDuration(HealthManager.kWarmInteractionDelta);
+				//	}
+				//	else
+				//	{
+				//		buffInstanceGermy.ModifyDuration(HealthManager.kColdInteractionDelta);
+				//	}
+				//}
 			}
 
 		}

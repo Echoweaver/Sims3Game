@@ -12,7 +12,7 @@ using Sims3.Gameplay.Autonomy;
 
 namespace Echoweaver.Sims3Game.PetIllness
 {
-    public class LoadThis : GameObject
+    public class Loader : GameObject
     {
         static bool HasBeenLoaded = false;
 
@@ -24,7 +24,7 @@ namespace Echoweaver.Sims3Game.PetIllness
         public static SimDescription.DeathType sickDeathType = SimDescription.DeathType.HauntingCurse;
 
 
-        static LoadThis()
+        static Loader()
         {
             // gets the OnPreload method to run before the whole savegame is loaded so your sim doesn't find
             // the skill missing if they need to access its data

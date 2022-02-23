@@ -3,18 +3,26 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.SimIFace;
-
 namespace Echoweaver.Sims3Game.PetIllness
 {
-
-	public class EWBuffSniffles : Buff
+	public class BuffEWPetstilence : Buff
 	{
+		private const ulong kEWPetstilenceGuid = 0xD79EDE5CB789F85D;
+		public static ulong StaticGuid
+		{
+			get
+			{
+				return kEWPetstilenceGuid;
+
+			}
+		}
+		public static BuffNames buffName = (BuffNames)kEWPetstilenceGuid;
 
 		[Tunable]
 		[TunableComment("Odds of getting sick from being in proximity to a sick sim")]
 		public static float kProximitySicknessOddsSniffles = 0.1f;
 
-		public class EWBuffInstanceSniffles : BuffInstance
+		public class BuffInstancePetstilence : BuffInstance
 		{
 			public bool mIsIndoors;
 
@@ -45,11 +53,11 @@ namespace Echoweaver.Sims3Game.PetIllness
 				}
 			}
 
-			public EWBuffInstanceSniffles()
+			public BuffInstancePetstilence()
 			{
 			}
 
-			public EWBuffInstanceSniffles(Buff buff, BuffNames buffGuid, int effectValue,
+			public BuffInstancePetstilence(Buff buff, BuffNames buffGuid, int effectValue,
 				float timeoutCount)
 				: base(buff, buffGuid, effectValue, timeoutCount)
 			{
@@ -57,10 +65,10 @@ namespace Echoweaver.Sims3Game.PetIllness
 
 			public override BuffInstance Clone()
 			{
-				EWBuffInstanceSniffles buffInstanceSniffles = new EWBuffInstanceSniffles(mBuff,
+				BuffInstancePetstilence buffInstance = new BuffInstancePetstilence(mBuff,
 					mBuffGuid, mEffectValue, mTimeoutCount);
-				buffInstanceSniffles.mIsIndoors = mIsIndoors;
-				return buffInstanceSniffles;
+				buffInstance.mIsIndoors = mIsIndoors;
+				return buffInstance;
 			}
 
 			public override void SetTargetSim(SimDescription targetSim)
@@ -99,7 +107,7 @@ namespace Echoweaver.Sims3Game.PetIllness
 		[Tunable]
 		public static float kMaxDurationIncrease = 1440f;
 
-		public EWBuffSniffles(BuffData info)
+		public BuffEWPetstilence(BuffData info)
 			: base(info)
 		{
 		}
@@ -115,20 +123,22 @@ namespace Echoweaver.Sims3Game.PetIllness
 
 		public override BuffInstance CreateBuffInstance()
 		{
-			return new EWBuffInstanceSniffles(this, BuffGuid, EffectValue, TimeoutSimMinutes);
+			return new BuffInstancePetstilence(this, BuffGuid, EffectValue, TimeoutSimMinutes);
 		}
 
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
-			EWBuffInstanceSniffles buffInstanceSniffles = bi as EWBuffInstanceSniffles;
+			BuffInstancePetstilence buffInstanceSniffles = bi as BuffInstancePetstilence;
+			//Actor.PlaySoloAnimation("ac_idle_sit_groomSelf_hack_x", yield: true, (ProductVersion)512);
+
 			buffInstanceSniffles.SnifflesContagionBroadcaster = new ReactionBroadcaster(bi.TargetSim.CreatedSim,
-				kSickBroadcastParams, SnifflesContagionCallback);
+				kSickBroadcastParams, PetstilenceContagionCallback);
 			base.OnAddition(bm, bi, travelReaddition);
 		}
 
 		public override void OnRemoval(BuffManager bm, BuffInstance bi)
 		{
-			EWBuffInstanceSniffles buffInstanceGermy = bi as EWBuffInstanceSniffles;
+			BuffInstancePetstilence buffInstanceGermy = bi as BuffInstancePetstilence;
 			if (buffInstanceGermy.SnifflesContagionBroadcaster != null)
 			{
 				buffInstanceGermy.SnifflesContagionBroadcaster.Dispose();
@@ -137,7 +147,7 @@ namespace Echoweaver.Sims3Game.PetIllness
 			base.OnRemoval(bm, bi);
 		}
 
-		public void SnifflesContagionCallback(Sim s, ReactionBroadcaster rb)
+		public void PetstilenceContagionCallback(Sim s, ReactionBroadcaster rb)
 		{
 			EWDisease.Manager(s.SimDescription).PossibleProximityContagion(kProximitySicknessOddsSniffles);
 		}
