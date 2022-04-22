@@ -21,8 +21,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                // TODO: Localize
-                return "Succumb";
+                return Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:Succumb");
             }
         }
 
@@ -58,10 +57,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             Target.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
             if (Loader.kAllowPetDeath)
             {
-                // TODO: LOCALIZE!
-                StyledNotification.Show(new StyledNotification.Format(Target.Name +
-                    " fought bravely but in the end, it was all too much. They will be missed.",
-                    StyledNotification.NotificationStyle.kGameMessageNegative));
+                StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightDie",
+                    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 Target.Kill(Loader.fightDeathType);
             }
             else
@@ -73,9 +70,8 @@ namespace Echoweaver.Sims3Game.PetFighting
                     Target.SetIsSleeping(value: true);
                 }
 
-                StyledNotification.Show(new StyledNotification.Format(Target.Name +
-                    " can do no more until they have a long time to recover.",
-                    StyledNotification.NotificationStyle.kGameMessageNegative));
+                StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightRecuperate",
+                    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 // TODO: Needs an origin for succumb to wounds
                 Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
                     Origin.FromFight);

@@ -126,16 +126,8 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            // TODO: There are accelerated gain rates for Hunter and Aggressive pets.
-            // Possibly slower for Nonaggressive and Skittish?
-            if (skillActor.OppExperiencedFighterCompleted)
-            {
-                skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateExperienced);
-            } else skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
-            if (skillTarget.OppExperiencedFighterCompleted)
-            {
-                skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateExperienced);
-            } else skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            skillActor.StartSkillGain(skillActor.getSkillGainRate(Actor));
+            skillTarget.StartSkillGain(skillTarget.getSkillGainRate(Target));
 
             BeginCommodityUpdates();
             Actor.RequestWalkStyle(WalkStyle.PetRun);
@@ -198,6 +190,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             bool success = DoTimedLoop(RandomUtil.GetFloat(kPetFightTimeMinMax[0], kPetFightTimeMinMax[1]),
                 ExitReason.Default);
             EndCommodityUpdates(success);
+            Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives.GetMotiveValue(CommodityKind.Energy - 200));
             LinkedInteractionInstance.EndCommodityUpdates(success);
             bool actorWon = DoesActorWinFight();
             if (!actorWon)
@@ -256,14 +249,12 @@ namespace Echoweaver.Sims3Game.PetFighting
             // If this is called from ChaseOffLot, then the target will flee if it loses
             if (!actorWon && actorRunOnLose && Actor.LotCurrent != Actor.LotHome)
             {
-                // TODO: Walkstyle should be running fear
                 Actor.PopPosture();
                 Actor.RequestWalkStyle(WalkStyle.PetRun);
                 MakeSimGoHome(Actor, false);
             }
             else if (actorWon && targetRunOnLose && Target.LotCurrent != Target.LotHome)
             {
-                // TODO: Walkstyle should be running fear
                 Target.PopPosture();
                 if (Target.IsHuman)
                 {

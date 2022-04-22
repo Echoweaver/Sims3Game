@@ -37,14 +37,16 @@ using Sims3.UI.Hud;
 /* 
  * Types of medicine (converted to Sims)
  * 1 - Fleas: RODENT
- * 2 - Disease, nausea: GREENLEAF, BUZZBERRY, SWEETGRASS, WATERMELON (35)
- * 3 - Wounds, reduce by one level: [sulfur], GARLIC, <wolfsbane>, WATERMELON, APPLE (45)
- * 4 - Disease, whitecough: HONEY, ONION, [sweet william], LICORICE (55)
- * 5 - Disease, greencough: WONDERPETAL, [azalea],  PEPPERMINT, LAVENDER, [blue flax] (65)
- * 6 - Childbirth: RASPBERRY, BASIL, BELL PEPPER (75)
- * 7 - Wounds, remove: BLACKBERRY, <mandrake root>, [cosmos], BUMBLELEAF, LEMON, LIMEx (85)
- * 8 - 95
- * 9 - 100?
+ * 2 - Disease, nausea: PEPPERMINT (35)
+ * 3 - Wounds, reduce by one level: BASIL (45)
+ * 4 - Disease, whitecough (Sniffles): BUMBLELEAF (55)
+ * 4 - Heat Exhaustion: WATERMELON (#Future release#)
+ * 5 - Disease, Feverish: CINNAMON, GARLIC (65)
+ * 5 - Frostbite: FLAME FRUIT (#Future release#)
+ * 6 - Disease, greencough (Petstilence): WONDERPETAL (75)
+ * 7 - Childbirth: RASPBERRY, CHAMOMILE (85)
+ * 8 - Wounds, remove: BLACKBERRY, GINSENG (95)
+ * 9 - Extend Life: LIFE FRUIT (100)
 */
 
 namespace Echoweaver.Sims3Game.WarriorCats

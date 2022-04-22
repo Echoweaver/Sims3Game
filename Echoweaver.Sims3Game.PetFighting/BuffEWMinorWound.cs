@@ -71,11 +71,12 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Sim actor = bm.Actor;
 			BuffInstanceEWMinorWound buffInstance = bi as BuffInstanceEWMinorWound;
-			buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
-				isFriendly: false, isToTarget: false));
-			buffInstance.mEffect.SetEffectColorScale(0.9f, .37f, 0.02f);  // RGB for honey color
-			buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
-			buffInstance.mEffect.Start();
+			// Not sure that minor wounds really need a visual effect.
+			//buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
+			//	isFriendly: false, isToTarget: false));
+			//buffInstance.mEffect.SetEffectColorScale(0.9f, .37f, 0.02f);  // RGB for honey color
+			//buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
+			//buffInstance.mEffect.Start();
 			base.OnAddition(bm, bi, travelReaddition);
 
 			// This should increase hunger and energy decay.

@@ -156,9 +156,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            // TODO: There are accelerated gain rates for Hunter and Aggressive pets.
-            // Possibly slower for Nonaggressive and Skittish?
-            skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            skillActor.StartSkillGain(skillActor.getSkillGainRate(Actor));
             skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
 
             UpdateConversationWhenSocialStarts(Actor, Target);

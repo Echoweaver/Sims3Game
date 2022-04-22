@@ -33,9 +33,14 @@
     <Compile Include="EWPetDisposePlant.cs" />
     <Compile Include="EWPetTreatFleas.cs" />
     <Compile Include="EWPetBeTreated.cs" />
-    <Compile Include="EWPetTreatPet.cs" />
     <Compile Include="EWWait.cs" />
     <Compile Include="EWPetTreatNausea.cs" />
+    <Compile Include="EWPetTreatWoundWeak.cs" />
+    <Compile Include="EWCarryFish.cs" />
+    <Compile Include="EWPetTreatSniffles.cs" />
+    <Compile Include="EWPetTreatFeverish.cs" />
+    <Compile Include="EWAbstractPetTreatPlantable.cs" />
+    <Compile Include="EWPetTreatPetstilence.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

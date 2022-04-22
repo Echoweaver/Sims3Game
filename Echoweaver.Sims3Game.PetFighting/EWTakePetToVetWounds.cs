@@ -39,8 +39,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				}
 				if (a.LotCurrent != target.LotCurrent)
 				{
-					// TODO: Localize
-					greyedOutTooltipCallback = CreateTooltipCallback("Must be on same lot as pet");
+					greyedOutTooltipCallback = CreateTooltipCallback(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightLotFail"));
 					return false;
 				}
                 return true;
@@ -48,8 +47,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
 			{
-				return "Take " + target.Name + " to vet (§" + kCostOfVetVisit + ")";
-//				return LocalizeString("InteractionName", target.Name, kCostOfVetVisit);
+				return LocalizeString("Echoweaver/PetFighting/EWFightPet:TakeToVetCost", target.Name, kCostOfVetVisit);
 			}
 
 			private bool PetHasWound(Sim s)
@@ -194,8 +192,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				}
 				else if (!GameUtils.IsFutureWorld())
 				{
-					// TODO: Add correct Localization
-					Actor.ShowTNSIfSelectable("You will owe the vet §" + kCostOfVet + "for this visit",
+					Actor.ShowTNSIfSelectable(LocalizeString("Echoweaver/PetFighting/EWFightPet:TakeToVetBill", kCostOfVet),
 						StyledNotification.NotificationStyle.kGameMessagePositive);
 					Sim actor = Actor;
 					actor.UnpaidBills += kCostOfVet;
@@ -203,8 +200,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				mPet.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
 				mPet.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
 				mPet.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
-				// TODO: Add relationship boost
-				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
+                EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
 				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);
 			}
 			timeToGo = true;
@@ -236,7 +232,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			public override string GetInteractionName(Sim actor, RabbitHole target, InteractionObjectPair iop)
 			{
-				return "See Vet";
+				return LocalizeString("Echoweaver/PetFighting/EWFightPet:SeeVet");
 			}
 		}
 
@@ -253,8 +249,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			if (goToVetInst != null)
 			{
-				//goToVetInst.AddFollower(Actor);
-				while (!Actor.WaitForExitReason(Sim.kWaitForExitReasonDefaultTime, ExitReason.Canceled) && !goToVetInst.timeToGo)
+				while (!Actor.WaitForExitReason(kWaitForExitReasonDefaultTime, ExitReason.Canceled) && !goToVetInst.timeToGo)
 				{
 				}
 				return true;

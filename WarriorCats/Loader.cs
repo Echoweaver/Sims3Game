@@ -9,6 +9,8 @@ using Sims3.SimIFace;
 using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Objects.Fishing;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -16,12 +18,25 @@ namespace Echoweaver.Sims3Game.WarriorCats
     {
         static bool HasBeenLoaded = false;
 
-        [Tunable]
-        protected static bool kInstantiator = false;
+        // Wound buffs from Pet Fighting mod
+        public static BuffNames buffNameGraveWound = (BuffNames)0x384B537AE0B8F97A;
+        public static BuffNames buffNameSeriousWound = (BuffNames)0xAE4D28F1BCEC603D;
+        public static BuffNames buffNameMinorWound = (BuffNames)0x3BE0F368D4653A9E;
+        public static BuffNames[] woundBuffList = new BuffNames[] { buffNameGraveWound,
+            buffNameMinorWound, buffNameSeriousWound };
+
+        public static BuffNames buffNamePetstilence = (BuffNames)0xD79EDE5CB789F85D;
+        public static BuffNames buffNameFeverish = (BuffNames)0x0A6994F5F35A8CD8;
+        public static BuffNames buffNameSniffles = (BuffNames)0x2AFC0D6468CD9CD7;
+
+        public static BuffNames buffNameFoodPoisingPet = (BuffNames)0x41BFC2124133973F;
+        public static BuffNames buffNameStomachFluPet = (BuffNames)0xB6F4522A924504ED;
+        public static BuffNames[] nauseaBuffList = new BuffNames[] { BuffNames.NauseousPet,
+            buffNameFoodPoisingPet, buffNameStomachFluPet };
 
         [Tunable]
+        protected static bool kInstantiator = false;
         public static bool kAllowPetDeath = true;
-        public static SimDescription.DeathType sickDeathType = SimDescription.DeathType.Starve;
 
 
         static LoadThis()
@@ -74,12 +89,14 @@ namespace Echoweaver.Sims3Game.WarriorCats
                         p.AddInventoryInteraction(EWPetTreatFleas.Singleton);
                     }
                 }
+
+                Fish fish = p as Fish;
+                if (fish != null)
+                {
+                    fish.AddInventoryInteraction(EWCarryFish.Singleton);
+                }
             }
 
-            if (GameUtils.IsInstalled(ProductVersion.EP9))
-            {
-                sickDeathType = SimDescription.DeathType.Ranting;
-            }
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }

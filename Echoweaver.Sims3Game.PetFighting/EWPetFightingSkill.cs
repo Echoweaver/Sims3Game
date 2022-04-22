@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
+using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
@@ -15,7 +16,7 @@ namespace Echoweaver.Sims3Game.PetFighting
         public const SkillNames skillNameID = (SkillNames)0x20F47569;
         public const CommodityKind commodityKindID = (CommodityKind)0x262891D3;
         public string sStatsLocalizeKey = "Echoweaver/PetFighting/SkillStats:";
-        public const string sEWLocalizationKey = "Echoweaver/Skills/EWPetFightingSkill";
+        public const string sEWLocalizationKey = "Echoweaver/Skills/EWPetFightingSkill:";
 
         [Persistable(false)]
         private List<ITrackedStat> mTrackedStats;
@@ -53,7 +54,33 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public new string LocalizeString(string name, params object[] parameters)
         {
-            return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + ":" + name, parameters);
+            return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + name, parameters);
+        }
+
+        public float getSkillGainRate(Sim s)
+        {
+            float rate = kSkillGainRateNormal;
+            if (OppExperiencedFighterCompleted)
+            {
+                rate = kSkillGainRateExperienced;
+            }
+            if (s.HasTrait(TraitNames.AggressivePet))
+            {
+                rate *= 1.2f;
+            }
+            if (s.HasTrait(TraitNames.DestructivePet))
+            {
+                rate *= 1.2f;
+            }
+            if (s.HasTrait(TraitNames.SkittishPet))
+            {
+                rate *= .9f;
+            }
+            if (s.HasTrait(TraitNames.NonDestructivePet))
+            {
+                rate *= .9f;
+            }
+            return rate;
         }
 
         public float getEffectiveSkillLevel(bool isHomeLot, Sim target)
@@ -81,7 +108,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             private EWPetFightingSkill mSkill;
 
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsWon",
-                mSkill.mFightsWon);
+                //mSkill.mFightsWon, mSkill.mFightsLost);
+                mSkill.mFightsWon, mSkill.mFightsWon == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWon
+                    / (mSkill.mFightsWon + mSkill.mFightsLost)), 1));
 
             public FightsWon(EWPetFightingSkill skill)
 
@@ -95,7 +124,9 @@ namespace Echoweaver.Sims3Game.PetFighting
             private EWPetFightingSkill mSkill;
 
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsLost",
-                mSkill.mFightsLost);
+                //mSkill.mFightsLost, mSkill.mFightsWon);
+                mSkill.mFightsLost, mSkill.mFightsLost == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsLost
+                    / (mSkill.mFightsWon + mSkill.mFightsLost)), 1));
 
             public FightsLost(EWPetFightingSkill skill)
 
@@ -108,7 +139,10 @@ namespace Echoweaver.Sims3Game.PetFighting
         {
             private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Won Human " + mSkill.mFightsWonHuman;
+            public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsHuman",
+                //mSkill.mFightsWon, mSkill.mFightsLost);
+                mSkill.mFightsWonHuman, mSkill.mFightsWonHuman == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWonHuman
+                    / (mSkill.mFightsWonHuman + mSkill.mFightsLostHuman)), 1));
 
             public FightsWonHuman(EWPetFightingSkill skill)
 
@@ -117,25 +151,28 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public class FightsLostHuman : ITrackedStat
-        {
-            private EWPetFightingSkill mSkill;
+        //public class FightsLostHuman : ITrackedStat
+        //{
+        //    private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Lost Human " + mSkill.mFightsLostHuman;
+        //    public string Description => "Fights Lost Human " + mSkill.mFightsLostHuman;
 
-            public FightsLostHuman(EWPetFightingSkill skill)
+        //    public FightsLostHuman(EWPetFightingSkill skill)
 
-            {
-                mSkill = skill;
-            }
-        }
+        //    {
+        //        mSkill = skill;
+        //    }
+        //}
 
 
         public class FightsWonBigDog : ITrackedStat
         {
             private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Won Big Dog " + mSkill.mFightsWonBigDog;
+            public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsBigDog",
+            //mSkill.mFightsWon, mSkill.mFightsLost);
+            mSkill.mFightsWonBigDog,mSkill.mFightsWonBigDog == 0 ? 0: Math.Round((decimal)(mSkill.mFightsWonBigDog /
+                (mSkill.mFightsWonBigDog + mSkill.mFightsLostBigDog)), 1));
 
             public FightsWonBigDog(EWPetFightingSkill skill)
 
@@ -144,24 +181,27 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public class FightsLostBigDog : ITrackedStat
-        {
-            private EWPetFightingSkill mSkill;
+        //public class FightsLostBigDog : ITrackedStat
+        //{
+        //    private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Lost Big Dog " + mSkill.mFightsLostBigDog;
+        //    public string Description => "Fights Lost Big Dog " + mSkill.mFightsLostBigDog;
 
-            public FightsLostBigDog(EWPetFightingSkill skill)
+        //    public FightsLostBigDog(EWPetFightingSkill skill)
 
-            {
-                mSkill = skill;
-            }
-        }
+        //    {
+        //        mSkill = skill;
+        //    }
+        //}
 
         public class FightsWonSmallPet : ITrackedStat
         {
             private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Won Small Pet " + mSkill.mFightsWonSmallPet;
+            public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsSmallPet",
+            //mSkill.mFightsWon, mSkill.mFightsLost);
+            mSkill.mFightsWonSmallPet, mSkill.mFightsWonSmallPet == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWonSmallPet
+                / (mSkill.mFightsWonSmallPet + mSkill.mFightsLostSmallPet)), 1));
 
             public FightsWonSmallPet(EWPetFightingSkill skill)
 
@@ -170,24 +210,25 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public class FightsLostSmallPet : ITrackedStat
-        {
-            private EWPetFightingSkill mSkill;
+        //public class FightsLostSmallPet : ITrackedStat
+        //{
+        //    private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights Lost Small Pet " + mSkill.mFightsLostSmallPet;
+        //    public string Description => "Fights Lost Small Pet " + mSkill.mFightsLostSmallPet;
 
-            public FightsLostSmallPet(EWPetFightingSkill skill)
+        //    public FightsLostSmallPet(EWPetFightingSkill skill)
 
-            {
-                mSkill = skill;
-            }
-        }
+        //    {
+        //        mSkill = skill;
+        //    }
+        //}
 
         public class FightsWonHomeLot : ITrackedStat
         {
             private EWPetFightingSkill mSkill;
 
-            public string Description => "Fights won on home lot " + mSkill.mFightsWonHomeLot;
+            public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsHomeLot",
+                mSkill.mFightsWonHomeLot);
 
             public FightsWonHomeLot(EWPetFightingSkill skill)
 
@@ -477,11 +518,11 @@ namespace Echoweaver.Sims3Game.PetFighting
             mTrackedStats = new List<ITrackedStat>();
             mTrackedStats.Add(new FightsLost(this));
             mTrackedStats.Add(new FightsWon(this));
-            mTrackedStats.Add(new FightsLostHuman(this));
+            //mTrackedStats.Add(new FightsLostHuman(this));
             mTrackedStats.Add(new FightsWonHuman(this));
-            mTrackedStats.Add(new FightsLostBigDog(this));
+            //mTrackedStats.Add(new FightsLostBigDog(this));
             mTrackedStats.Add(new FightsWonBigDog(this));
-            mTrackedStats.Add(new FightsLostSmallPet(this));
+            //mTrackedStats.Add(new FightsLostSmallPet(this));
             mTrackedStats.Add(new FightsWonSmallPet(this));
             mTrackedStats.Add(new FightsWonHomeLot(this));
             mLifetimeOpportunities = new List<ILifetimeOpportunity>();
