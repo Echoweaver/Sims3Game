@@ -54,9 +54,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				// You can only chase a sim off your home lot
-				if (actor.LotCurrent != actor.LotHome)
-					return false;
+				// You can't chase a sim off their home lot
 				if (target.LotCurrent == target.LotHome)
 					return false;
 				if (actor.TraitManager.HasElement(TraitNames.FriendlyPet))

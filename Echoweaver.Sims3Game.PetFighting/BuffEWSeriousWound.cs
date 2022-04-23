@@ -2,6 +2,7 @@
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.SimIFace;
+using static Sims3.SimIFace.VisualEffect;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -23,6 +24,20 @@ namespace Echoweaver.Sims3Game.PetFighting
 			public ReactionBroadcaster Irb;
 
 			public VisualEffect mEffect;
+
+			public VisualEffect[] mGlowFx = new VisualEffect[9];
+
+			public Slot[] mGlowFxSlots = new Slot[9] {
+				Sim.FXJoints.Head,
+				Sim.FXJoints.Spine2,
+				Sim.FXJoints.LeftThigh,
+				Sim.FXJoints.RightThigh,
+				Sim.FXJoints.Pelvis,
+				Sim.FXJoints.LeftUpperArm,
+				Sim.FXJoints.RightUpperArm,
+				Sim.FXJoints.LeftCalf,
+				Sim.FXJoints.RightCalf
+			};
 
 			public BuffInstanceEWSeriousWound()
 			{
@@ -51,6 +66,15 @@ namespace Echoweaver.Sims3Game.PetFighting
 					mEffect.Dispose();
 					mEffect = null;
 				}
+				for (int i = 0; i < 9; i++)
+				{
+					if (mGlowFx[i] != null)
+					{
+						mGlowFx[i].Stop(TransitionType.HardTransition);
+						mGlowFx[i].Dispose();
+						mGlowFx[i] = null;
+					}
+				}
 				base.Dispose(bm);
 			}
 
@@ -72,11 +96,25 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Sim actor = bm.Actor;
 			BuffInstanceEWSeriousWound buffInstance = bi as BuffInstanceEWSeriousWound;
-			buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
-				isFriendly: false, isToTarget: false));
-			buffInstance.mEffect.SetEffectColorScale(0.35f, 0.12f, 0f);  // RGB for amber color
-			buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
-			buffInstance.mEffect.Start();
+			// TODO: Determine if we need this code for users without ITF
+			//buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
+			//	isFriendly: false, isToTarget: false));
+			//buffInstance.mEffect.SetEffectColorScale(0.35f, 0.12f, 0f);  // RGB for amber color
+			//buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
+			//buffInstance.mEffect.Start();
+			string text = "ep11BuffHealthyGlowLrg_main";
+			for (int i = 0; i < 9; i++)
+			{
+				if (i > 4)
+				{
+					text = "ep11BuffHealthyGlow_main";
+				}
+				buffInstance.mGlowFx[i] = VisualEffect.Create(text);
+				buffInstance.mGlowFx[i].ParentTo(bm.Actor, buffInstance.mGlowFxSlots[i]);
+				buffInstance.mGlowFx[i].SetEffectColorScale(0.35f, 0.05f, 0f);    
+				buffInstance.mGlowFx[i].Start();
+			}
+
 			base.OnAddition(bm, bi, travelReaddition);
 
 			// This should increase hunger and energy decay.
