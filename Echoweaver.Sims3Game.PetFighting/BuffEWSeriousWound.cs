@@ -2,7 +2,6 @@
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.SimIFace;
-using static Sims3.SimIFace.VisualEffect;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -70,7 +69,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				{
 					if (mGlowFx[i] != null)
 					{
-						mGlowFx[i].Stop(TransitionType.HardTransition);
+						mGlowFx[i].Stop(VisualEffect.TransitionType.HardTransition);
 						mGlowFx[i].Dispose();
 						mGlowFx[i] = null;
 					}
@@ -80,7 +79,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		}
 
-		public static float kSeriusWoundHungerDecayMultiplier = 2.0f;
+		public static float kSeriousWoundHungerDecayMultiplier = 2.0f;
 		public static float kSeriousWoundEnergyDecayMultiplier = 2.0f;
 
 		public BuffEWSeriousWound(BuffData data) : base(data)
@@ -96,12 +95,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Sim actor = bm.Actor;
 			BuffInstanceEWSeriousWound buffInstance = bi as BuffInstanceEWSeriousWound;
-			// TODO: Determine if we need this code for users without ITF
-			//buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
-			//	isFriendly: false, isToTarget: false));
-			//buffInstance.mEffect.SetEffectColorScale(0.35f, 0.12f, 0f);  // RGB for amber color
-			//buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
-			//buffInstance.mEffect.Start();
 			string text = "ep11BuffHealthyGlowLrg_main";
 			for (int i = 0; i < 9; i++)
 			{
@@ -118,7 +111,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 			base.OnAddition(bm, bi, travelReaddition);
 
 			// This should increase hunger and energy decay.
-			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, kSeriusWoundHungerDecayMultiplier);
+			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, kSeriousWoundHungerDecayMultiplier);
 			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
 		}
 
@@ -127,7 +120,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 			base.OnRemoval(bm, bi);
 
 			Sim actor = bm.Actor;
-			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Hunger, kSeriusWoundHungerDecayMultiplier);
+			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Hunger, kSeriousWoundHungerDecayMultiplier);
 			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
 		}
 	}
