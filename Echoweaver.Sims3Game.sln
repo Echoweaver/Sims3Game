@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarriorCats", "WarriorCats\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breastfeed", "Breastfeed\Breastfeed.csproj", "{44C9F1C7-EC8D-4CC2-A11D-86040A606B4A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlienEyeFixer", "AlienEyeFixer\AlienEyeFixer.csproj", "{498164C3-3B34-4407-AF3A-A78FD7D3B625}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeasonsSymptoms", "SeasonsSymptoms\SeasonsSymptoms.csproj", "{A2F08C96-FBC9-40EE-BBFE-30C6C7179A61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,5 +65,13 @@ Global
 		{44C9F1C7-EC8D-4CC2-A11D-86040A606B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44C9F1C7-EC8D-4CC2-A11D-86040A606B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44C9F1C7-EC8D-4CC2-A11D-86040A606B4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{498164C3-3B34-4407-AF3A-A78FD7D3B625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{498164C3-3B34-4407-AF3A-A78FD7D3B625}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{498164C3-3B34-4407-AF3A-A78FD7D3B625}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{498164C3-3B34-4407-AF3A-A78FD7D3B625}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2F08C96-FBC9-40EE-BBFE-30C6C7179A61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2F08C96-FBC9-40EE-BBFE-30C6C7179A61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2F08C96-FBC9-40EE-BBFE-30C6C7179A61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2F08C96-FBC9-40EE-BBFE-30C6C7179A61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
