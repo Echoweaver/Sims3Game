@@ -66,15 +66,15 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 					bm.Actor.RemoveAlarm(mZoneOutAlarm);
 					mZoneOutAlarm = AlarmHandle.kInvalidHandle;
 				}
-				if (mScratchAlarm != AlarmHandle.kInvalidHandle)
-				{
-					bm.Actor.RemoveAlarm(mScratchAlarm);
-					mScratchAlarm = AlarmHandle.kInvalidHandle;
-				}
 			}
 
 			public void DoZoneOut()
 			{
+				StyledNotification.Show(new StyledNotification.Format("Zoning Out",
+					StyledNotification.NotificationStyle.kDebugAlert));
+				//mPlaguedSim.PlaySoloAnimation("a_buff_dazed_x", true);
+				mPlaguedSim.PlayReaction(ReactionTypes.HeadPain, new InteractionPriority(InteractionPriorityLevel.MaxDeath), null, ReactionSpeed.Immediate);
+				//mPlaguedSim.PlayReaction(ReactionTypes.HeadPain, ReactionSpeed.Immediate);
 				// TODO: Add Origin "From Allergies"
 				mPlaguedSim.BuffManager.AddElement(BuffNames.Dazed, Origin.None);
 				// TODO: Let's see if this existing interval works
@@ -83,17 +83,6 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next zone out", AlarmType.DeleteOnReset);
 			}
 
-			public void DoScratch()
-			{
-				mPlaguedSim.InteractionQueue.AddAfterCheckingForDuplicates(BuffCreepyCrawlies.Scratch
-					.Singleton.CreateInstance(mPlaguedSim, mPlaguedSim,
-					new InteractionPriority(InteractionPriorityLevel.Autonomous), isAutonomous: true,
-					cancellableByPlayer: false));
-				mPlaguedSim.RemoveAlarm(mScratchAlarm);
-				mScratchAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffCreepyCrawlies.MaxTimeBetweenScratching -
-					BuffCreepyCrawlies.MinTimeBetweenScratching) + BuffCreepyCrawlies.MinTimeBetweenScratching,
-					TimeUnit.Minutes, DoScratch, "BuffEWAllergies: Time until next Scratch", AlarmType.DeleteOnReset);
-			}
 		}
 		public BuffEWAllergies(Buff.BuffData info) : base(info)
 		{
@@ -107,12 +96,11 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
+			StyledNotification.Show(new StyledNotification.Format("Adding EWAllergies",
+				StyledNotification.NotificationStyle.kDebugAlert));
 			BuffInstanceEWAllergies buffInstance = bi as BuffInstanceEWAllergies;
 			buffInstance.mPlaguedSim = bm.Actor;
 			buffInstance.DoZoneOut();
-			buffInstance.mScratchAlarm = buffInstance.mPlaguedSim.AddAlarm(BuffCreepyCrawlies.MinTimeBetweenScratching,
-				TimeUnit.Minutes, buffInstance.DoScratch, "BuffEWAllergies: Time until next Scratch",
-				AlarmType.DeleteOnReset);
 		}
 
 		public override BuffInstance CreateBuffInstance()

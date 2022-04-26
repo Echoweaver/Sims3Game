@@ -68,9 +68,13 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public void DoCoughing()
 			{
+				StyledNotification.Show(new StyledNotification.Format("DoCoughing",
+					StyledNotification.NotificationStyle.kDebugAlert));
 				mPlaguedSim.InteractionQueue.AddNext(Coughing.Singleton.CreateInstance(mPlaguedSim,
 					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 					cancellableByPlayer: false));
+				StyledNotification.Show(new StyledNotification.Format("Set Coughing Alarm",
+					StyledNotification.NotificationStyle.kDebugAlert));
 				mCoughingAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague
 					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
 					TimeUnit.Minutes, DoCoughing, "BuffEWGermy: Time until next coughing fit",
@@ -128,20 +132,26 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public override bool Run()
 			{
-				int coughType = RandomUtil.GetInt(1, 4);
-				StandardEntry();
-				// 25% chance of more severe cough
-				if (coughType == 1)
+                int coughType = RandomUtil.GetInt(1, 4);
+                StandardEntry();
+                // 25% chance of more severe cough
+                if (coughType == 1)
                 {
-					EnterStateMachine("ewcoughingfit", "Enter", "x");
-				} else
+                    EnterStateMachine("ewcoughingfit", "Enter", "x");
+                    AnimateSim("Exit");
+                    Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
+                        .GetMotiveValue(CommodityKind.Energy) - 20);
+                }
+                else
                 {
-					EnterStateMachine("ewcoughing", "Enter", "x");
-				}
-				AnimateSim("Exit");
+                    EnterStateMachine("ewcoughing", "Enter", "x");
+                    AnimateSim("Exit");
+                    Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
+                        .GetMotiveValue(CommodityKind.Energy) - 10);
+                }
                 StandardExit();
-				return true;
-			}
+                return true;
+            }
 		}
 
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
