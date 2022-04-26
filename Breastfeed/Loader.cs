@@ -13,6 +13,23 @@ namespace Echoweaver.Sims3Game.Breastfeed
         [Tunable]
         protected static bool kInstantiator = false;
 
+        [TunableComment("Whether to allow adoptive parents to use the breastfeed interaction.")]
+        [Tunable]
+        public static bool kAllowAdoptiveNursing = false;
+
+        [TunableComment("Whether to allow males to use the breastfeed interaction.")]
+        [Tunable]
+        public static bool kAllowMaleNurse = false;
+
+        [Tunable]
+        [TunableComment("Whether to enable the censor during breast feeding.")]
+        public static bool kEnableBreastFeedCensor = false;
+
+        [TunableComment("The Amount of Hunger the Mother/Father loses when nursing baby/toddler.")]
+        [Tunable]
+        public static float kHungerDrainFromNursing = -20;
+
+
         static Loader()
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreLoad;

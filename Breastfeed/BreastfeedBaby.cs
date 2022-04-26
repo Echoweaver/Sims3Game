@@ -15,44 +15,16 @@ using static Sims3.Gameplay.Actors.Sim;
 
 namespace Echoweaver.Sims3Game.Breastfeed
 {
-    public class AllowAdoptiveNursing
-    {
-        [TunableComment("Whether to allow adoptive parents to use the breastfeed interaction.")]
-        [Tunable]
-        public static bool kAllowAdoptiveNursing = false;
-    }
-
-    public class AllowMaleNurse
-    {
-        [TunableComment("Whether to allow males to use the breastfeed interaction.")]
-        [Tunable]
-        public static bool kAllowMaleNurse = false;
-    }
-
-    public class EnableCensor
-    {
-        [Tunable]
-        [TunableComment("Whether to enable the censor during breast feeding.")]
-        public static bool kEnableBreastFeedCensor = false;
-    }
-
-    public class HungryNurser
-    {
-        [TunableComment("The Amount of Hunger the Mother/Father loses when nursing baby/toddler.")]
-        [Tunable]
-        public static float kHungerDrainFromNursing = -20;
-    }
-
     public class BreastfeedBaby : SocialInteraction
     {
         public class Definition : InteractionDefinition<Sim, Sim, BreastfeedBaby>
         {
             public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
-                if ((a.IsFemale || AllowMaleNurse.kAllowMaleNurse)
+                if ((a.IsFemale || Loader.kAllowMaleNurse)
                     && Genealogy.IsParent(a.Genealogy, target.Genealogy) && target.SimDescription.ToddlerOrBelow)
                 {
-                    if (!AllowAdoptiveNursing.kAllowAdoptiveNursing)
+                    if (!Loader.kAllowAdoptiveNursing)
                     {
                         return !target.SimDescription.WasAdopted;
                     }
@@ -91,7 +63,7 @@ namespace Echoweaver.Sims3Game.Breastfeed
 
             BeginCommodityUpdates();
 
-            if (EnableCensor.kEnableBreastFeedCensor)
+            if (Loader.kEnableBreastFeedCensor)
             {
                 mCensorEnabled = true;
                 Actor.EnableCensor(CensorType.FullBody);
@@ -148,15 +120,15 @@ namespace Echoweaver.Sims3Game.Breastfeed
         {
             if (Actor.SimDescription.IsVampire)
             {
-                Actor.Motives.ChangeValue(CommodityKind.VampireThirst, HungryNurser.kHungerDrainFromNursing);
+                Actor.Motives.ChangeValue(CommodityKind.VampireThirst, Loader.kHungerDrainFromNursing);
             }
             else if (Actor.SimDescription.IsPlantSim)
             {
-                Actor.Motives.ChangeValue(CommodityKind.Hygiene, HungryNurser.kHungerDrainFromNursing);
+                Actor.Motives.ChangeValue(CommodityKind.Hygiene, Loader.kHungerDrainFromNursing);
             }
             else
             {
-                Actor.Motives.ChangeValue(CommodityKind.Hunger, HungryNurser.kHungerDrainFromNursing);
+                Actor.Motives.ChangeValue(CommodityKind.Hunger, Loader.kHungerDrainFromNursing);
             }
         }
 
