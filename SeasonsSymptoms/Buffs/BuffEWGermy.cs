@@ -39,6 +39,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		{
 			public Sim mPlaguedSim;
 			public AlarmHandle mCoughingAlarm = AlarmHandle.kInvalidHandle;
+			public AlarmHandle mSneezeAlarm = AlarmHandle.kInvalidHandle;
 
 			public BuffInstanceEWGermy()
 			{
@@ -64,20 +65,32 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 					bm.Actor.RemoveAlarm(mCoughingAlarm);
 					mCoughingAlarm = AlarmHandle.kInvalidHandle;
 				}
+				if (mSneezeAlarm != AlarmHandle.kInvalidHandle)
+				{
+					bm.Actor.RemoveAlarm(mCoughingAlarm);
+					mSneezeAlarm = AlarmHandle.kInvalidHandle;
+				}
 			}
 
 			public void DoCoughing()
 			{
-				StyledNotification.Show(new StyledNotification.Format("DoCoughing",
-					StyledNotification.NotificationStyle.kDebugAlert));
 				mPlaguedSim.InteractionQueue.AddNext(Coughing.Singleton.CreateInstance(mPlaguedSim,
 					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 					cancellableByPlayer: false));
-				StyledNotification.Show(new StyledNotification.Format("Set Coughing Alarm",
-					StyledNotification.NotificationStyle.kDebugAlert));
 				mCoughingAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague
 					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
 					TimeUnit.Minutes, DoCoughing, "BuffEWGermy: Time until next coughing fit",
+					AlarmType.DeleteOnReset);
+			}
+
+			public void DoSneeze()
+			{
+				mPlaguedSim.InteractionQueue.AddNext(Sneeze.Singleton.CreateInstance(mPlaguedSim,
+					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
+					cancellableByPlayer: false));
+				mSneezeAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague
+					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
+					TimeUnit.Minutes, DoSneeze, "BuffEWGermy: Time until next sneeze",
 					AlarmType.DeleteOnReset);
 			}
 		}
@@ -134,6 +147,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			{
                 int coughType = RandomUtil.GetInt(1, 4);
                 StandardEntry();
+
                 // 25% chance of more severe cough
                 if (coughType == 1)
                 {
@@ -149,16 +163,66 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
                     Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
                         .GetMotiveValue(CommodityKind.Energy) - 10);
                 }
+
                 StandardExit();
+
                 return true;
             }
 		}
 
+		public class Sneeze : Interaction<Sim, Sim>
+		{
+			[DoesntRequireTuning]
+			public class Definition : SoloSimInteractionDefinition<Sneeze>, ISoloInteractionDefinition
+			{
+
+				public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+				{
+					// TODO: Localize!
+					return "Sneeze";
+				}
+
+				public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+				{
+					if (a == target)
+					{
+						return isAutonomous;
+					}
+					return false;
+				}
+			}
+
+			public static ISoloInteractionDefinition Singleton = new Definition();
+
+			public override bool Run()
+			{
+				int sneezeType = RandomUtil.GetInt(1, 4);
+				StandardEntry();
+
+				EnterStateMachine("ewsneeze", "Enter", "x");
+				AnimateSim("Exit");
+
+				EnterStateMachine("ewblownose", "Enter", "x");
+				AnimateSim("Exit");
+
+				StandardExit();
+
+				Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives.GetMotiveValue
+					(CommodityKind.Energy) - 10);
+
+				return true;
+			}
+		}
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
 			BuffInstanceEWGermy buffInstance = bi as BuffInstanceEWGermy;
 			buffInstance.mPlaguedSim = bm.Actor;
-			buffInstance.DoCoughing();
+
+			buffInstance.mSneezeAlarm = buffInstance.mPlaguedSim.AddAlarm(BuffPestilencePlague
+				.MinTimeBetweenCoughingFits, TimeUnit.Minutes, buffInstance.DoSneeze,
+				"BuffEWGermy: Time until next sneeze", AlarmType.DeleteOnReset);
+
+            buffInstance.DoCoughing();
 		}
 
 		public override BuffInstance CreateBuffInstance()

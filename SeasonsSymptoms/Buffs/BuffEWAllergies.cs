@@ -1,6 +1,7 @@
 using System;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Utilities;
@@ -70,14 +71,10 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public void DoZoneOut()
 			{
-				StyledNotification.Show(new StyledNotification.Format("Zoning Out",
-					StyledNotification.NotificationStyle.kDebugAlert));
-				//mPlaguedSim.PlaySoloAnimation("a_buff_dazed_x", true);
-				mPlaguedSim.PlayReaction(ReactionTypes.HeadPain, new InteractionPriority(InteractionPriorityLevel.MaxDeath), null, ReactionSpeed.Immediate);
-				//mPlaguedSim.PlayReaction(ReactionTypes.HeadPain, ReactionSpeed.Immediate);
-				// TODO: Add Origin "From Allergies"
-				mPlaguedSim.BuffManager.AddElement(BuffNames.Dazed, Origin.None);
-				// TODO: Let's see if this existing interval works
+				mPlaguedSim.InteractionQueue.AddNext(ZoningOut.Singleton.CreateInstance(mPlaguedSim,
+					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
+					cancellableByPlayer: false));
+
 				mZoneOutAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague.MaxTimeBetweenCoughingFits
 					- BuffPestilencePlague.MinTimeBetweenCoughingFits) + BuffPestilencePlague.MinTimeBetweenCoughingFits,
 					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next zone out", AlarmType.DeleteOnReset);
@@ -94,6 +91,45 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			return true;
 		}
 
+		public class ZoningOut : Interaction<Sim, Sim>
+		{
+			[DoesntRequireTuning]
+			public class Definition : SoloSimInteractionDefinition<ZoningOut>, ISoloInteractionDefinition
+			{
+
+				public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+				{
+					// TODO: Localize!
+					return "Zone Out";
+				}
+
+				public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+				{
+					if (a == target)
+					{
+						return isAutonomous;
+					}
+					return false;
+				}
+			}
+
+			public static ISoloInteractionDefinition Singleton = new Definition();
+
+			public override bool Run()
+			{
+				StyledNotification.Show(new StyledNotification.Format("Zoning Out",
+					StyledNotification.NotificationStyle.kDebugAlert));
+
+				StandardEntry();
+				EnterStateMachine("ewheadpain", "Enter", "x");
+				AnimateSim("Exit");
+				// TODO: Add Origin "From Allergies"
+				Actor.BuffManager.AddElement(BuffNames.Dazed, Origin.None);
+				StandardExit();
+
+				return true;
+			}
+		}
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
 			StyledNotification.Show(new StyledNotification.Format("Adding EWAllergies",
