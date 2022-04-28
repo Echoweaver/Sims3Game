@@ -10,7 +10,6 @@ using Sims3.UI;
 
 //Template Created by Battery
 
-
 namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 {
 	//XMLBuffInstanceID = 1655640191445312029ul
@@ -19,29 +18,10 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		public const ulong mGuid = 0x929FFB3EC2CFE481ul;
 		public const BuffNames buffName = (BuffNames)mGuid;
 		
-		static bool once;
-		
-		public static void LoadBuffXMLandParse(ResourceKey[] resourceKeys)
-		{
-			ResourceKey key = new ResourceKey(1655640191445312029ul, 53690476u, 0u);
-			XmlDbData xmlDbData = XmlDbData.ReadData(key, false);
-			bool flag = xmlDbData != null;
-			if (flag)
-			{
-				BuffManager.ParseBuffData(xmlDbData, true);
-			}
-			if(!once)
-			{
-				once = true;
-				UIManager.NewHotInstallStoreBuffData += LoadBuffXMLandParse;
-			}	
-		}
-
 		public class BuffInstanceEWAllergies : BuffInstance
 		{
 			public Sim mPlaguedSim;
 			public AlarmHandle mZoneOutAlarm = AlarmHandle.kInvalidHandle;
-			public AlarmHandle mScratchAlarm = AlarmHandle.kInvalidHandle;
 
 			public BuffInstanceEWAllergies()
 			{
@@ -117,9 +97,6 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public override bool Run()
 			{
-				StyledNotification.Show(new StyledNotification.Format("Zoning Out",
-					StyledNotification.NotificationStyle.kDebugAlert));
-
 				StandardEntry();
 				EnterStateMachine("ewheadpain", "Enter", "x");
 				AnimateSim("Exit");
@@ -132,8 +109,6 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		}
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
-			StyledNotification.Show(new StyledNotification.Format("Adding EWAllergies",
-				StyledNotification.NotificationStyle.kDebugAlert));
 			BuffInstanceEWAllergies buffInstance = bi as BuffInstanceEWAllergies;
 			buffInstance.mPlaguedSim = bm.Actor;
 			buffInstance.DoZoneOut();

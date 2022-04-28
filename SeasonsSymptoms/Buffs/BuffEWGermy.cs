@@ -1,8 +1,11 @@
+using Sims3.Gameplay;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -16,24 +19,6 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 	{
 		public const ulong mGuid = 0xA50864C570FA9FC1ul;
 		public const BuffNames buffName = (BuffNames)mGuid;
-
-		static bool once;
-		
-		public static void LoadBuffXMLandParse(ResourceKey[] resourceKeys)
-		{
-			ResourceKey key = new ResourceKey(1655640191445312029ul, 53690476u, 0u);
-			XmlDbData xmlDbData = XmlDbData.ReadData(key, false);
-			bool flag = xmlDbData != null;
-			if (flag)
-			{
-				BuffManager.ParseBuffData(xmlDbData, true);
-			}
-			if(!once)
-			{
-				once = true;
-				UIManager.NewHotInstallStoreBuffData += LoadBuffXMLandParse;
-			}	
-		}
 
 		public class BuffInstanceEWGermy : BuffInstance
 		{
@@ -196,15 +181,15 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public override bool Run()
 			{
-				int sneezeType = RandomUtil.GetInt(1, 4);
-				StandardEntry();
+                StandardEntry();
 
 				EnterStateMachine("ewsneeze", "Enter", "x");
+
 				AnimateSim("Exit");
 
 				EnterStateMachine("ewblownose", "Enter", "x");
 				AnimateSim("Exit");
-
+						
 				StandardExit();
 
 				Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives.GetMotiveValue
@@ -213,6 +198,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 				return true;
 			}
 		}
+
 		public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
 		{
 			BuffInstanceEWGermy buffInstance = bi as BuffInstanceEWGermy;

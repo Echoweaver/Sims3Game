@@ -13,7 +13,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 	public class Loader
 	{
 		[Tunable] protected static bool init;
-		
+		static bool once;
+
 		static Loader()
 		{
 			World.sOnWorldLoadFinishedEventHandler += OnWorldLoaded;
@@ -29,8 +30,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 
         static void OnPreload()
         {
-			Buffs.BuffEWGermy.LoadBuffXMLandParse(null);
-			Buffs.BuffEWAllergies.LoadBuffXMLandParse(null);
+			LoadBuffXMLandParse(null);
         }
 
 		public static void Initialize()
@@ -81,6 +81,22 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 				{
 					sim.BuffManager.RemoveElement(Buffs.BuffEWAllergies.buffName);
 				}
+			}
+		}
+
+		public static void LoadBuffXMLandParse(ResourceKey[] resourceKeys)
+		{
+			ResourceKey key = new ResourceKey(1655640191445312029ul, 53690476u, 0u);
+			XmlDbData xmlDbData = XmlDbData.ReadData(key, false);
+			bool flag = xmlDbData != null;
+			if (flag)
+			{
+				BuffManager.ParseBuffData(xmlDbData, true);
+			}
+			if (!once)
+			{
+				once = true;
+				UIManager.NewHotInstallStoreBuffData += LoadBuffXMLandParse;
 			}
 		}
 	}
