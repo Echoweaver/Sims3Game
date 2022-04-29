@@ -192,13 +192,13 @@ namespace Echoweaver.Sims3Game.PetFighting
             AfterAttack();
             FinishLinkedInteraction();
             WaitForSyncComplete();
-            if (targetRunOnLose && Target.LotCurrent != Target.LotHome)
+            if (actorWon && targetRunOnLose && Target.LotCurrent != Target.LotHome)
             {
                 // Success! Actor drove the unwanted sim off the lot.
                 Target.RequestWalkStyle(WalkStyle.MeanChasedRun);
                 MakeSimGoHome(Target, false);
             }
-            else if (actorRunOnLose && Actor.LotCurrent != Actor.LotHome)
+            else if (!actorWon && actorRunOnLose && Actor.LotCurrent != Actor.LotHome)
             {
                 // Currently nothing calls this condition, but it seemed good to have it anyway.
                 Actor.RequestWalkStyle(WalkStyle.PetRun);
