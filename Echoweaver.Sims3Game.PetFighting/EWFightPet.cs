@@ -64,12 +64,12 @@ namespace Echoweaver.Sims3Game.PetFighting
         [Tunable]
         [TunableComment("Fight win chance increase/decrease matching coresponding trait list")]
         public static new int[] kWinChanceModifyValues = new int[6] {
-            10,
-            10,
-            10,
-            -10,
-            -10,
-            -10
+            5,
+            5,
+            5,
+            -5,
+            -5,
+            -5
         };
 
         [Tunable]

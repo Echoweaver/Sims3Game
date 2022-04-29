@@ -84,16 +84,16 @@ namespace Echoweaver.Sims3Game.PetFighting
         [Tunable]
         [TunableComment("Fight win chance increase/decrease matching coresponding trait list")]
         public static int[] kWinChanceModifyValuesHuman = new int[10] {
-            10,
-            10,
-            10,
-            10,
-            10,
-            10,
-            -20,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
             -10,
-            -10,
-            -10
+            -5,
+            -5,
+            -5
         };
 
 
@@ -211,10 +211,10 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public bool DoesActorWinFight()
         {
-            float winChance = FightPet.kBaseWinChance;
+            float winChance = EWFightPet.kBaseWinChance;
             float actorSkillLevel = skillActor.getEffectiveSkillLevel(Actor.LotCurrent == Actor.LotHome, Target);
             int targetSkill = Math.Max(0, Target.SkillManager.GetSkillLevel(SkillNames.MartialArts));
-            winChance += (actorSkillLevel - targetSkill) * FightPet.kWinChanceBonusPerSkillLevelDiff;
+            winChance += (actorSkillLevel - targetSkill) * EWFightPet.kWinChanceBonusPerSkillLevelDiff;
             for (int i = 0; i < EWFightPet.kWinChanceModifyTraits.Length; i++)
             {
                 if (Actor.HasTrait(EWFightPet.kWinChanceModifyTraits[i]))
@@ -231,7 +231,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
 
             float probability = MathUtils.Clamp(winChance, 0, 100);
-            return RandomUtil.RandomChance(probability);
+            return RandomUtil.RandomChance(winChance);
         }
 
         public void PlayScoldAnims()
@@ -247,14 +247,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public void PlayHumanLossAnims()
         {
-            //Target.PlaySoloAnimation("a_react_shocked_standing_x", true);
             Target.PlaySoloAnimation("a_react_whyMe_standing_x", true);
-            //a_react_tantrum_intense_standing_x
-            //a_react_tantrum_mild_standing_x
-            //a_react_view_hate_x
-            //EnterStateMachine("social_pet_tackle", "Enter", "x", "y");
-            //AnimateJoinSims("tackle");
-            //AnimateJoinSims("Exit");
         }
 
         public void AfterAttack()

@@ -21,27 +21,19 @@ namespace Echoweaver.Sims3Game.PetFighting
 		public class BuffInstanceEWGraveWound : BuffInstance
 		{
 			public VisualEffect mHeadFx;
+			public VisualEffect mHeadFx2;
 
 			public VisualEffect mLArmFx;
+			public VisualEffect mLArmFx2;
 
 			public VisualEffect mRArmFx;
+			public VisualEffect mRArmFx2;
 
 			public VisualEffect mLThighFx;
+			public VisualEffect mLThighFx2;
 
 			public VisualEffect mRThighFx;
-			//public VisualEffect[] mGlowFx = new VisualEffect[9];
-
-			//public Slot[] mGlowFxSlots = new Slot[9] {
-			//	Sim.FXJoints.Head,
-			//	Sim.FXJoints.Spine2,
-			//	Sim.FXJoints.LeftThigh,
-			//	Sim.FXJoints.RightThigh,
-			//	Sim.FXJoints.Pelvis,
-			//	Sim.FXJoints.LeftUpperArm,
-			//	Sim.FXJoints.RightUpperArm,
-			//	Sim.FXJoints.LeftCalf,
-			//	Sim.FXJoints.RightCalf
-   //         };
+			public VisualEffect mRThighFx2;
 
 			public VisualEffect mEffect;
 
@@ -66,22 +58,42 @@ namespace Echoweaver.Sims3Game.PetFighting
 				mHeadFx.ParentTo(owner, Sim.FXJoints.Head);
                 mHeadFx.SetEffectColorScale(fxColor);
                 mHeadFx.Start();
+				mHeadFx2 = VisualEffect.Create("ep1SoakedDripsHead");
+				mHeadFx2.ParentTo(owner, Sim.FXJoints.Head);
+				mHeadFx2.SetEffectColorScale(fxColor);
+				mHeadFx2.Start();
 				mLArmFx = VisualEffect.Create("ep1SoakedDripsArm");
 				mLArmFx.ParentTo(owner, Sim.FXJoints.LeftShoulder);
 				mLArmFx.SetEffectColorScale(fxColor);    
 				mLArmFx.Start();
+				mLArmFx2 = VisualEffect.Create("ep1SoakedDripsArm");
+				mLArmFx2.ParentTo(owner, Sim.FXJoints.LeftShoulder);
+				mLArmFx2.SetEffectColorScale(fxColor);
+				mLArmFx2.Start();
 				mRArmFx = VisualEffect.Create("ep1SoakedDripsArm");
 				mRArmFx.ParentTo(owner, Sim.FXJoints.RightShoulderblade);
 				mRArmFx.SetEffectColorScale(fxColor);   
 				mRArmFx.Start();
+				mRArmFx2 = VisualEffect.Create("ep1SoakedDripsArm");
+				mRArmFx2.ParentTo(owner, Sim.FXJoints.RightShoulderblade);
+				mRArmFx2.SetEffectColorScale(fxColor);
+				mRArmFx2.Start();
 				mLThighFx = VisualEffect.Create("ep1SoakedDripsThigh");
 				mLThighFx.ParentTo(owner, Sim.FXJoints.LeftSideThigh);
 				mLThighFx.SetEffectColorScale(fxColor);    
 				mLThighFx.Start();
+				mLThighFx2 = VisualEffect.Create("ep1SoakedDripsThigh");
+				mLThighFx2.ParentTo(owner, Sim.FXJoints.LeftSideThigh);
+				mLThighFx2.SetEffectColorScale(fxColor);
+				mLThighFx2.Start();
 				mRThighFx = VisualEffect.Create("ep1SoakedDripsThigh");
 				mRThighFx.ParentTo(owner, Sim.FXJoints.RightSideThigh);
 				mRThighFx.SetEffectColorScale(fxColor);   
 				mRThighFx.Start();
+				mRThighFx2 = VisualEffect.Create("ep1SoakedDripsThigh");
+				mRThighFx2.ParentTo(owner, Sim.FXJoints.RightSideThigh);
+				mRThighFx2.SetEffectColorScale(fxColor);
+				mRThighFx2.Start();
 			}
 
 			public void StopFx()
@@ -92,11 +104,23 @@ namespace Echoweaver.Sims3Game.PetFighting
 					mHeadFx.Dispose();
 					mHeadFx = null;
 				}
+				if (mHeadFx2 != null)
+				{
+					mHeadFx2.Stop(VisualEffect.TransitionType.HardTransition);
+					mHeadFx2.Dispose();
+					mHeadFx2 = null;
+				}
 				if (mLArmFx != null)
 				{
 					mLArmFx.Stop(VisualEffect.TransitionType.HardTransition);
 					mLArmFx.Dispose();
 					mLArmFx = null;
+				}
+				if (mLArmFx2 != null)
+				{
+					mLArmFx2.Stop(VisualEffect.TransitionType.HardTransition);
+					mLArmFx2.Dispose();
+					mLArmFx2 = null;
 				}
 				if (mRArmFx != null)
 				{
@@ -104,17 +128,35 @@ namespace Echoweaver.Sims3Game.PetFighting
 					mRArmFx.Dispose();
 					mRArmFx = null;
 				}
+				if (mRArmFx2 != null)
+				{
+					mRArmFx2.Stop(VisualEffect.TransitionType.HardTransition);
+					mRArmFx2.Dispose();
+					mRArmFx2 = null;
+				}
 				if (mLThighFx != null)
 				{
 					mLThighFx.Stop(VisualEffect.TransitionType.HardTransition);
 					mLThighFx.Dispose();
 					mLThighFx = null;
 				}
+				if (mLThighFx2 != null)
+				{
+					mLThighFx2.Stop(VisualEffect.TransitionType.HardTransition);
+					mLThighFx2.Dispose();
+					mLThighFx2 = null;
+				}
 				if (mRThighFx != null)
 				{
 					mRThighFx.Stop(VisualEffect.TransitionType.HardTransition);
 					mRThighFx.Dispose();
 					mRThighFx = null;
+				}
+				if (mRThighFx2 != null)
+				{
+					mRThighFx2.Stop(VisualEffect.TransitionType.HardTransition);
+					mRThighFx2.Dispose();
+					mRThighFx2 = null;
 				}
 			}
 
@@ -127,15 +169,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 					mEffect.Dispose();
 					mEffect = null;
 				}
-				//for (int i = 0; i < 9; i++)
-				//{
-				//	if (mGlowFx[i] != null)
-				//	{
-				//		mGlowFx[i].Stop(VisualEffect.TransitionType.HardTransition);
-				//		mGlowFx[i].Dispose();
-				//		mGlowFx[i] = null;
-				//	}
-				//}
 				base.Dispose(bm);
 			}
 
@@ -159,24 +192,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Sim actor = bm.Actor;
 			BuffInstanceEWGraveWound buffInstance = bi as BuffInstanceEWGraveWound;
-			// TODO: Determine if we need this code for users without ITF
-			//buffInstance.mEffect = VisualEffect.Create(OccultUnicorn.GetUnicornSocialVfxName(actor,
-			//	isFriendly: false, isToTarget: false));
-			//buffInstance.mEffect.SetEffectColorScale(0.4f, 0f, 0f);    // RGB for dark red
-			//buffInstance.mEffect.ParentTo(actor, Sim.FXJoints.Spine2);
-			//buffInstance.mEffect.Start();
-			//string text = "ep11BuffHealthyGlowLrg_main";
-			//for (int i = 0; i < 9; i++)
-			//{
-			//	if (i > 4)
-			//	{
-			//		text = "ep11BuffHealthyGlow_main";
-			//	}
-			//	buffInstance.mGlowFx[i] = VisualEffect.Create(text);
-			//	buffInstance.mGlowFx[i].ParentTo(bm.Actor, buffInstance.mGlowFxSlots[i]);
-			//	buffInstance.mGlowFx[i].SetEffectColorScale(0.4f, 0f, 0f);    // RGB for dark red
-			//	buffInstance.mGlowFx[i].Start();
-			//}
 
 			buffInstance.StartFx(actor);
 			base.OnAddition(bm, bi, travelReaddition);
