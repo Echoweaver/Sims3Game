@@ -22,6 +22,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		{
 			public Sim mPlaguedSim;
 			public AlarmHandle mZoneOutAlarm = AlarmHandle.kInvalidHandle;
+			public AlarmHandle mDryMouthAlarm = AlarmHandle.kInvalidHandle;
 
 			public BuffInstanceEWAllergies()
 			{
@@ -55,11 +56,21 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 					cancellableByPlayer: false));
 
-				mZoneOutAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague.MaxTimeBetweenCoughingFits
-					- BuffPestilencePlague.MinTimeBetweenCoughingFits) + BuffPestilencePlague.MinTimeBetweenCoughingFits,
-					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next zone out", AlarmType.DeleteOnReset);
+				mZoneOutAlarm = mPlaguedSim.AddAlarm(2 * RandomUtil.GetFloat(BuffPestilencePlague
+					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
+					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next zone out",
+					AlarmType.DeleteOnReset);
 			}
 
+			public void DoDryMouth()
+			{
+				// TODO: Add buff origin for allergies	
+				mPlaguedSim.BuffManager.AddElement(BuffNames.CottonMouth, Origin.None);
+
+				mDryMouthAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(240f, 620f),
+					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next dry mouth",
+					AlarmType.DeleteOnReset);
+			}
 		}
 		public BuffEWAllergies(Buff.BuffData info) : base(info)
 		{
@@ -112,6 +123,10 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			BuffInstanceEWAllergies buffInstance = bi as BuffInstanceEWAllergies;
 			buffInstance.mPlaguedSim = bm.Actor;
 			buffInstance.DoZoneOut();
+
+			buffInstance.mDryMouthAlarm = bm.Actor.AddAlarm(2 * BuffPestilencePlague.MaxTimeBetweenCoughingFits,
+					TimeUnit.Minutes, buffInstance.DoDryMouth, "BuffEWAllergies: Time until next zone out",
+					AlarmType.DeleteOnReset);
 		}
 
 		public override BuffInstance CreateBuffInstance()
