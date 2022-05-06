@@ -1,30 +1,35 @@
-using Sims3.Gameplay;
-using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 
-//Template Created by Battery
-
 namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 {
 	//XMLBuffInstanceID = 1655640191445312029ul
+	// Custom origin: (Origin)ResourceUtils.HashString64("fromEWGermy")
+
 	public class BuffEWGermy : Buff
 	{
 		public const ulong mGuid = 0xA50864C570FA9FC1ul;
 		public const BuffNames buffName = (BuffNames)mGuid;
 
+		[Tunable]
+		[TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
+		public static float kMinTimeBetweenSymptoms = 60f;
+
+		[TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
+		[Tunable]
+		public static float kMaxTimeBetweenSymptoms = 120f;
+
+
 		public class BuffInstanceEWGermy : BuffInstance
 		{
 			public Sim mPlaguedSim;
-			public AlarmHandle mCoughingAlarm = AlarmHandle.kInvalidHandle;
-			public AlarmHandle mSneezeAlarm = AlarmHandle.kInvalidHandle;
+			public AlarmHandle mSymptomAlarm = AlarmHandle.kInvalidHandle;
 
 			public BuffInstanceEWGermy()
 			{
@@ -45,39 +50,32 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public override void Dispose(BuffManager bm)
 			{
-				if (mCoughingAlarm != AlarmHandle.kInvalidHandle)
+				if (mSymptomAlarm != AlarmHandle.kInvalidHandle)
 				{
-					bm.Actor.RemoveAlarm(mCoughingAlarm);
-					mCoughingAlarm = AlarmHandle.kInvalidHandle;
-				}
-				if (mSneezeAlarm != AlarmHandle.kInvalidHandle)
-				{
-					bm.Actor.RemoveAlarm(mCoughingAlarm);
-					mSneezeAlarm = AlarmHandle.kInvalidHandle;
+					bm.Actor.RemoveAlarm(mSymptomAlarm);
+					mSymptomAlarm = AlarmHandle.kInvalidHandle;
 				}
 			}
 
-			public void DoCoughing()
+			public void DoSymptom()
 			{
-				mPlaguedSim.InteractionQueue.AddNext(Coughing.Singleton.CreateInstance(mPlaguedSim,
-					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
-					cancellableByPlayer: false));
-				mCoughingAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague
-					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
-					TimeUnit.Minutes, DoCoughing, "BuffEWGermy: Time until next coughing fit",
+				int symptomType = RandomUtil.GetInt(1, 2);
+				if (symptomType == 1)
+				{
+					mPlaguedSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mPlaguedSim,
+						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected), isAutonomous: true,
+						cancellableByPlayer: false));
+				} else
+                {
+					mPlaguedSim.InteractionQueue.AddNext(Sneeze.Singleton.CreateInstance(mPlaguedSim,
+						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected), isAutonomous: true,
+						cancellableByPlayer: false));
+				}
+				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+					kMaxTimeBetweenSymptoms),TimeUnit.Minutes, DoSymptom, "BuffEWGermy: Time until next symptom",
 					AlarmType.DeleteOnReset);
 			}
 
-			public void DoSneeze()
-			{
-				mPlaguedSim.InteractionQueue.AddNext(Sneeze.Singleton.CreateInstance(mPlaguedSim,
-					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
-					cancellableByPlayer: false));
-				mSneezeAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(BuffPestilencePlague
-					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
-					TimeUnit.Minutes, DoSneeze, "BuffEWGermy: Time until next sneeze",
-					AlarmType.DeleteOnReset);
-			}
 		}
 
 		public BuffEWGermy(BuffData info) : base(info)
@@ -90,10 +88,10 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			return true;
 		}
 
-		public class Coughing : Interaction<Sim, Sim>
+		public class Cough : Interaction<Sim, Sim>
 		{
 			[DoesntRequireTuning]
-			public class Definition : SoloSimInteractionDefinition<Coughing>, ISoloInteractionDefinition
+			public class Definition : SoloSimInteractionDefinition<Cough>, ISoloInteractionDefinition
 			{
 				public const string sLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit";
 
@@ -133,8 +131,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
                 int coughType = RandomUtil.GetInt(1, 4);
                 StandardEntry();
 
-                // 25% chance of more severe cough
-                if (coughType == 1)
+				// 25% chance of more severe cough
+				if (coughType == 1)
                 {
                     EnterStateMachine("ewcoughingfit", "Enter", "x");
                     AnimateSim("Exit");
@@ -204,11 +202,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			BuffInstanceEWGermy buffInstance = bi as BuffInstanceEWGermy;
 			buffInstance.mPlaguedSim = bm.Actor;
 
-			buffInstance.mSneezeAlarm = buffInstance.mPlaguedSim.AddAlarm(BuffPestilencePlague
-				.MinTimeBetweenCoughingFits, TimeUnit.Minutes, buffInstance.DoSneeze,
-				"BuffEWGermy: Time until next sneeze", AlarmType.DeleteOnReset);
-
-            buffInstance.DoCoughing();
+            buffInstance.DoSymptom();
 		}
 
 		public override BuffInstance CreateBuffInstance()

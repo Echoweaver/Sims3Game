@@ -21,8 +21,16 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		public class BuffInstanceEWAllergies : BuffInstance
 		{
 			public Sim mPlaguedSim;
-			public AlarmHandle mZoneOutAlarm = AlarmHandle.kInvalidHandle;
-			public AlarmHandle mDryMouthAlarm = AlarmHandle.kInvalidHandle;
+			public AlarmHandle mSymptomAlarm = AlarmHandle.kInvalidHandle;
+
+			[Tunable]
+			[TunableComment("Range: Sim minutes.  Description:  Min time until next symptom.")]
+			public static float kMinTimeBetweenSymptoms = 60f;
+
+			[TunableComment("Range: Sim minutes.  Description:  Max time until next symptom.")]
+			[Tunable]
+			public static float kMaxTimeBetweenSymptoms = 180f;
+
 
 			public BuffInstanceEWAllergies()
 			{
@@ -43,34 +51,33 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public override void Dispose(BuffManager bm)
 			{
-				if (mZoneOutAlarm != AlarmHandle.kInvalidHandle)
+				if (mSymptomAlarm != AlarmHandle.kInvalidHandle)
 				{
-					bm.Actor.RemoveAlarm(mZoneOutAlarm);
-					mZoneOutAlarm = AlarmHandle.kInvalidHandle;
+					bm.Actor.RemoveAlarm(mSymptomAlarm);
+					mSymptomAlarm = AlarmHandle.kInvalidHandle;
 				}
 			}
 
-			public void DoZoneOut()
+			public void DoSymptom()
 			{
-				mPlaguedSim.InteractionQueue.AddNext(ZoningOut.Singleton.CreateInstance(mPlaguedSim,
+				int symptomType = RandomUtil.GetInt(1, 2);
+				if (symptomType == 1)
+				{
+					mPlaguedSim.InteractionQueue.AddNext(ZoneOut.Singleton.CreateInstance(mPlaguedSim,
 					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 					cancellableByPlayer: false));
+				} else
+                {
+					mPlaguedSim.BuffManager.AddElement(BuffNames.CottonMouth, (Origin)ResourceUtils
+						.HashString64("fromEWAllergies"));
+				}
 
-				mZoneOutAlarm = mPlaguedSim.AddAlarm(2 * RandomUtil.GetFloat(BuffPestilencePlague
-					.MinTimeBetweenCoughingFits, BuffPestilencePlague.MaxTimeBetweenCoughingFits),
-					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next zone out",
+				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+					kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWAllergies: Time until next symptom",
 					AlarmType.DeleteOnReset);
 			}
 
-			public void DoDryMouth()
-			{
-				// TODO: Add buff origin for allergies	
-				mPlaguedSim.BuffManager.AddElement(BuffNames.CottonMouth, Origin.None);
 
-				mDryMouthAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(240f, 620f),
-					TimeUnit.Minutes, DoZoneOut, "BuffEWAllergies: Time until next dry mouth",
-					AlarmType.DeleteOnReset);
-			}
 		}
 		public BuffEWAllergies(Buff.BuffData info) : base(info)
 		{
@@ -82,16 +89,15 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			return true;
 		}
 
-		public class ZoningOut : Interaction<Sim, Sim>
+		public class ZoneOut : Interaction<Sim, Sim>
 		{
 			[DoesntRequireTuning]
-			public class Definition : SoloSimInteractionDefinition<ZoningOut>, ISoloInteractionDefinition
+			public class Definition : SoloSimInteractionDefinition<ZoneOut>, ISoloInteractionDefinition
 			{
 
 				public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
 				{
-					// TODO: Localize!
-					return "Zone Out";
+					return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWAllergies:ZoneOut");
 				}
 
 				public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -112,7 +118,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 				EnterStateMachine("ewheadpain", "Enter", "x");
 				AnimateSim("Exit");
 				// TODO: Add Origin "From Allergies"
-				Actor.BuffManager.AddElement(BuffNames.Dazed, Origin.None);
+				Actor.BuffManager.AddElement(BuffNames.Dazed, (Origin)ResourceUtils.HashString64("fromEWAllergies"));
 				StandardExit();
 
 				return true;
@@ -122,11 +128,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 		{
 			BuffInstanceEWAllergies buffInstance = bi as BuffInstanceEWAllergies;
 			buffInstance.mPlaguedSim = bm.Actor;
-			buffInstance.DoZoneOut();
-
-			buffInstance.mDryMouthAlarm = bm.Actor.AddAlarm(2 * BuffPestilencePlague.MaxTimeBetweenCoughingFits,
-					TimeUnit.Minutes, buffInstance.DoDryMouth, "BuffEWAllergies: Time until next zone out",
-					AlarmType.DeleteOnReset);
+            buffInstance.DoSymptom();
 		}
 
 		public override BuffInstance CreateBuffInstance()

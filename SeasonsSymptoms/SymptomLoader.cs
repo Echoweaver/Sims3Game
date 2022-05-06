@@ -58,7 +58,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
             {
 				if (!sim.BuffManager.HasElement(Buffs.BuffEWGermy.buffName))
                 {
-					sim.BuffManager.AddElement(Buffs.BuffEWGermy.buffName, Origin.None);
+					sim.BuffManager.AddElement(Buffs.BuffEWGermy.buffName, (Origin)ResourceUtils
+						.HashString64("fromEWGermy"));
                 }
             } else if (sim.BuffManager.HasElement(Buffs.BuffEWGermy.buffName))
 			{
@@ -72,7 +73,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 			{
 				if (!sim.BuffManager.HasElement(Buffs.BuffEWAllergies.buffName))
 				{
-					sim.BuffManager.AddElement(Buffs.BuffEWAllergies.buffName, Origin.None);
+					sim.BuffManager.AddElement(Buffs.BuffEWAllergies.buffName, (Origin)ResourceUtils
+						.HashString64("fromEWAllergies"));
 				}
 			}
 			else if (sim.BuffManager.HasElement(Buffs.BuffEWAllergies.buffName))
