@@ -23,7 +23,7 @@
     <OutputPath>bin\Release</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Loader.cs" />
+    <Compile Include="FightLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuffBooter.cs" />
     <Compile Include="BuffEWMinorWound.cs" />

@@ -110,7 +110,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsWon",
                 //mSkill.mFightsWon, mSkill.mFightsLost);
                 mSkill.mFightsWon, mSkill.mFightsWon == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWon
-                    / (mSkill.mFightsWon + mSkill.mFightsLost)), 1));
+                    / (mSkill.mFightsWon + mSkill.mFightsLost)) * 100, 1));
 
             public FightsWon(EWPetFightingSkill skill)
 
@@ -126,7 +126,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsLost",
                 //mSkill.mFightsLost, mSkill.mFightsWon);
                 mSkill.mFightsLost, mSkill.mFightsLost == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsLost
-                    / (mSkill.mFightsWon + mSkill.mFightsLost)), 1));
+                    / (mSkill.mFightsWon + mSkill.mFightsLost)) * 100, 1));
 
             public FightsLost(EWPetFightingSkill skill)
 
@@ -141,8 +141,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsHuman",
                 //mSkill.mFightsWon, mSkill.mFightsLost);
-                mSkill.mFightsWonHuman, mSkill.mFightsWonHuman == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWonHuman
-                    / (mSkill.mFightsWonHuman + mSkill.mFightsLostHuman)), 1));
+                mSkill.mFightsWonHuman, mSkill.mFightsWonHuman == 0 ? 0 : Math.Round(mSkill.mFightsWonHuman
+                    / (decimal)(mSkill.mFightsWonHuman + mSkill.mFightsLostHuman) * 100, 1));
 
             public FightsWonHuman(EWPetFightingSkill skill)
 
@@ -172,7 +172,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsBigDog",
             //mSkill.mFightsWon, mSkill.mFightsLost);
             mSkill.mFightsWonBigDog,mSkill.mFightsWonBigDog == 0 ? 0: Math.Round((decimal)(mSkill.mFightsWonBigDog /
-                (mSkill.mFightsWonBigDog + mSkill.mFightsLostBigDog)), 1));
+                (mSkill.mFightsWonBigDog + mSkill.mFightsLostBigDog)) * 100, 1));
 
             public FightsWonBigDog(EWPetFightingSkill skill)
 
@@ -201,7 +201,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsSmallPet",
             //mSkill.mFightsWon, mSkill.mFightsLost);
             mSkill.mFightsWonSmallPet, mSkill.mFightsWonSmallPet == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWonSmallPet
-                / (mSkill.mFightsWonSmallPet + mSkill.mFightsLostSmallPet)), 1));
+                / (mSkill.mFightsWonSmallPet + mSkill.mFightsLostSmallPet)) * 100, 1));
 
             public FightsWonSmallPet(EWPetFightingSkill skill)
 
