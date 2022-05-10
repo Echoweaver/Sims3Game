@@ -24,20 +24,12 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 		static void OnWorldLoaded(object sender, EventArgs e)
 		{
 			EventTracker.AddListener(EventTypeId.kGotBuff, new ProcessEventDelegate(OnGotBuff));
-			AlarmManager.Global.AddAlarm(1f,TimeUnit.Minutes, new AlarmTimerCallback(Initialize),
-				"Symptoms Loaded Alarm", AlarmType.NeverPersisted, null);
 		}
 
         static void OnPreload()
         {
 			LoadBuffXMLandParse(null);
         }
-
-		public static void Initialize()
-		{
-			StyledNotification.Show(new StyledNotification.Format("Symptoms Loaded!",
-				StyledNotification.NotificationStyle.kDebugAlert));
-		}
 
 		private static ListenerAction OnGotBuff(Event e)
 		{

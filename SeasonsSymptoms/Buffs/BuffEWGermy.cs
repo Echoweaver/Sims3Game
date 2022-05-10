@@ -59,16 +59,31 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public void DoSymptom()
 			{
-				int symptomType = RandomUtil.GetInt(1, 2);
+				int symptomType;
+				// Not sure how the moodlet gets removed without clearing the alarm, but it
+				// appears to be happening.
+				if (!mPlaguedSim.BuffManager.HasElement(BuffNames.Germy))
+                {
+					return;
+                }
+				if (mPlaguedSim.IsSleeping)
+                {
+					// if sim is sleeping 50% nothing will happen
+					// Since cough/sneeze wakes up the sim, too much is just too much
+					symptomType = RandomUtil.GetInt(1, 4);
+				} else
+                {
+					symptomType = RandomUtil.GetInt(1, 2);
+				}
 				if (symptomType == 1)
 				{
 					mPlaguedSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mPlaguedSim,
-						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected), isAutonomous: true,
+						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 						cancellableByPlayer: false));
-				} else
+				} else if (symptomType == 2)
                 {
 					mPlaguedSim.InteractionQueue.AddNext(Sneeze.Singleton.CreateInstance(mPlaguedSim,
-						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected), isAutonomous: true,
+						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 						cancellableByPlayer: false));
 				}
 				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
@@ -88,22 +103,21 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 			return true;
 		}
 
+		public static string LocalizeString(string name, params object[] parameters)
+		{
+			return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWGermy:"
+				+ name, parameters);
+		}
+
 		public class Cough : Interaction<Sim, Sim>
 		{
 			[DoesntRequireTuning]
 			public class Definition : SoloSimInteractionDefinition<Cough>, ISoloInteractionDefinition
 			{
-				public const string sLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit";
-
-				public static string LocalizeString(string name, params object[] parameters)
-				{
-					return Localization.LocalizeString("Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit:"
-						+ name, parameters);
-				}
 
 				public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
 				{
-					return LocalizeString("CoughingFit");
+					return LocalizeString("Cough");
 				}
 
 				public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -116,15 +130,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 				}
 			}
 
-			public const string sLocalizationKey = "Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit";
-
 			public static ISoloInteractionDefinition Singleton = new Definition();
-
-			public static string LocalizeString(string name, params object[] parameters)
-			{
-				return Localization.LocalizeString("Gameplay/ActorSystems/BuffPestilencePlague/CoughingFit:"
-					+ name, parameters);
-			}
 
 			public override bool Run()
 			{
@@ -161,8 +167,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 				public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
 				{
-					// TODO: Localize!
-					return "Sneeze";
+					return LocalizeString("Sneeze");
 				}
 
 				public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)

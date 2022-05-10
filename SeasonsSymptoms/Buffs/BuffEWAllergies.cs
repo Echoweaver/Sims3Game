@@ -60,6 +60,10 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 
 			public void DoSymptom()
 			{
+				if (!mPlaguedSim.BuffManager.HasElement(BuffNames.AllergyHaze))
+				{
+					return;
+				}
 				int symptomType = RandomUtil.GetInt(1, 2);
 				if (symptomType == 1)
 				{
