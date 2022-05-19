@@ -66,6 +66,18 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
                 {
 					return;
                 }
+				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+					kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWGermy: Time until next symptom",
+					AlarmType.DeleteOnReset);
+
+				if (mPlaguedSim.SimInRabbitHolePosture)
+                {
+					// If sim is in a rabbithole, it's too disruptive for them to exit to cough
+					// they do still take the energy hit.
+					mPlaguedSim.Motives.SetValue(CommodityKind.Energy, mPlaguedSim.Motives
+						.GetMotiveValue(CommodityKind.Energy) - 10);
+					return;
+                }
 				if (mPlaguedSim.IsSleeping)
                 {
 					// if sim is sleeping 50% nothing will happen
@@ -86,9 +98,6 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
 						cancellableByPlayer: false));
 				}
-				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
-					kMaxTimeBetweenSymptoms),TimeUnit.Minutes, DoSymptom, "BuffEWGermy: Time until next symptom",
-					AlarmType.DeleteOnReset);
 			}
 
 		}
