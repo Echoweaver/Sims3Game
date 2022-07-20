@@ -17,6 +17,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
         [Tunable]
         protected static bool kInstantiator = false;
+        public static string kFlourName = "Flour";
 
         static Loader()
         {
@@ -28,7 +29,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
         {
             foreach (GameObject o in Sims3.Gameplay.Queries.GetObjects<FoodProcessor>())
             {
-                o.AddInteraction(EWGrindFlour.Singleton);
+                o.AddInteraction(EWGrindFlour.Singleton, true);
             }
             // TODO: Is this the best way to check for a newly added object?
             EventTracker.AddListener(EventTypeId.kBoughtObject, new ProcessEventDelegate(OnNewObject));
@@ -36,7 +37,11 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
         public static ListenerAction OnNewObject(Event e)
         {
-            // TODO: Add interaction to new food processors
+            FoodProcessor p = e.TargetObject as FoodProcessor;
+            if (p != null)
+            {
+                p.AddInteraction(EWGrindFlour.Singleton, true);
+            }
             return ListenerAction.Keep;
         }
 
@@ -46,43 +51,25 @@ namespace Echoweaver.Sims3Game.PlantableWheat
             HasBeenLoaded = true;
 
             string error_list = "";
-            XmlDbData data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("WheatPlant"),
+            XmlDbData data = XmlDbData.ReadData(new ResourceKey(0x907C1DF037C7A6D2,
                 0x0333406C, 0x00000000), false);
 
             if (data != null)
             {
-                PlantDefinition.ParsePlantDefinitionData(data, false);
-            } else
-            {
-                error_list += "Plant data null.";
-            }
-
-            data = null;
-            data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("WheatIngredients"),
-                0x0333406C, 0x00000000), false);
-
-            if (data != null)
-            {
-                IngredientData.LoadIngredientData(data, false);
-                Grocery.mItemDictionary.Clear();
-                Grocery.LoadData();
-            }
-            else
-            {
-                error_list += "  Ingredient data null.";
-            }
-
-            data = null;
-            data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("WheatRecipes"),
-                0x0333406C, 0x00000000), false);
-
-            if (data != null)
-            {
-                if (Recipe.NameToRecipeHash.ContainsKey("Pancakes"))
+                XmlDbTable xmlDbTable = data.Tables["Data"];
+                foreach (XmlDbRow row in xmlDbTable.Rows)
                 {
-                    Recipe.NameToRecipeHash.Remove("Pancakes");
+                    string recipe_key = row.GetString("Recipe_Key");
+                    if (Recipe.NameToRecipeHash.ContainsKey(recipe_key))
+                    {
+                        Recipe.NameToRecipeHash.Remove(recipe_key);
+                        Recipe.AddNewRecipe(row, false);
+
+                    } else
+                    {
+                        error_list += "  " + recipe_key + " NOT FOUND.";
+                    }
                 }
-                Recipe.LoadRecipeData(data, false);
             }
             else
             {
