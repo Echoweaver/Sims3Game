@@ -3,6 +3,7 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -70,19 +71,27 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 					kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWGermy: Time until next symptom",
 					AlarmType.DeleteOnReset);
 
-				if (mPlaguedSim.SimInRabbitHolePosture)
+				if (mPlaguedSim.SimInRabbitHolePosture || mPlaguedSim.Posture is SittingInVehicle
+					|| mPlaguedSim.Posture is SittingInBoat)
                 {
-					// If sim is in a rabbithole, it's too disruptive for them to exit to cough
-					// they do still take the energy hit.
+					// If sim is in a rabbithole or vehicle, we can assume they do the deed where
+					// we can't see them. They do still take the energy hit.
 					mPlaguedSim.Motives.SetValue(CommodityKind.Energy, mPlaguedSim.Motives
 						.GetMotiveValue(CommodityKind.Energy) - 10);
 					return;
                 }
+				InteractionPriorityLevel priorityLevel = InteractionPriorityLevel.UserDirected;
 				if (mPlaguedSim.IsSleeping)
                 {
 					// if sim is sleeping 50% nothing will happen
-					// Since cough/sneeze wakes up the sim, too much is just too much
+					// Otherwise wake up sim unless tuning says otherwise.
 					symptomType = RandomUtil.GetInt(1, 4);
+
+					// Wake up sim if they cough or sneeze
+					if (Loader.wake_to_cough)
+                    {
+						priorityLevel = InteractionPriorityLevel.High;
+					}
 				} else
                 {
 					symptomType = RandomUtil.GetInt(1, 2);
@@ -90,12 +99,12 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 				if (symptomType == 1)
 				{
 					mPlaguedSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mPlaguedSim,
-						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
+						mPlaguedSim, new InteractionPriority(priorityLevel), isAutonomous: true,
 						cancellableByPlayer: false));
 				} else if (symptomType == 2)
                 {
 					mPlaguedSim.InteractionQueue.AddNext(Sneeze.Singleton.CreateInstance(mPlaguedSim,
-						mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
+						mPlaguedSim, new InteractionPriority(priorityLevel), isAutonomous: true,
 						cancellableByPlayer: false));
 				}
 			}

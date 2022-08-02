@@ -68,8 +68,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms.Buffs
 				if (symptomType == 1)
 				{
 					mPlaguedSim.InteractionQueue.AddNext(ZoneOut.Singleton.CreateInstance(mPlaguedSim,
-					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: true,
-					cancellableByPlayer: false));
+					mPlaguedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+					isAutonomous: true, cancellableByPlayer: false));
 				} else
                 {
 					mPlaguedSim.BuffManager.AddElement(BuffNames.CottonMouth, (Origin)ResourceUtils

@@ -13,6 +13,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 	public class Loader
 	{
 		[Tunable] protected static bool init;
+		[Tunable] public static bool wake_to_cough = true;
 		static bool once;
 
 		static Loader()
@@ -37,7 +38,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 			if (sim != null)
 			{
 				if (sim.IsHuman)
-					Simulator.AddObject(new OneShotFunctionWithParams(new FunctionWithParam(ProcessBuff), sim));
+					Simulator.AddObject(new OneShotFunctionWithParams(new FunctionWithParam(ProcessBuff),
+						sim));
 			}
 			return ListenerAction.Keep;
 		}
@@ -46,7 +48,8 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 		{
 			Sim sim = obj as Sim;
 
-			if (sim.BuffManager.HasElement(BuffNames.Germy))
+			if (sim.BuffManager.HasElement(BuffNames.Germy) && sim.SimDescription
+					.ChildOrAbove)
             {
 				if (!sim.BuffManager.HasElement(Buffs.BuffEWGermy.buffName))
                 {
@@ -61,7 +64,7 @@ namespace Echoweaver.Sims3Game.SeasonsSymptoms
 				}
 			}
 
-			if (sim.BuffManager.HasElement(BuffNames.AllergyHaze))
+			if (sim.BuffManager.HasElement(BuffNames.AllergyHaze) && sim.SimDescription.ChildOrAbove)
 			{
 				if (!sim.BuffManager.HasElement(Buffs.BuffEWAllergies.buffName))
 				{
