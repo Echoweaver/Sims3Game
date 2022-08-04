@@ -4,12 +4,13 @@ using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
+using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Appliances;
 using Sims3.Gameplay.Objects.CookingObjects;
 using Sims3.Gameplay.Objects.Counters;
 using Sims3.Gameplay.Objects.FoodObjects;
-using Sims3.Gameplay.Objects.Seating;
+using Sims3.Gameplay.Objects.Gardening;
 using Sims3.SimIFace;
 using Sims3.UI;
 using static Sims3.Gameplay.Objects.Appliances.FoodProcessor;
@@ -24,11 +25,13 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
                 Ingredient i = a.Inventory.Find<Ingredient>(WheatTest);
-                if (i != null)
-                {
-                    return !target.InUse;
-                } else
-                {
+				if (i != null)
+				{
+					return !target.InUse;
+				}
+				else
+				{
+					// TODO: Localize!
 					greyedOutTooltipCallback = CreateTooltipCallback("You must have wheat in inventory.");
 				}
 				return false;
@@ -41,7 +44,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				{
 					return true;
 				}
-				return true;
+				return false;
 			}
 
             public override string GetInteractionName(ref InteractionInstanceParameters parameters)
@@ -49,8 +52,6 @@ namespace Echoweaver.Sims3Game.PlantableWheat
                 return "Grind Flour";
             }
 		}
-
-		public HighChair HighChair;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -72,6 +73,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				return false;
 			}
 			CarrySystem.PickUpFromSimInventory(Actor, wheatItem);
+			Actor.RouteToObjectRadius(Target, 1f);
             if (!Target.RouteAndCheckInUse(Actor))
 			{
 				return false;
@@ -101,7 +103,6 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			BeginCommodityUpdates();
 			AnimateSim("Process");
 			AnimateSim("Exit - Bowl");
-			//CarrySystem.EnterWhileHolding(Actor, foodBowl);
             CarrySystem.AnimateIntoSimInventory(Actor);
             DestroyObject(foodBowl);
             StandardExit();
@@ -112,7 +113,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			}
 			Quality flourQuality = wheatItem.GetQuality();
 			wheatItem.Dispose();
-			return AddIngredientsToSimInventory(Actor, "Flour", 1, flourQuality); 
+			return AddIngredientsToSimInventory(Actor, Loader.kFlourName, 1, flourQuality); 
 		}
 
 		public static bool AddIngredientsToSimInventory(Sim sim, string key, int number, Quality quality)
@@ -128,8 +129,8 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				IngredientData value = null;
 				if (IngredientData.NameToDataMap.TryGetValue(key, out value))
 				{
-					gameObject = Ingredient.Create(value, quality, false,
-						Sims3.Gameplay.Objects.Gardening.PlayerDisclosure.Exposed);
+					gameObject = Ingredient.Create(value, (Quality)10, false,
+                        PlayerDisclosure.Exposed);
 				}
 				else
 				{
