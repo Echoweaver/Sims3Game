@@ -1,6 +1,7 @@
 ﻿using System;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Appliances;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Utilities;

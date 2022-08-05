@@ -4,7 +4,6 @@ using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
-using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Appliances;
 using Sims3.Gameplay.Objects.CookingObjects;
@@ -12,7 +11,6 @@ using Sims3.Gameplay.Objects.Counters;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.SimIFace;
-using Sims3.UI;
 using static Sims3.Gameplay.Objects.Appliances.FoodProcessor;
 
 namespace Echoweaver.Sims3Game.PlantableWheat
@@ -42,6 +40,12 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				Ingredient ingredient = obj as Ingredient;
 				if (ingredient != null && ingredient.IngredientKey == "EWWheat")
 				{
+					if (ingredient.Plantable != null)
+                    {
+						// When find retrieves any ingredient, the Plantable attribute seems to be
+						// null. This preserves the quality value so I can use it later.
+						ingredient.mQuality = Plant.GetQuality(ingredient.Plantable.QualityLevel);
+					}
 					return true;
 				}
 				return false;
@@ -111,6 +115,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			{
 				counter.Cleanable.DirtyInc(Actor);
 			}
+
 			Quality flourQuality = wheatItem.GetQuality();
 			wheatItem.Dispose();
 			return AddIngredientsToSimInventory(Actor, Loader.kFlourName, 1, flourQuality); 
@@ -125,12 +130,13 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			List<IGameObject> ingredientStack = new List<IGameObject>();
 			for (int i = 0; i < number; i++)
 			{
-				IGameObject gameObject = null;
+				Ingredient gameObject = null;
 				IngredientData value = null;
 				if (IngredientData.NameToDataMap.TryGetValue(key, out value))
 				{
-					gameObject = Ingredient.Create(value, (Quality)10, false,
+					gameObject = Ingredient.Create(value, quality, false,
                         PlayerDisclosure.Exposed);
+					gameObject.SetQuality(quality);
 				}
 				else
 				{

@@ -149,7 +149,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			eggItem.Dispose();
 			DestroyObject(containedFood);
 			DestroyObject(containerProp);
-			return AddIngredientsToSimInventory(Actor, "Bread", 1, resultQuality);
+			return EWGrindFlour.AddIngredientsToSimInventory(Actor, "Bread", 1, resultQuality);
 		}
 
 		public void BakeLoopDelegate(StateMachineClient smc, LoopData loopData)
@@ -170,35 +170,6 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			Target.mFailedToCook = true;
 			AnimateSim("Exit");
 			Target.RemoveFoodItems(Actor);
-		}
-
-		public static bool AddIngredientsToSimInventory(Sim sim, string key, int number, Quality quality)
-		{
-			if (sim == null)
-			{
-				return false;
-			}
-			List<IGameObject> ingredientStack = new List<IGameObject>();
-			for (int i = 0; i < number; i++)
-			{
-				IGameObject gameObject = null;
-				IngredientData value = null;
-				if (IngredientData.NameToDataMap.TryGetValue(key, out value))
-				{
-					gameObject = Ingredient.Create(value, quality, false,
-						Sims3.Gameplay.Objects.Gardening.PlayerDisclosure.Exposed);
-				}
-				else
-				{
-					return false;
-				}
-				ingredientStack.Add(gameObject);
-			}
-			if (ingredientStack.Count > 0)
-			{
-				return sim.Inventory.TryToAddStack(ingredientStack);
-			}
-			return false;
 		}
 
 		public Quality GetQuality(Sim cook, Recipe recipe, Quality quality1, Quality quality2, bool isBurnt)
