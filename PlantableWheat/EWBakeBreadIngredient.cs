@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Sims3.Gameplay;
+﻿using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -33,8 +31,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				}
 				else
 				{
-					// TODO: Localize!
-					greyedOutTooltipCallback = CreateTooltipCallback("You must have flour and egg in inventory.");
+					greyedOutTooltipCallback = CreateTooltipCallback(Loader.Localize("BreadIngredients"));
 				}
 				return false;
 			}
@@ -61,12 +58,12 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
 			public override string GetInteractionName(ref InteractionInstanceParameters parameters)
 			{
-				// TODO: Localize
-				return "Bake Sandwich Bread";
+				return Loader.Localize("BakeBread"); 
 			}
 		}
 
 		public static InteractionDefinition Singleton = new Definition();
+		Cooking skill;
 
 		public override bool Run()
 		{
@@ -75,17 +72,34 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				return false;
 			}
 
+			skill = Actor.SkillManager.GetSkill<Cooking>(SkillNames.Cooking);
+			if (skill == null)
+			{
+				skill = (Actor.SkillManager.AddElement(SkillNames.Cooking) as Cooking);
+				if (skill == null)
+				{
+					return false;
+				}
+			}
+
 			Ingredient flourItem = Actor.Inventory.Find<Ingredient>(Definition.FlourTest);
 			Ingredient eggItem = Actor.Inventory.Find<Ingredient>(Definition.EggTest);
+
 			if (flourItem == null || eggItem == null)
 			{
 				return false;
 			}
 
-			Actor.RouteToSlot(Target, Slot.RoutingSlot_0);
-				Target.mFailedToCook = false;
+
+			if (!Actor.RouteToSlot(Target, Slot.RoutingSlot_0))
+            {
+				StandardExit();
+				return false;
+            }
+			Target.mFailedToCook = false;
 
 			BeginCommodityUpdates();
+			skill.StartSkillGain(5f);
 			EnterStateMachine("woodfiredoven_store", "Enter", "x", "WoodFireOvenClassic");
 			if (Actor.CarryStateMachine != null)
 			{
@@ -113,9 +127,9 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				return false;
 			}
 			Target.mCurrentRecipe = breadRecipe;
-			bool isBurnt = CheckBurnt(Actor, breadRecipe, mCurrentStateMachine);
+			Target.mFoodWillBurn = CheckBurnt(Actor, breadRecipe, mCurrentStateMachine);
 			Quality resultQuality = GetQuality(Actor, breadRecipe, eggItem.GetQuality(), flourItem.GetQuality(),
-				isBurnt);
+				Target.mFoodWillBurn);
 
 			//Quality resultQuality = Target.GetFoodQuality(Actor);
 			IFoodContainer finishedRecipe = Target.mCurrentRecipe.CreateFinishedFood(Recipe.MealQuantity.Group,
@@ -142,6 +156,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			}
 			AnimateSim("CookEndBread");
 			AnimateSim("Exit");
+			skill.StopSkillGain();
             CarrySystem.EnterWhileHolding(Actor, containerProp);
 			CarrySystem.AnimateIntoSimInventory(Actor);
 			StandardExit();
@@ -172,20 +187,19 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			Target.RemoveFoodItems(Actor);
 		}
 
-		public Quality GetQuality(Sim cook, Recipe recipe, Quality quality1, Quality quality2, bool isBurnt)
+		public Quality GetQuality(Sim cook, Recipe recipe, Quality quality1, Quality quality2)
 		{
 			// This is a simulation of what normal recipe quality calculation looks like.
 			// Since we can't count the number of times the recipe was made, I'm just using raw
 			// skill level.
 
-			Cooking skill = cook.SkillManager.GetSkill<Cooking>(SkillNames.Cooking);
 			int foodPoints = 0;
 			int naturalCookPoints = cook.HasTrait(TraitNames.NaturalCook)
 				? TraitTuning.NaturalCookTraitEnhanceFoodPoints : 0;
 			int bornToCookPoints = cook.HasTrait(TraitNames.BornToCook)
 				? TraitTuning.BornToCookTraitEnhanceFoodPoints : 0;
 
-			if (!isBurnt)
+			if (Target.mFoodWillBurn)
             {
 				int recipePoints = Cooking.RecipeLevelFoodPoints[recipe.CookingSkillLevelRequired];
 				int skillPoints = (int)(Cooking.FoodPointBonusPerTimesCooked * skill.SkillLevel);
@@ -201,9 +215,8 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			return Cooking.GetQualityFromFoodPoints(recipe, foodPoints);
 		}
 
-		public static bool CheckBurnt(Sim sim, Recipe recipe, StateMachineClient stateMachine)
+		public bool CheckBurnt(Sim sim, Recipe recipe, StateMachineClient stateMachine)
 		{
-			Cooking skill = sim.SkillManager.GetSkill<Cooking>(SkillNames.Cooking);
 			float num = (skill != null) ? skill.CalculateChanceOfFailure(recipe) : 25f;
 
 			BuffManager buffManager = sim.BuffManager;
@@ -222,6 +235,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				TraitFunctions.TraitReactionOnFailure(sim, ReactionSpeed.AfterInteraction,
 					Origin.FromBurningFood);
 			}
+			Target.mFoodWillBurn = isBurnt;
 			stateMachine.SetParameter("burn", isBurnt);
 			return isBurnt;
 		}

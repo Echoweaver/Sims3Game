@@ -1,7 +1,6 @@
 ﻿using System;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Appliances;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Utilities;
@@ -20,6 +19,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
         [Tunable]
         public static string kFlourName = "Flour";
         public static bool kIngredientsOverhaul = false;
+        public static string stblKey = "Gameplay/Excel/Ingredients/EWWheatData:";
 
         static Loader()
         {
@@ -34,17 +34,14 @@ namespace Echoweaver.Sims3Game.PlantableWheat
                 o.AddInteraction(EWGrindFlour.Singleton, true);
             }
 
-            if (IngredientData.NameToDataMap.ContainsKey("Bread"))
+            if (kIngredientsOverhaul)
             {
-                kIngredientsOverhaul = true;
-
                 foreach (GameObject o in Sims3.Gameplay.Queries.GetObjects<WoodFireOven>())
                 {
                     o.AddInteraction(EWBakeBreadIngredient.Singleton, true);
                 }
             }
 
-            // TODO: Is this the best way to check for a newly added object?
             EventTracker.AddListener(EventTypeId.kBoughtObject, new ProcessEventDelegate(OnNewObject));
         }
 
@@ -61,7 +58,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
                 WoodFireOven w = e.TargetObject as WoodFireOven;
                 if (w != null)
                 {
-                    p.AddInteraction(EWBakeBreadIngredient.Singleton, true);
+                    w.AddInteraction(EWBakeBreadIngredient.Singleton, true);
                 }
             }
             return ListenerAction.Keep;
@@ -73,8 +70,18 @@ namespace Echoweaver.Sims3Game.PlantableWheat
             HasBeenLoaded = true;
 
             string error_list = "";
-            XmlDbData data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("CCL621144765_Recipes.xml"),
-                0x0333406C, 0x00000000), false);
+            XmlDbData data;
+            if (IngredientData.NameToDataMap.ContainsKey("Bread"))
+            {
+                kIngredientsOverhaul = true;
+
+                data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("WheatRecipes_Overhaul"),
+                    0x0333406C, 0x00000000), false);
+            } else
+            {
+                data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("CCL621144765_Recipes.xml"),
+                    0x0333406C, 0x00000000), false);
+            }
 
             if (data != null)
             {
@@ -135,6 +142,11 @@ namespace Echoweaver.Sims3Game.PlantableWheat
             }
 
             
+        }
+
+        public static string Localize(string key)
+        {
+           return Localization.LocalizeString(stblKey + key);
         }
     }
 }

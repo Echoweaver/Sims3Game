@@ -30,7 +30,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				else
 				{
 					// TODO: Localize!
-					greyedOutTooltipCallback = CreateTooltipCallback("You must have wheat in inventory.");
+					greyedOutTooltipCallback = CreateTooltipCallback(Loader.Localize("GrindFlourTooltip"));
 				}
 				return false;
 			}
