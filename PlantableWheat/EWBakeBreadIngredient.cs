@@ -128,8 +128,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			}
 			Target.mCurrentRecipe = breadRecipe;
 			Target.mFoodWillBurn = CheckBurnt(Actor, breadRecipe, mCurrentStateMachine);
-			Quality resultQuality = GetQuality(Actor, breadRecipe, eggItem.GetQuality(), flourItem.GetQuality(),
-				Target.mFoodWillBurn);
+			Quality resultQuality = GetQuality(Actor, breadRecipe, eggItem.GetQuality(), flourItem.GetQuality());
 
 			//Quality resultQuality = Target.GetFoodQuality(Actor);
 			IFoodContainer finishedRecipe = Target.mCurrentRecipe.CreateFinishedFood(Recipe.MealQuantity.Group,
