@@ -50,6 +50,8 @@
     <Compile Include="Buffs\BuffEWTummyTrouble.cs" />
     <Compile Include="Buffs\BuffEWBabyDistress.cs" />
     <Compile Include="DiseaseLoader.cs" />
+    <Compile Include="EWTakeToVetDisease.cs" />
+    <Compile Include="EWTakeToVetShots.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

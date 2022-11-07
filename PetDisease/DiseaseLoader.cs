@@ -22,7 +22,8 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Tunable]
         public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.Shark;
 
-        public static List<ulong> BuffGuids = new List<ulong>() { Buffs.BuffEWPetGermy.mGuid,
+        public static List<ulong> BuffGuids = new List<ulong>() {
+			Buffs.BuffEWPetGermy.mGuid,
 			Buffs.BuffEWTummyTrouble.mGuid,
 			Buffs.BuffEWPetstilence.mGuid,
 			Buffs.BuffEWBabyDistress.mGuid,

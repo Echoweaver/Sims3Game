@@ -4,12 +4,22 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.UI;
+using static Sims3.Gameplay.Situations.PaperBoySituation;
 
 //Template Created by Battery
 
+// Germy (Whitecough) -- common cold.
+//   -- Generated from weather changes
+// Events:
+// 	kWeatherStarted,
+//	kWeatherStopped,
+//	kChangedInsideOutsideStatus,
+//   -- Symptoms: Coughing, energy reduction
 
 namespace Echoweaver.Sims3Game.PetDisease.Buffs
 {
@@ -27,6 +37,19 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxTimeBetweenSymptoms = 120f;
 
+        [TunableComment("Min cold duration (Hours)")]
+        [Tunable]
+        public static float kMinDuration = 48f;
+
+        [TunableComment("Max cold duration (Hours)")]
+        [Tunable]
+        public static float kMaxDuration = 96f;
+
+        [TunableComment("1 in x chance cold will become pneumonia if left untreated")]
+        [Tunable]
+        public static float kChanceOfPneumonia = 4f;
+
+
         public class BuffInstanceEWPetGermy : BuffInstance
         {
             public ReactionBroadcaster PetGermyContagionBroadcaster;
@@ -34,11 +57,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public override SimDescription TargetSim => mSickSim;
             public AlarmHandle mSymptomAlarm = AlarmHandle.kInvalidHandle;
             public AlarmHandle mSickIncubationAlarm = AlarmHandle.kInvalidHandle;
+            public bool willBecomePnumonia = false;
 
             public BuffInstanceEWPetGermy()
             {
             }
-
+        
             public BuffInstanceEWPetGermy(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount)
                 : base(buff, buffGuid, effectValue, timeoutCount)
             {
@@ -76,19 +100,33 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     AlarmType.DeleteOnReset);
             }
         }
-        public BuffEWPetGermy(Buff.BuffData info) : base(info)
-		{
-			
-		}
-		
-		public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
-		{
-            if ((bm.Actor.IsADogSpecies || bm.Actor.IsCat) && (bm.Actor.SimDescription.AdultOrAbove))
+
+        public class GetSick
+        {
+            Sim sickSim;
+            public GetSick(Sim sim)
             {
-                return true;
+                sickSim = sim;
             }
-            return false;
-		}
+
+            public void Execute()
+            {
+                if (!sickSim.BuffManager.HasElement(buffName) && !Loader.checkForVaccination(sickSim))
+                {
+                    // TODO: Should check for cooldown buff so pet can't get the same disease
+                    // immediately after?
+                    sickSim.BuffManager.AddElement(buffName, RandomUtil.GetFloat(kMinDuration,
+                    kMaxDuration), Origin.None);
+                }
+            }
+        }
+        public BuffEWPetGermy(Buff.BuffData info) : base(info)
+        {
+        }
+        public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
+        {
+            return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove;
+        }
 
         public override BuffInstance CreateBuffInstance()
         {
@@ -98,14 +136,24 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
+            buffInstance.mSickSim = bm.Actor.SimDescription;
+            buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
             buffInstance.PetGermyContagionBroadcaster = new ReactionBroadcaster(bi.TargetSim.CreatedSim,
                 BuffGermy.kSickBroadcastParams, PetGermyContagionCallback);
+            buffInstance.DoSymptom();
             base.OnAddition(bm, bi, travelReaddition);
         }
 
         public override void OnRemoval(BuffManager bm, BuffInstance bi)
         {
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
+            // Check to see if this turns into Pneumonia and add buff if applicable.
+            // TODO: when the buff is removed from treatment, make sure to set the
+            // pneumonia check to false.
+            if (buffInstance.willBecomePnumonia)
+            {
+                bm.AddElement(BuffEWPetPneumonia.buffName, Origin.None);
+            }
             if (buffInstance.PetGermyContagionBroadcaster != null)
             {
                 buffInstance.PetGermyContagionBroadcaster.Dispose();
@@ -116,11 +164,22 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public void PetGermyContagionCallback(Sim s, ReactionBroadcaster rb)
         {
+            // Humans can catch from cats but not the reverse unless I can figure
+            // out some broadcaster magic.
             if (s.SimDescription.IsHuman)
             {
-                // Humans can catch from cats but not the reverse unless I can figure
-                // out some broadcaster magic.
                 s.SimDescription.HealthManager?.PossibleProximityContagion();
+            } else if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
+            {
+                if (!s.BuffManager.HasElement(buffName) && RandomUtil
+                    .RandomChance01(HealthManager.kProximitySicknessOdds))
+                {
+                    // Get Sick
+                    s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                        HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                        TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
+                        AlarmType.AlwaysPersisted);
+                }
             }
         }
 
