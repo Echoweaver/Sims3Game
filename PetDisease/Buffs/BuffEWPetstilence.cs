@@ -48,6 +48,10 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxDuration = 96f; // 4 days
 
+        [TunableComment("Max petstilence duration (Hours)")]
+        [Tunable]
+        public static float kAmbientSicknessOdds = 0.01f; // 4 days
+
         public class BuffInstanceEWPetstilence : BuffInstance
         {
             public SimDescription mSickSim;
@@ -138,6 +142,33 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         mSickSim.CreatedSim.InteractionQueue.AddNext(die);
                     }
                 }
+            }
+        }
+
+        public static void CheckAmbientContagion(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(kAmbientSicknessOdds))
+            // This ambient check is 1%. It's rare to catch.
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckContactContagion(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kRomanticSicknessOdds))
+            // Woohoo/blood contact is 60%
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
+                    AlarmType.AlwaysPersisted);
             }
         }
 

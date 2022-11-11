@@ -50,7 +50,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         [TunableComment("Odds of getting sick from being in proximity to a sick sim")]
         [Tunable]
-        public static float kBaseStomachFluOdds = 0.1f;
+        public static float kBaseProximitySickOdds = 0.5f;
+
+        [TunableComment("Odds of getting food poisoning from eating unobjectionable food")]
+        [Tunable]
+        public static float kBaseAmbientPoisonOdds = 0.01f;
 
         [TunableComment("Min stomach flu incubation time (Hours)")]
         [Tunable]
@@ -103,11 +107,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 				}
 			}
 
-            public void SetIsFlu()
+            public void SetIsFlu(bool p_isFlu)
             {
-                isFlu = true;
-                NauseaContagionBroadcaster = new ReactionBroadcaster(mPlaguedSim,
-                    kSickBroadcastParams, NauseaContagionCallback);
+                isFlu = p_isFlu;
+                if (isFlu)
+                {
+                    NauseaContagionBroadcaster = new ReactionBroadcaster(mPlaguedSim,
+                        kSickBroadcastParams, NauseaContagionCallback);
+                }
             }
 
             public void DoSymptom()
@@ -126,7 +133,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     .VomitImmunityPet))
                 {
                     TraitManager traitManager = s.TraitManager;
-                    float getSickOdds = kBaseStomachFluOdds;
+                    float getSickOdds = kBaseProximitySickOdds;
                     if (traitManager.HasElement(TraitNames.PiggyPet))
                     {
                         getSickOdds *= 1.2f;
@@ -147,12 +154,96 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             }
         }
 
+        public static void CheckInteractionContagion(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kInteractSicknessOdds))
+            // kAmbientSicknessOdds = 5%, kInteract = 10%
+            // (Interact is interacting with potentially contaminated objects)
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, true).Execute, "pet stomach flu incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckAmbientContagion(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kAmbientSicknessOdds))
+            // kAmbientSicknessOdds = 5%, kInteract = 10%
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, true).Execute, "pet stomach flu incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckEatContagion(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kInteractSicknessOdds + HealthManager.kProximitySicknessOdds))
+            // This should be 20% because c'mon, eating trash.
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, true).Execute, "pet stomach flu incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckAmbientPoisoning(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(kBaseAmbientPoisonOdds))
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, false).Execute, "pet food poisoning incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckFoodPoisoning(Sim s)
+        {
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kInteractSicknessOdds))
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, false).Execute, "pet food poisoning incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckFoodPoisoningSpoiled(Sim s)
+        {
+            // This is from eating spoiled human food. Pet can get very sick.
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kRomanticSicknessOdds))
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s, false).Execute, "pet food poisoning incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
         public class GetSick
         {
             Sim sickSim;
-            public GetSick(Sim sim)
+            bool isFlu;
+            public GetSick(Sim sim, bool flu)
             {
                 sickSim = sim;
+                isFlu = flu;
             }
 
             public void Execute()
@@ -163,20 +254,23 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         kMaxDuration), Origin.None);
                     BuffInstanceEWTummyTrouble buffInstance = sickSim.BuffManager.GetElement(buffName)
                         as BuffInstanceEWTummyTrouble;
-                    buffInstance.SetIsFlu();  // TODO: There should be a better way
+                    buffInstance.SetIsFlu(isFlu);  
                     
                     // TODO: Should we have a popup?
                     // createdSim.ShowTNSAndPlayStingIfSelectable("sting_get_sick", TNSNames.GotSickTNS, createdSim, null, null, null, new bool[1] { createdSim.IsFemale }, false, createdSim);
                 }
             }
         }
+
         public BuffEWTummyTrouble(Buff.BuffData info) : base(info)
         {
         }
+
         public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
         {
-            return bm.Actor.IsPet && bm.Actor.SimDescription.AdultOrAbove;
+            return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove);
         }
+
         public override BuffInstance CreateBuffInstance()
         {
             return new BuffInstanceEWTummyTrouble(this, base.BuffGuid, base.EffectValue, base.TimeoutSimMinutes);

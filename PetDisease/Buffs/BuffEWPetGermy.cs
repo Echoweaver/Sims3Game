@@ -101,6 +101,23 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             }
         }
 
+        public static void CheckWeatherContagion(Sim s)
+        {
+            // Check to see if sim catches a cold.
+            // TODO: Should there be a greater chance if it's cold? Or strong wind?
+            // TODO: Should there be a cooldown timer/buff?
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kAmbientSicknessOdds))
+            // kAmbientSicknessOdds = 5%, kInteract = 10%
+            {
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+        }
+
         public class GetSick
         {
             Sim sickSim;
@@ -120,6 +137,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 }
             }
         }
+
         public BuffEWPetGermy(Buff.BuffData info) : base(info)
         {
         }
