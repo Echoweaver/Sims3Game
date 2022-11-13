@@ -53,6 +53,7 @@
     <Compile Include="EWTakeToVetDisease.cs" />
     <Compile Include="EWTakeToVetShots.cs" />
     <Compile Include="EWPetSuccumbToDisease.cs" />
+    <Compile Include="PetDiseaseManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

@@ -128,7 +128,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void Execute()
             {
-                if (!sickSim.BuffManager.HasElement(buffName) && !Loader.checkForVaccination(sickSim))
+                if (!sickSim.BuffManager.HasElement(buffName) && !PetDiseaseManager.checkForVaccination(sickSim))
                 {
                     // TODO: Should check for cooldown buff so pet can't get the same disease
                     // immediately after?
@@ -178,6 +178,24 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 buffInstance.PetGermyContagionBroadcaster = null;
             }
             base.OnRemoval(bm, bi);
+        }
+
+        public static void CheckAmbientContagion(Sim s)
+        {
+            // Humans can catch from cats but not the reverse unless I can figure
+            // out some broadcaster magic.
+            if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
+            {
+                if (!s.BuffManager.HasElement(buffName) && RandomUtil
+                    .RandomChance01(HealthManager.kAmbientSicknessOdds))
+                {
+                    // Get Sick
+                    s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                        HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                        TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
+                        AlarmType.AlwaysPersisted);
+                }
+            }
         }
 
         public void PetGermyContagionCallback(Sim s, ReactionBroadcaster rb)
