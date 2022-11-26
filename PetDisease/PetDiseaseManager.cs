@@ -59,6 +59,13 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Persistable]
         static public Dictionary<ulong, DateAndTime> VaccineRecord = new Dictionary<ulong, DateAndTime>();
 
+        public static BuffNames[] CurableDiseases =
+        {
+            Buffs.BuffEWTummyTrouble.buffName,
+            Buffs.BuffEWPetstilence.buffName,
+            Buffs.BuffEWPetPneumonia.buffName
+        };
+
         public PetDiseaseManager()
         {
         }
@@ -77,9 +84,13 @@ namespace Echoweaver.Sims3Game.PetDisease
             return false;
         }
 
-        public static void Vaccinate(ulong simID)
+        public static void Vaccinate(Sim s)
         {
-            VaccineRecord[simID] = SimClock.CurrentTime();
+            VaccineRecord[s.SimDescription.SimDescriptionId] = SimClock.CurrentTime();
+
+            // TODO: See if this sting makes any sense for pets. We can make a new one.
+            s.ShowTNSAndPlayStingIfSelectable("sting_get_immunized", TNSNames.FluShotTNS, s,
+                null, null, null, new bool[1] { s.IsFemale }, false, s);
         }
 
         public static ListenerAction OnWeatherStarted(Event e)
