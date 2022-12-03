@@ -1,7 +1,5 @@
-using System;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
@@ -26,8 +24,8 @@ using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.PetDisease.Buffs
 {
-	//XMLBuffInstanceID = 5522594682370665020ul
-	public class BuffEWPetstilence : Buff
+    //XMLBuffInstanceID = 5522594682370665020ul
+    public class BuffEWPetstilence : Buff
 	{
 		public const ulong mGuid = 0x7768716F913C2054ul;
         public const BuffNames buffName = (BuffNames)mGuid;
@@ -48,9 +46,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxDuration = 96f; // 4 days
 
-        [TunableComment("Max petstilence duration (Hours)")]
+        [TunableComment("Chance of catching from stranger contact")]
         [Tunable]
-        public static float kAmbientSicknessOdds = 0.01f; // 4 days
+        public static float kAmbientSicknessOdds = 0.01f; 
 
         public class BuffInstanceEWPetstilence : BuffInstance
         {
@@ -103,12 +101,19 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 {
                     case 0:
                         // First stage, mildest symptoms. Maybe just a fuzzy feeling
+                        StyledNotification.Show(new StyledNotification.Format("Petstilence Level 0 symptom: " +
+                            mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
                         break;
                     case 1:
                         // Second stage, more serious symptoms. Vomiting.
+                        StyledNotification.Show(new StyledNotification.Format("Petstilence Level 1 symptom: " +
+                            mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
                         break;
                     case 2:
                         // Final stage, fly swarms (?), hygiene drops, passing out 
+                        StyledNotification.Show(new StyledNotification.Format("Petstilence Level 2 symptom: " +
+                            mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                        break;
                     default:
                         break;
                 }
@@ -150,6 +155,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(kAmbientSicknessOdds))
             // This ambient check is 1%. It's rare to catch.
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught Petstilence: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
@@ -160,15 +167,47 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public static void CheckContactContagion(Sim s)
         {
-            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
-                .kRomanticSicknessOdds))
-            // Woohoo/blood contact is 60%
+            // Contact with subject that always has a chance of transmitting Petstilence
+            // (Probably raccoon)
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager.kInteractSicknessOdds))
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught Petstilence: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
                     AlarmType.AlwaysPersisted);
+            }
+        }
+
+        public static void CheckBloodborneContagion(Sim s)
+        {
+            float test = RandomUtil.GetFloat(0f, 1f);
+
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
+                .kRomanticSicknessOdds))
+            // Woohoo/blood contact is 60%
+            {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught Petstilence: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                // Get Sick
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            } else
+            {
+                if (s.BuffManager.HasElement(buffName))
+                {
+                    StyledNotification.Show(new StyledNotification.Format("Sim already has petstilence: " +
+                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                }
+                else
+                {
+                    StyledNotification.Show(new StyledNotification.Format("Sim did not catch pestilence: " +
+                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                }
             }
         }
 
@@ -182,7 +221,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void Execute()
             {
-                if (!sickSim.BuffManager.HasElement(buffName) && !Loader.checkForVaccination(sickSim))
+                if (!sickSim.BuffManager.HasElement(buffName) && !PetDiseaseManager.CheckForVaccination(sickSim))
                 {
                     // TODO: Should check for cooldown buff so pet can't get the same disease
                     // immediately after?
@@ -200,6 +239,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 		public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
 		{
             return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove;
+        }
+
+        public override BuffInstance CreateBuffInstance()
+        {
+            return new BuffInstanceEWPetstilence(this, base.BuffGuid, base.EffectValue, base.TimeoutSimMinutes);
         }
 
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
@@ -220,22 +264,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             base.OnRemoval(bm, bi);
         }
 
-        public void MaybeCatchPetstilence(Sim s)
-        {
-            // This is not transmitted by proximity, so no broadcaster.
-            if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
-            {
-                if (!s.BuffManager.HasElement(buffName) && RandomUtil
-                    .RandomChance01(HealthManager.kRomanticSicknessOdds))
-                {
-                    // Get Sick
-                    s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
-                        HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
-                        TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
-                        AlarmType.AlwaysPersisted);
-                }
-            }
-        }
     }
 		
 }

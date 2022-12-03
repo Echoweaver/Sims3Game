@@ -48,7 +48,6 @@
     <Compile Include="Buffs\BuffEWPetPneumonia.cs" />
     <Compile Include="Buffs\BuffEWPetstilence.cs" />
     <Compile Include="Buffs\BuffEWTummyTrouble.cs" />
-    <Compile Include="Buffs\BuffEWBabyDistress.cs" />
     <Compile Include="DiseaseLoader.cs" />
     <Compile Include="EWTakeToVetDisease.cs" />
     <Compile Include="EWTakeToVetShots.cs" />

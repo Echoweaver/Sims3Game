@@ -94,6 +94,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 // TODO: Now we need symptoms. For cough: Convert cat hairball animation to include dogs?
                 // TODO: Add correct buff origin (from Tummy Trouble)
                 //mSickSim.CreatedSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
+                StyledNotification.Show(new StyledNotification.Format("Germy symptom: " +
+                    mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
 
                 mSymptomAlarm = mSickSim.CreatedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetGermy: Time until next symptom",
@@ -107,9 +109,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             // TODO: Should there be a greater chance if it's cold? Or strong wind?
             // TODO: Should there be a cooldown timer/buff?
             if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
-                .kAmbientSicknessOdds))
+                .kInteractSicknessOdds))
             // kAmbientSicknessOdds = 5%, kInteract = 10%
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
@@ -128,7 +132,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void Execute()
             {
-                if (!sickSim.BuffManager.HasElement(buffName) && !PetDiseaseManager.checkForVaccination(sickSim))
+                if (!sickSim.BuffManager.HasElement(buffName) && !PetDiseaseManager.CheckForVaccination(sickSim))
                 {
                     // TODO: Should check for cooldown buff so pet can't get the same disease
                     // immediately after?
@@ -156,6 +160,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
             buffInstance.mSickSim = bm.Actor.SimDescription;
             buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
+            if (buffInstance.willBecomePnumonia)
+            {
+                StyledNotification.Show(new StyledNotification.Format("Germy will turn into pneumonia: " +
+                    buffInstance.mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+            }
             buffInstance.PetGermyContagionBroadcaster = new ReactionBroadcaster(bi.TargetSim.CreatedSim,
                 BuffGermy.kSickBroadcastParams, PetGermyContagionCallback);
             buffInstance.DoSymptom();
@@ -190,6 +199,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     .RandomChance01(HealthManager.kAmbientSicknessOdds))
                 {
                     // Get Sick
+                    StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
+                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                     s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                         HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                         TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
@@ -207,10 +218,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 s.SimDescription.HealthManager?.PossibleProximityContagion();
             } else if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
             {
+                StyledNotification.Show(new StyledNotification.Format("Check proximity contagion: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 if (!s.BuffManager.HasElement(buffName) && RandomUtil
                     .RandomChance01(HealthManager.kProximitySicknessOdds))
                 {
                     // Get Sick
+                    StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
+                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                     s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                         HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                         TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",

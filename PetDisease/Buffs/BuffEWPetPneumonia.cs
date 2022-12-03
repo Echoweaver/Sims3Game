@@ -19,8 +19,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 	{
 		public const ulong mGuid = 0x904F100B14974699ul;
         public const BuffNames buffName = (BuffNames)mGuid;
-
-        static bool once;
 		
 		public BuffEWPetPneumonia(Buff.BuffData info) : base(info)
 		{

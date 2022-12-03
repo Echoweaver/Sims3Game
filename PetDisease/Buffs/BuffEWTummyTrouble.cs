@@ -74,7 +74,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public class BuffInstanceEWTummyTrouble : BuffInstance
 		{
-			public Sim mPlaguedSim;
+			public Sim mSickSim;
 			public AlarmHandle mSymptomAlarm = AlarmHandle.kInvalidHandle;
             public AlarmHandle mSickIncubationAlarm = AlarmHandle.kInvalidHandle;
             public bool isFlu = false;
@@ -94,7 +94,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 			{
 				BuffInstanceEWTummyTrouble buffInstance = new BuffInstanceEWTummyTrouble(mBuff, mBuffGuid,
                     mEffectValue, mTimeoutCount);
-				buffInstance.mPlaguedSim = mPlaguedSim;
+				buffInstance.mSickSim = mSickSim;
 				return buffInstance;
 			}
 
@@ -112,17 +112,19 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 isFlu = p_isFlu;
                 if (isFlu)
                 {
-                    NauseaContagionBroadcaster = new ReactionBroadcaster(mPlaguedSim,
+                    NauseaContagionBroadcaster = new ReactionBroadcaster(mSickSim,
                         kSickBroadcastParams, NauseaContagionCallback);
                 }
             }
 
             public void DoSymptom()
 			{
-				// TODO: Add correct buff origin (from Tummy Trouble)
-				mPlaguedSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
+                // TODO: Add correct buff origin (from Tummy Trouble)
+                StyledNotification.Show(new StyledNotification.Format("Tummy Trouble symptom: " +
+                    mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                mSickSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
 
-				mSymptomAlarm = mPlaguedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenNausea,
+				mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenNausea,
 					kMaxTimeBetweenNausea), TimeUnit.Minutes, DoSymptom, "BuffEWTummyTrouble: Time until next symptom",
 					AlarmType.DeleteOnReset);
 			}
@@ -146,8 +148,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                             !s.BuffManager.HasElement(buffName))
                         {
                             mSickIncubationAlarm = s.AddAlarm(RandomUtil.GetFloat(kMaxIncubationTime -
-                                kMinIncubationTime) + kMinIncubationTime, TimeUnit.Hours, new GetSick(s).Execute,
-                                "stomach flu incubation alarm", AlarmType.AlwaysPersisted);
+                                kMinIncubationTime) + kMinIncubationTime, TimeUnit.Hours,
+                                new GetSick(s, true).Execute, "stomach flu incubation alarm",
+                                AlarmType.AlwaysPersisted);
                         }
                     }
                 }
@@ -161,6 +164,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             // kAmbientSicknessOdds = 5%, kInteract = 10%
             // (Interact is interacting with potentially contaminated objects)
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach flu: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
@@ -175,11 +180,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 .kAmbientSicknessOdds))
             // kAmbientSicknessOdds = 5%, kInteract = 10%
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach flu: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s, true).Execute, "pet stomach flu incubation alarm",
                     AlarmType.AlwaysPersisted);
+            } else
+            {
+                StyledNotification.Show(new StyledNotification.Format("Sim did not catch stomach flu: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
             }
         }
 
@@ -189,6 +200,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 .kInteractSicknessOdds + HealthManager.kProximitySicknessOdds))
             // This should be 20% because c'mon, eating trash.
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach flu: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
@@ -201,6 +214,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(kBaseAmbientPoisonOdds))
             {
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach food poisoning: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 // Get Sick
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
@@ -215,6 +230,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 .kInteractSicknessOdds))
             {
                 // Get Sick
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach food poisoning: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s, false).Execute, "pet food poisoning incubation alarm",
@@ -229,6 +246,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 .kRomanticSicknessOdds))
             {
                 // Get Sick
+                StyledNotification.Show(new StyledNotification.Format("Sim Caught stomach food poisoning: " +
+                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s, false).Execute, "pet food poisoning incubation alarm",
@@ -268,7 +287,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
         {
-            return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove);
+            return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove;
         }
 
         public override BuffInstance CreateBuffInstance()
@@ -279,7 +298,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
             BuffInstanceEWTummyTrouble buffInstance = bi as BuffInstanceEWTummyTrouble;
-            buffInstance.mPlaguedSim = bm.Actor;
+            buffInstance.mSickSim = bm.Actor;
             buffInstance.DoSymptom();
         }
 

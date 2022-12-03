@@ -177,7 +177,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
             if (carryingPet == null)
             {
-                EWGoToHospitalPet goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
+                goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target, mPet,
                     new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
                     cancellableByPlayer: true) as EWGoToHospitalPet;
                 mPet.InteractionQueue.Add(goToHospital);

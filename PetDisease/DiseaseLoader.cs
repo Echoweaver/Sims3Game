@@ -6,6 +6,8 @@ using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Objects.CookingObjects;
+using Sims3.Gameplay.Objects.Fishing;
+using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Services;
 using Sims3.Gameplay.Socializing;
@@ -14,6 +16,8 @@ using Sims3.SimIFace;
 using Sims3.SimIFace.Enums;
 using Sims3.UI;
 using Sims3.UI.Controller;
+using Queries = Sims3.Gameplay.Queries;
+
 
 //Template Created by Battery
 
@@ -21,7 +25,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 {
 	public class Loader
 	{
-		[Tunable] static bool init = false;
+		[Tunable] protected static bool init = false;
 
         [Tunable]
         public static bool kAllowPetDeath = true;
@@ -34,12 +38,8 @@ namespace Echoweaver.Sims3Game.PetDisease
 			Buffs.BuffEWPetGermy.mGuid,
 			Buffs.BuffEWTummyTrouble.mGuid,
 			Buffs.BuffEWPetstilence.mGuid,
-			Buffs.BuffEWBabyDistress.mGuid,
 			Buffs.BuffEWPetPneumonia.mGuid
 		};
-
-        // Index of SimDescriptionID and timestamp of vaccination
-        // 		mVaccinationDate = SimClock.CurrentTime ();
 
         static Loader()
 		{
@@ -60,36 +60,64 @@ namespace Echoweaver.Sims3Game.PetDisease
 			LoadBuffXMLandParse(null);
 		}
 
-		static void OnWorldLoaded(object sender, EventArgs e)
-		{
-			Initialize();
+        static void OnWorldLoaded(object sender, EventArgs e)
+        {
+            Initialize();
+            foreach (Hospital h in Queries.GetObjects<Hospital>())
+            {
+                h.AddInteraction(EWVaccinatePet.Singleton, true);
+                //h.AddInteraction(EWTakeToVetDisease.Singleton, true);
+            }
 
-			// Germy check
-			EventTracker.AddListener(EventTypeId.kWeatherStarted, new ProcessEventDelegate(PetDiseaseManager.OnWeatherStarted));
+            foreach (Sim s in Sims3.Gameplay.Queries.GetObjects<Sim>())
+            {
+                if ((s.IsCat || s.IsADogSpecies) && s.SimDescription.AdultOrAbove)
+                {
+
+                    s.AddInteraction(EWTakeToVetDisease.Singleton, true);
+                }
+            }
+
+
+            // Germy check
+            EventTracker.AddListener(EventTypeId.kWeatherStarted, new ProcessEventDelegate(PetDiseaseManager
+            .OnWeatherStarted));
             EventTracker.AddListener(EventTypeId.kChangedInsideOutsideStatus,
-				new ProcessEventDelegate(PetDiseaseManager.OnChangedInsideOutsideStatus));
+                new ProcessEventDelegate(PetDiseaseManager.OnChangedInsideOutsideStatus));
 
-			// Stomach Flu Check
-            EventTracker.AddListener(EventTypeId.kGoFishingCat, new ProcessEventDelegate(PetDiseaseManager.OnGoFishingCat));
-            EventTracker.AddListener(EventTypeId.kPlayedInToilet, new ProcessEventDelegate(PetDiseaseManager.OnPlayedInToilet));
-            EventTracker.AddListener(EventTypeId.kPlayInTrashPile, new ProcessEventDelegate(PetDiseaseManager.OnPlayedInToilet));
-            EventTracker.AddListener(EventTypeId.kDigThroughGarbage, new ProcessEventDelegate(PetDiseaseManager.OnPlayedInToilet));
-            EventTracker.AddListener(EventTypeId.kEatTrashPile, new ProcessEventDelegate(PetDiseaseManager.OnEatTrash));
+            // Stomach Flu Check
+            EventTracker.AddListener(EventTypeId.kGoFishingCat, new ProcessEventDelegate(PetDiseaseManager
+                .OnGoFishingCat));
+            EventTracker.AddListener(EventTypeId.kPlayedInToilet, new ProcessEventDelegate(PetDiseaseManager
+                .OnPlayedInToilet));
+            EventTracker.AddListener(EventTypeId.kPlayInTrashPile, new ProcessEventDelegate(PetDiseaseManager
+                .OnPlayedInToilet));
+            EventTracker.AddListener(EventTypeId.kDigThroughGarbage, new ProcessEventDelegate(PetDiseaseManager
+                .OnPlayedInToilet));
+            EventTracker.AddListener(EventTypeId.kEatTrashPile, new ProcessEventDelegate(PetDiseaseManager
+                .OnEatTrash));
 
             // Food Poisoning
-            EventTracker.AddListener(EventTypeId.kAteMeal, new ProcessEventDelegate(PetDiseaseManager.OnAteHumanFood));
-            EventTracker.AddListener(EventTypeId.kAteFish, new ProcessEventDelegate(PetDiseaseManager.OnAtePrey));
+            EventTracker.AddListener(EventTypeId.kAteMeal, new ProcessEventDelegate(PetDiseaseManager
+                .OnAteHumanFood));
+            EventTracker.AddListener(EventTypeId.kAteFish, new ProcessEventDelegate(PetDiseaseManager
+                .OnAtePrey));
 
             // Petstilence Check
-            EventTracker.AddListener(EventTypeId.kGotFleas, new ProcessEventDelegate(PetDiseaseManager.OnGotFleas));
-            EventTracker.AddListener(EventTypeId.kGoHuntingCat, new ProcessEventDelegate(PetDiseaseManager.OnGotFleas));
-            EventTracker.AddListener(EventTypeId.kPetWooHooed, new ProcessEventDelegate(PetDiseaseManager.OnPetWoohooed));
+            EventTracker.AddListener(EventTypeId.kGotFleas, new ProcessEventDelegate(PetDiseaseManager
+                .OnGotFleas));
+            EventTracker.AddListener(EventTypeId.kGoHuntingCat, new ProcessEventDelegate(PetDiseaseManager
+                .OnGotFleas));
+            EventTracker.AddListener(EventTypeId.kPetWooHooed, new ProcessEventDelegate(PetDiseaseManager
+                .OnPetWoohooed));
 
-            // Social event: Fight Pet
-            EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(PetDiseaseManager.OnSocialInteraction));
+            // Social event: Fight Pet, Greet Sniff
+            EventTracker.AddListener(EventTypeId.kSocialInteraction, new ProcessEventDelegate(PetDiseaseManager
+                .OnSocialInteraction));
 
             // Any disease check
-            // kMetSim
+            EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
+                .OnMetSim));
 
         }
 
