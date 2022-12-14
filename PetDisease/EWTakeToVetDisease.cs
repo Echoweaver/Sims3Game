@@ -26,7 +26,6 @@ namespace Echoweaver.Sims3Game.PetDisease
     {
         public class Definition : InteractionDefinition<Sim, Sim, EWTakeToVetDisease>
         {
-
             public override bool Test(Sim a, Sim target, bool isAutonomous,
                 ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
@@ -53,7 +52,8 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
             {
-                return LocalizeString("TakeToVetCost", target.Name, kCostOfVetVisit);
+                return "Localize - Take to vet for disease §" + kCostOfVetVisit;
+                //return LocalizeString("TakeToVetCost", target.Name, kCostOfVetVisit);
             }
 
             public bool IsSick(Sim pet)

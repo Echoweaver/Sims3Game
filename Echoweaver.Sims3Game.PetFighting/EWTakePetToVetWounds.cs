@@ -65,7 +65,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		[Tunable]
 		public static int kCostOfVetVisit = 200;
-		public static int kLTRBoostOfVetVisit = 20;
+        [Tunable]
+        public static int kLTRBoostOfVetVisit = 20;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -201,7 +202,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 				mPet.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
 				mPet.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
                 EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
-				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);
+				EventTracker.SendEvent(EventTypeId.kVisitedRabbitHole, mPet, Target);
 			}
 			timeToGo = true;
 			return result;

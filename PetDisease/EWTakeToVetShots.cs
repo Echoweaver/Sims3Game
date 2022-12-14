@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.ActorSystems.Children;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
@@ -11,17 +10,14 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.RabbitHoles;
-using Sims3.Gameplay.Opportunities;
-using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
 using Sims3.UI;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 using static Sims3.Gameplay.Actors.Sim;
+using static Sims3.Gameplay.Situations.PaperBoySituation;
+using static Sims3.SimIFace.Route;
 using static Sims3.UI.ObjectPicker;
-using Queries = Sims3.Gameplay.Queries;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -40,7 +36,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 {
                     if (a.FamilyFunds < kCostOfPetVaccine)
                     {
-                        greyedOutTooltipCallback = InteractionInstance.CreateTooltipCallback("Localize - Can't afford vaccine");
+                        greyedOutTooltipCallback = CreateTooltipCallback("Localize - Can't afford vaccine");
                         return false;
                     }
                     if (GetUnvaccinatedPets(a.Household).Count == 0)
@@ -62,7 +58,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 out List<TabInfo> listObjs, out List<HeaderInfo> headers, out int NumSelectableRows)
             {
                 Sim sim = parameters.Actor as Sim;
-                NumSelectableRows = 1;  // TODO: Try to select multiple pets?
+                NumSelectableRows = -1;  // TODO: 
                 PopulateSimPicker(ref parameters, out listObjs, out headers, GetUnvaccinatedPets(sim.Household),
                     includeActor: false);
             }
@@ -76,7 +72,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Tunable]
         public static int kCostOfPetVaccine = 200;
 
-        public Sim mPetToVaccinate;
+        public List<Sim> mPetsToVaccinate = new List<Sim>();
 
         public static InteractionDefinition Singleton = new Definition();
 
@@ -109,30 +105,92 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public override bool Run()
         {
-            mPetToVaccinate = GetSelectedObject() as Sim;
-            if (mPetToVaccinate == null || mPetToVaccinate.HasBeenDestroyed)
+            mPetsToVaccinate = GetSelectedObjectsAsSims();
+            if (mPetsToVaccinate.Count <= 1)
             {
                 return false;
             }
-            if (!mPetToVaccinate.IsHorse || Actor.Posture.Container != mPetToVaccinate)
+            Sim firstPet = mPetsToVaccinate[1];
+            Actor.RouteTurnToFace(firstPet.Position);
+            EnterStateMachine("CallPet", "Enter", "x");
+            AnimateSim("Call Pet");
+            //Actor.LoopIdle();
+            //float waitLength = 0f;
+            //bool slowPet = false;
+            //foreach (Sim pet in mPetsToVaccinate)
+            //{
+            //    if (pet.TraitManager.HasAnyElement(TraitNames.LazyPet, TraitNames.ShyPet))
+            //    {
+            //        slowPet = true;
+            //    }
+            //}
+            //if (slowPet)
+            //{
+            //    waitLength = RandomUtil.GetFloat(CallPet.kLazyOrShyPetWaitTimeSimMinutes[0],
+            //        CallPet.kLazyOrShyPetWaitTimeSimMinutes[1]);
+            //}
+            //else
+            //{
+            //    waitLength = RandomUtil.GetFloat(CallPet.kNormalPetWaitTimeSimMinutes[0],
+            //        CallPet.kNormalPetWaitTimeSimMinutes[1]);
+            //}
+            //Relationship relationship = Actor.GetRelationship(createdSim, bCreateIfNotPresent: true);
+            //if (relationship.LTR.Liking < kLTRLikingThreshold && !RandomUtil.RandomChance01(kAcceptChance))
+            //{
+            //    return false;
+            //}
+            //bool first = true;
+            //foreach (Sim pet in mPetsToVaccinate)
+            //{
+            //    if (first)
+            //    {
+            //        first = false;
+            //        InteractionInstance interactionInstance = BeCalledOverPet.Singleton.CreateInstance(Actor,
+            //            firstPet, GetPriority(), isAutonomous: false, cancellableByPlayer: true);
+            //        //interactionInstance.LinkedInteractionInstance = this;
+            //        pet.InteractionQueue.Add(interactionInstance);
+            //    }
+            //    else
+            //    {
+            //        InteractionInstance interactionInstance = BeCalledOverPet.Singleton.CreateInstance(Actor,
+            //            firstPet, GetPriority(), isAutonomous: false, cancellableByPlayer: true);
+            //        pet.InteractionQueue.Add(interactionInstance);
+            //    }
+            //}
+            //DoTimedLoop(waitLength);
+            //bool flag = DoLoop(ExitReason.Default);
+            AnimateSim("Exit");
+            foreach (Sim pet in mPetsToVaccinate)
             {
-                AddFollower(mPetToVaccinate);
+                if (pet == null || pet.HasBeenDestroyed || pet.IsHorse)
+                {
+                    continue;
+                }
+                if (Actor.Posture.Container != pet)
+                {
+                    AddFollower(pet);
+                }
             }
+
             return base.Run();
         }
 
-        EWGoToHospitalPet goToHospital = null;
+        List<EWGoToHospitalPet> goToHospital = new List<EWGoToHospitalPet>();
 
         public override bool BeforeEnteringRabbitHole()
         {
             // Get the dang pet into the rabbithole. Surprised this is not handled by following
-            CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
-            if (carryingPet == null)
+            foreach (Sim pet in mPetsToVaccinate)
             {
-                goToHospital = EWGoToHospitalPet.Singleton.CreateInstance(Target,
-                    mPetToVaccinate, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
-                    cancellableByPlayer: true) as EWGoToHospitalPet;
-                mPetToVaccinate.InteractionQueue.Add(goToHospital);
+                CarryingPetPosture carryingPet = Actor.Posture as CarryingPetPosture;
+                if (carryingPet == null)
+                {
+                    EWGoToHospitalPet goPet = EWGoToHospitalPet.Singleton.CreateInstance(Target,
+                        pet, new InteractionPriority(InteractionPriorityLevel.High), isAutonomous: false,
+                        cancellableByPlayer: true) as EWGoToHospitalPet;
+                    pet.InteractionQueue.Add(goPet);
+                    goToHospital.Add(goPet);
+                }
             }
 
             return base.BeforeEnteringRabbitHole();
@@ -157,13 +215,16 @@ namespace Echoweaver.Sims3Game.PetDisease
                         StyledNotification.NotificationStyle.kGameMessageNegative);
                     Actor.UnpaidBills += kCostOfPetVaccine;
                 }
-                if (goToHospital != null)
+                foreach(EWGoToHospitalPet interaction in goToHospital)
                 {
-                    goToHospital.timeToGo = true;
+                    interaction.timeToGo = true;
                 }
-                PetDiseaseManager.Vaccinate(mPetToVaccinate);
-                EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
-                EventTracker.SendEvent(EventTypeId.kVisitedRabbitHole, mPetToVaccinate, Target);
+                foreach(Sim pet in mPetsToVaccinate)
+                {
+                    PetDiseaseManager.Vaccinate(pet);
+                    EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
+                    EventTracker.SendEvent(EventTypeId.kVisitedRabbitHole, pet, Target);
+                }
             }
             return result;
         }
