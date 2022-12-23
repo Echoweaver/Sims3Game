@@ -4,10 +4,12 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
+using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.SimIFace.CAS;
+using Sims3.Store.Objects;
 using Sims3.UI;
 using static Sims3.Gameplay.Situations.PaperBoySituation;
 
@@ -91,16 +93,63 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void DoSymptom()
             {
-                // TODO: Now we need symptoms. For cough: Convert cat hairball animation to include dogs?
-                // TODO: Add correct buff origin (from Tummy Trouble)
-                //mSickSim.CreatedSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
                 StyledNotification.Show(new StyledNotification.Format("Germy symptom: " +
                     mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+
+                // Currently only symptom is coughing.
+                mSickSim.CreatedSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mSickSim.CreatedSim,
+                    mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                    isAutonomous: true, cancellableByPlayer: false));
+
 
                 mSymptomAlarm = mSickSim.CreatedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetGermy: Time until next symptom",
                     AlarmType.DeleteOnReset);
             }
+        }
+
+        public static string LocalizeString(string name, params object[] parameters)
+        {
+            return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWGermy:"
+                + name, parameters);
+        }
+
+        public class Cough : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, Cough>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Cough in Germy";
+                    //return LocalizeString("Cough");
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                StandardEntry();
+                if (Actor.Posture != Actor.PetSittingOnGround)
+                {
+                    PetSittingOnGroundPosture.SitOnGround(Actor);
+                    Actor.Posture = Actor.PetSittingOnGround;
+                }
+                Actor.PlaySoloAnimation("a_idle_sit_hack_x", yield: true, ProductVersion.EP5);
+                Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
+                        .GetMotiveValue(CommodityKind.Energy) - 20);
+                StandardExit();
+
+                return true;
+            }
+
         }
 
         public static void CheckWeatherContagion(Sim s)

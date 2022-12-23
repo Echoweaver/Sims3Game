@@ -1,11 +1,16 @@
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
+using System.Collections.Generic;
+using static Sims3.Gameplay.Actors.Sim;
 
 //Template Created by Battery
 
@@ -60,6 +65,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public float mStageLength = 24f;  // Length of disease stage in hours
             public int mStage = 0;
 
+            public VisualEffect mEffect;
+
             public BuffInstanceEWPetstilence()
             {
             }
@@ -94,8 +101,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void DoSymptom()
             {
-                // TODO: Symptoms. Passing out. Randomly mean-chasing someone on the lot. Drooling.
-                // Vomiting.
+                int symptomType = 0;
 
                 switch (mStage)
                 {
@@ -103,16 +109,106 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         // First stage, mildest symptoms. Maybe just a fuzzy feeling
                         StyledNotification.Show(new StyledNotification.Format("Petstilence Level 0 symptom: " +
                             mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                        symptomType = RandomUtil.GetInt(1, 3);
+                        if (symptomType == 1)
+                        {
+                            RandomPetStartle action = RandomPetStartle.Singleton.CreateInstance(mSickSim.CreatedSim,
+                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                false, false) as RandomPetStartle;
+                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                        }
+                        // a_react_stand_scaredShiver_x
+                        // catfreakoutobject
                         break;
                     case 1:
                         // Second stage, more serious symptoms. Vomiting.
                         StyledNotification.Show(new StyledNotification.Format("Petstilence Level 1 symptom: " +
                             mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                        symptomType = RandomUtil.GetInt(1, 3);
+                        if (symptomType == 1)
+                        {
+                            ActWacky action = ActWacky.Singleton.CreateInstance(mSickSim.CreatedSim,
+                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                false, false) as ActWacky;
+                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                        }
+                        else if (symptomType == 2)
+                        {
+                            BeSkittishAboutFullMoon action = BeSkittishAboutFullMoon.Singleton.CreateInstance(mSickSim.CreatedSim,
+                                mSickSim.CreatedSim,new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                false, false) as BeSkittishAboutFullMoon;
+                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                        }
+                        else
+                        {
+                            // Hiss/growl at random sim
+                            StyledNotification.Show(new StyledNotification.Format("Hiss at random sim ",
+                                StyledNotification.NotificationStyle.kDebugAlert));
+                            List<Sim> list = new List<Sim>(mSickSim.CreatedSim.LotCurrent.GetSims());
+                            list.Remove(mSickSim.CreatedSim);
+
+                            Sim target = RandomUtil.GetRandomObjectFromList<Sim>(list);
+                            if (mSickSim.IsCat)
+                            {
+                                InteractionInstance action = new SocialInteractionA.Definition("Cat Hiss",
+                                    new string[0], null, initialGreet: false).CreateInstance(target,
+                                    mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                    false, false);
+                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            } else
+                            {
+                                InteractionInstance action = new SocialInteractionA.Definition("Growl At",
+                                    new string[0], null, initialGreet: false).CreateInstance(target,
+                                    mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                    false, false);
+                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            }
+                        }
                         break;
                     case 2:
-                        // Final stage, fly swarms (?), hygiene drops, passing out 
+                        // Final stage, fly swarms (?), hygiene drops, random mean chase or fight 
                         StyledNotification.Show(new StyledNotification.Format("Petstilence Level 2 symptom: " +
                             mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                        // Drop hygiene to 0 with fly swarm
+                        // Attack/chase random sim
+                        symptomType = RandomUtil.GetInt(1, 3);
+                        if (symptomType == 1)
+                        {
+                            BuffExhausted.PassOut action = BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim.CreatedSim,
+                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.High),
+                                false, false) as BuffExhausted.PassOut;
+                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                        } else if (symptomType == 2)
+                        {
+                            List<Sim> list = new List<Sim>(mSickSim.CreatedSim.LotCurrent.GetSims());
+                            list.Remove(mSickSim.CreatedSim);
+
+                            foreach (Sim s in list)
+                            {
+                                if (s.SimDescription.ChildOrBelow)
+                                {
+                                    list.Remove(s);
+                                } else if (s.IsHorse)
+                                {
+                                    list.Remove(s);
+                                }
+                            }
+                            Sim target = RandomUtil.GetRandomObjectFromList<Sim>(list);
+                            if (target.IsCat || target.IsADogSpecies)
+                            {
+                                FightPet action = FightPet.Singleton.CreateInstance(target, mSickSim.CreatedSim,
+                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as FightPet;
+                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            } else
+                            {
+                                ChaseMean action = ChaseMean.Singleton.CreateInstance(target, mSickSim.CreatedSim,
+                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as ChaseMean;
+                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            }
+                        } else
+                        {
+                            // Drop hygiene and fly swarm
+                        }
                         break;
                     default:
                         break;
@@ -131,6 +227,10 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     mAdvanceDiseaseAlarm = mSickSim.CreatedSim.AddAlarm(mStageLength, TimeUnit.Minutes,
                         AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
                         AlarmType.DeleteOnReset);
+                    if (mStage == 1)
+                    {
+                        // Start drooling
+                    }
                     DoSymptom();
                 } else if (mStage >= 3)
                 {
@@ -140,13 +240,49 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         mSickSim.CreatedSim.Kill(Loader.diseaseDeathType);
                     } else
                     {
-                        // Passing out with a Grave Wound means dying of the wound
                         EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(mSickSim.CreatedSim,
                             mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false)
                             as EWPetSuccumbToDisease;
                         mSickSim.CreatedSim.InteractionQueue.AddNext(die);
                     }
                 }
+            }
+        }
+
+        public class ActWacky : Interaction<Sim, Sim>
+        {
+            public class Definition : SoloSimInteractionDefinition<ActWacky>
+            {
+                public override bool Test(Sim a, Sim target, bool isAutonomous,
+                    ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return a.IsCat || a.IsADogSpecies;
+                }
+            }
+
+            [TunableComment("Min/Max Num sim minutes cat should animate randomly picked between these values")]
+            [Tunable]
+            public static int[] kMinMaxMinsToLoop = new int[2] { 10, 15 };
+
+            public static ISoloInteractionDefinition Singleton = new Definition();
+
+            public override void ConfigureInteraction()
+            {
+                base.ConfigureInteraction();
+                base.Hidden = true;
+            }
+
+            public override bool Run()
+            {
+                StandardEntry();
+                EnterStateMachine("wacky_pet", "Enter", "x");
+                AnimateSim("Loop");
+                BeginCommodityUpdates();
+                bool flag = DoTimedLoop(RandomUtil.GetInt(kMinMaxMinsToLoop[0], kMinMaxMinsToLoop[1]));
+                EndCommodityUpdates(flag);
+                AnimateSim("Exit");
+                StandardExit();
+                return flag;
             }
         }
 
@@ -265,5 +401,33 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         }
 
     }
-		
+
+    public class EWTestAnim : ImmediateInteraction<Sim, Sim>
+    {
+        public class Definition : ImmediateInteractionDefinition<Sim, Sim, EWTestAnim>
+        {
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Test(Sim actor, Sim target, bool isAutonomous,
+                ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+            {
+                return true;
+            }
+
+            public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
+            {
+                return "TestAnim";
+            }
+        }
+
+        public static InteractionDefinition Singleton = new Definition();
+
+        public override bool Run()
+        {
+            Actor.InteractionQueue.AddNext(BuffEWPetGermy.Cough.Singleton.CreateInstance(Actor,
+                Actor, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                isAutonomous: true, cancellableByPlayer: false));
+            return true;
+        }
+    }
 }

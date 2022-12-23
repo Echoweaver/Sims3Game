@@ -66,7 +66,6 @@ namespace Echoweaver.Sims3Game.PetDisease
             foreach (Hospital h in Queries.GetObjects<Hospital>())
             {
                 h.AddInteraction(EWVaccinatePet.Singleton, true);
-                //h.AddInteraction(EWTakeToVetDisease.Singleton, true);
             }
 
             foreach (Sim s in Sims3.Gameplay.Queries.GetObjects<Sim>())
@@ -75,6 +74,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 {
 
                     s.AddInteraction(EWTakeToVetDisease.Singleton, true);
+                    s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
                 }
             }
 

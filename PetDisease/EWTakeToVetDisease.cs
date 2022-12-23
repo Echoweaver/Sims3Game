@@ -219,8 +219,6 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public override bool AfterExitingRabbitHole()
         {
-            // This seems awfully complicated. Do you need all this to update a
-            // relationship and display the icon?
             Relationship relationship = Relationship.Get(Actor, mPet, createIfNone: true);
             LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
             relationship.LTR.UpdateLiking(EWTakeToVetDisease.kLTRBoostOfVetVisit);

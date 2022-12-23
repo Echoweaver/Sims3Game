@@ -114,51 +114,6 @@ namespace Echoweaver.Sims3Game.PetDisease
             Actor.RouteTurnToFace(firstPet.Position);
             EnterStateMachine("CallPet", "Enter", "x");
             AnimateSim("Call Pet");
-            //Actor.LoopIdle();
-            //float waitLength = 0f;
-            //bool slowPet = false;
-            //foreach (Sim pet in mPetsToVaccinate)
-            //{
-            //    if (pet.TraitManager.HasAnyElement(TraitNames.LazyPet, TraitNames.ShyPet))
-            //    {
-            //        slowPet = true;
-            //    }
-            //}
-            //if (slowPet)
-            //{
-            //    waitLength = RandomUtil.GetFloat(CallPet.kLazyOrShyPetWaitTimeSimMinutes[0],
-            //        CallPet.kLazyOrShyPetWaitTimeSimMinutes[1]);
-            //}
-            //else
-            //{
-            //    waitLength = RandomUtil.GetFloat(CallPet.kNormalPetWaitTimeSimMinutes[0],
-            //        CallPet.kNormalPetWaitTimeSimMinutes[1]);
-            //}
-            //Relationship relationship = Actor.GetRelationship(createdSim, bCreateIfNotPresent: true);
-            //if (relationship.LTR.Liking < kLTRLikingThreshold && !RandomUtil.RandomChance01(kAcceptChance))
-            //{
-            //    return false;
-            //}
-            //bool first = true;
-            //foreach (Sim pet in mPetsToVaccinate)
-            //{
-            //    if (first)
-            //    {
-            //        first = false;
-            //        InteractionInstance interactionInstance = BeCalledOverPet.Singleton.CreateInstance(Actor,
-            //            firstPet, GetPriority(), isAutonomous: false, cancellableByPlayer: true);
-            //        //interactionInstance.LinkedInteractionInstance = this;
-            //        pet.InteractionQueue.Add(interactionInstance);
-            //    }
-            //    else
-            //    {
-            //        InteractionInstance interactionInstance = BeCalledOverPet.Singleton.CreateInstance(Actor,
-            //            firstPet, GetPriority(), isAutonomous: false, cancellableByPlayer: true);
-            //        pet.InteractionQueue.Add(interactionInstance);
-            //    }
-            //}
-            //DoTimedLoop(waitLength);
-            //bool flag = DoLoop(ExitReason.Default);
             AnimateSim("Exit");
             foreach (Sim pet in mPetsToVaccinate)
             {
@@ -171,7 +126,6 @@ namespace Echoweaver.Sims3Game.PetDisease
                     AddFollower(pet);
                 }
             }
-
             return base.Run();
         }
 
