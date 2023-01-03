@@ -32,12 +32,12 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public override bool Run()
         {
-            if (Loader.kAllowPetDeath)
+            if (Loader.kAllowPetDiseaseDeath)
             {
                 // TODO: Localize!
                 //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetDie",
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                StyledNotification.Show(new StyledNotification.Format("You have died of disentery",
+                StyledNotification.Show(new StyledNotification.Format("Localize - You have died of disentery",
                     StyledNotification.NotificationStyle.kGameMessageNegative));
                 Target.Kill(Loader.diseaseDeathType);
             }
@@ -53,7 +53,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 // TODO: Localize!
                 //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetRecuperate",
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                StyledNotification.Show(new StyledNotification.Format("You are only mostly dead.",
+                StyledNotification.Show(new StyledNotification.Format("Localize - You are only mostly dead.",
                     StyledNotification.NotificationStyle.kGameMessageNegative));
                 // TODO: Needs an origin for diseases
                 // I guess we need a copy of the recuperate moodlet.
@@ -62,6 +62,11 @@ namespace Echoweaver.Sims3Game.PetDisease
 
                 Target.Motives.FreezeDecay(CommodityKind.Hunger, false);
                 Target.Motives.FreezeDecay(CommodityKind.Energy, true);
+
+                Target.BuffManager.RemoveElement(Buffs.BuffEWPetGermy.buffName);
+                Target.BuffManager.RemoveElement(Buffs.BuffEWPetPneumonia.buffName);
+                Target.BuffManager.RemoveElement(Buffs.BuffEWPetstilence.buffName);
+                Target.BuffManager.RemoveElement(Buffs.BuffEWTummyTrouble.buffName);
 
                 // TODO: This should be tunable
                 float passOutMinutes = 720f;

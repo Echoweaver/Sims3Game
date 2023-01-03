@@ -1,7 +1,6 @@
 ﻿using System;
 using Sims3.Gameplay.CAS;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CustomContent;
 using System.Collections.Generic;
 using Sims3.Gameplay.Utilities;
 using Sims3.Gameplay.Actors;
@@ -13,8 +12,8 @@ using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Services;
 using Sims3.Gameplay.Socializing;
 using Sims3.SimIFace.Enums;
-using Sims3.UI;
 using Sims3.UI.Controller;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -101,8 +100,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             if (s.CreatedSim.InWorld && s.AssignedRole != null || ServiceSituation.IsSimOnJob(s.CreatedSim)
                 || s.CreatedSim.IsGhostOrHasGhostBuff || s.CreatedSim.IsDying())
             {
-                StyledNotification.Show(new StyledNotification.Format("Sim not valid for contagion: "
-                    + s.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Sim not valid for contagion: " + s.FullName);
                 return false;
             }
             
@@ -111,13 +109,11 @@ namespace Echoweaver.Sims3Game.PetDisease
             if (lastCheck == null || lastCheck == DateAndTime.Invalid
                 || SimClock.ElapsedTime(TimeUnit.Minutes, lastCheck) >= 60f)
             {
-                StyledNotification.Show(new StyledNotification.Format("Ready to check Contagion = TRUE: "
-                    + s.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Ready to check Contagion = TRUE: " + s.FullName);
                 checkRecord[s.SimDescriptionId] = SimClock.CurrentTime();
                 return true;
             }
-            StyledNotification.Show(new StyledNotification.Format("Ready to check Contagion = FALSE: "
-                + s.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+            DebugNote("Ready to check Contagion = FALSE: " + s.FullName);
             return false;
         }
 
@@ -137,8 +133,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 WeatherEvent we = e as WeatherEvent;
                 if (we.Weather == Weather.Hail || we.Weather == Weather.Rain || we.Weather == Weather.Snow)
                 {
-                    StyledNotification.Show(new StyledNotification.Format("Check for weather change GermyPet " +
-                        e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    DebugNote("Check for weather change GermyPet " + e.Actor.Name);
                     foreach (Lot allLot in LotManager.AllLots)
                     {
                         List<Sim> list = allLot.GetSims() as List<Sim>;
@@ -158,9 +153,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             }
             else
             {
-                StyledNotification.Show(new StyledNotification.Format("Test: OnWeatherStarted event is not WeatherEvent type" +
-                    e.GetType().ToString(), StyledNotification.NotificationStyle.kDebugAlert));
-
+                DebugNote("Test: OnWeatherStarted event is not WeatherEvent type" + e.GetType().ToString());
             }
             return ListenerAction.Keep;
         }
@@ -176,8 +169,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 if (SeasonsManager.IsRaining(out intensity) || SeasonsManager.IsSnowing(out intensity)
                     || SeasonsManager.IsExtremeCold())
                 {
-                    StyledNotification.Show(new StyledNotification.Format("Check for outside during precip " +
-                        e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    DebugNote("Check for outside during precip " + e.Actor.Name);
                     if (ReadyToCheckContagion(LastGermyCheck, e.Actor.SimDescription))
                     {
                         Buffs.BuffEWPetGermy.CheckWeatherContagion(e.Actor as Sim);
@@ -189,8 +181,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public static ListenerAction OnGoFishingCat(Event e)
         {
-            StyledNotification.Show(new StyledNotification.Format("Check for fishing illness " +
-                e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+            DebugNote("Check for fishing illness " + e.Actor.Name);
 
             if (ReadyToCheckContagion(LastFluCheck, e.Actor.SimDescription))
             {
@@ -212,8 +203,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check for toilet contagion " +
-                    e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check for toilet contagion " + e.Actor.Name);
                 if (ReadyToCheckContagion(LastFluCheck, e.Actor.SimDescription))
                 {
                     Buffs.BuffEWTummyTrouble.CheckInteractionContagion(e.Actor as Sim);
@@ -226,8 +216,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check for eat trash contagion " +
-                    e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check for eat trash contagion " + e.Actor.Name);
                 if (ReadyToCheckContagion(LastFluCheck, e.Actor.SimDescription))
                 {
                     Buffs.BuffEWTummyTrouble.CheckEatContagion(e.Actor as Sim);
@@ -240,8 +229,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check for fleas contagion " +
-                    e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check for fleas contagion " + e.Actor.Name);
                 Buffs.BuffEWPetstilence.CheckAmbientContagion(e.Actor as Sim);
             }
             return ListenerAction.Keep;
@@ -251,8 +239,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check for woohoo contagion " +
-                    e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check for woohoo contagion " + e.Actor.Name);
                 Buffs.BuffEWPetstilence.CheckBloodborneContagion(e.Actor as Sim);
             }
             return ListenerAction.Keep;
@@ -270,14 +257,12 @@ namespace Echoweaver.Sims3Game.PetDisease
                     {
                         if (food.IsSpoiled)
                         {
-                            StyledNotification.Show(new StyledNotification.Format("Check for spoiled human food contagion " +
-                                e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                            DebugNote("Check for spoiled human food contagion " + e.Actor.Name);
                             Buffs.BuffEWTummyTrouble.CheckFoodPoisoningSpoiled(e.Actor as Sim);
                         }
                         else
                         {
-                            StyledNotification.Show(new StyledNotification.Format("Check for human food contagion " +
-                                e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                            DebugNote("Check for human food contagion " + e.Actor.Name);
                             Buffs.BuffEWTummyTrouble.CheckFoodPoisoning(e.Actor as Sim);
                         }
                     }
@@ -290,8 +275,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check for ate prey contagion " +
-                    e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check for ate prey contagion " + e.Actor.Name);
                 if (ReadyToCheckContagion(LastFoodPoisonCheck, e.Actor.SimDescription))
                 {
                     Buffs.BuffEWTummyTrouble.CheckAmbientPoisoning(e.Actor as Sim);
@@ -304,9 +288,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                StyledNotification.Show(new StyledNotification.Format("On Met Sim Actor: " + e.Actor.Name
-                    + "; Target: " + e.TargetObject.GetLocalizedName(),
-                StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("On Met Sim Actor: " + e.Actor.Name + "; Target: " + e.TargetObject.GetLocalizedName());
                 if (ReadyToCheckContagion(LastGermyCheck, e.Actor.SimDescription))
                 {
                     Buffs.BuffEWPetGermy.CheckAmbientContagion(e.Actor as Sim);
@@ -335,19 +317,16 @@ namespace Echoweaver.Sims3Game.PetDisease
                 // We're going to get a social event with each sim as Actor, so just check the Actor one
                 if (cevent != null && cevent.SocialName.Contains("Fight Pet"))
                 {
-                    StyledNotification.Show(new StyledNotification.Format("Fight Pet Check", StyledNotification
-                        .NotificationStyle.kDebugAlert));
+                    DebugNote("Fight Pet Contagion Check");
                     if (targetSim.BuffManager.HasElement(Buffs.BuffEWPetstilence.buffName))
                     {
-                        StyledNotification.Show(new StyledNotification.Format("Check for bloodborne contagion " +
-                            actorSim.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                        DebugNote("Check for bloodborne contagion " + actorSim.Name);
                         Buffs.BuffEWPetstilence.CheckBloodborneContagion(actorSim);
                     }
                     else if (targetSim.IsRaccoon)
                     {
                         // Raccoon can always transmit Petstilence
-                        StyledNotification.Show(new StyledNotification.Format("Check for raccoon contagion " +
-                            actorSim.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                        DebugNote("Check for raccoon contagion " + actorSim.Name);
                         Buffs.BuffEWPetstilence.CheckContactContagion(actorSim);
                     }
                     else
@@ -357,34 +336,25 @@ namespace Echoweaver.Sims3Game.PetDisease
 
                         // This is a bit clunky, but I don't want it to crash because I tried to check
                         // against an attribute of a null object
-                        if (relationship == null)
+                        if (relationship == null || relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
                         {
-                            StyledNotification.Show(new StyledNotification.Format("Check for stranger contagion " +
-                                actorSim.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                            DebugNote("Check for stranger contagion " + actorSim.Name);
                             Buffs.BuffEWPetstilence.CheckAmbientContagion(actorSim);
                         }
-                        else if (relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
-                        {
-                            StyledNotification.Show(new StyledNotification.Format("Check for stranger contagion " +
-                                actorSim.Name, StyledNotification.NotificationStyle.kDebugAlert));
-                            Buffs.BuffEWPetstilence.CheckAmbientContagion(actorSim);
-                        }
-
                     }
                 }
 
                 else if (cevent.SocialName.Contains("Greet Sniff") && (actorSim.IsCat || actorSim.IsADogSpecies)
                     && actorSim.SimDescription.AdultOrAbove)
                 {
-                    StyledNotification.Show(new StyledNotification.Format("Greet sniff check for " + actorSim.Name,
-                        StyledNotification.NotificationStyle.kDebugAlert));
+                    DebugNote("Greet sniff check for " + actorSim.Name);
+
                     // Meeting a strange pet has a low chance of generating any proximity contagion
                     Relationship relationship = Relationship.Get(actorSim, targetSim, createIfNone: false);
 
                     if (relationship == null)
                     {
-                        StyledNotification.Show(new StyledNotification.Format("Check for stranger contagion " +
-                            e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                        DebugNote("Check for stranger contagion " + e.Actor.Name);
                         if (ReadyToCheckContagion(LastGermyCheck, actorSim.SimDescription))
                         {
                             Buffs.BuffEWPetGermy.CheckAmbientContagion(actorSim);
@@ -396,8 +366,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                     }
                     else if (relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
                     {
-                        StyledNotification.Show(new StyledNotification.Format("Check for stranger contagion " +
-                            e.Actor.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                        DebugNote("Check for stranger contagion " + e.Actor.Name);
                         if (ReadyToCheckContagion(LastGermyCheck, actorSim.SimDescription))
                         {
                             Buffs.BuffEWPetGermy.CheckAmbientContagion(actorSim);

@@ -3,19 +3,11 @@ using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.CAS;
-using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Objects.CookingObjects;
-using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.Objects.RabbitHoles;
-using Sims3.Gameplay.Seasons;
-using Sims3.Gameplay.Services;
-using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.Enums;
 using Sims3.UI;
-using Sims3.UI.Controller;
 using Queries = Sims3.Gameplay.Queries;
 
 
@@ -23,42 +15,45 @@ using Queries = Sims3.Gameplay.Queries;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
-	public class Loader
-	{
-		[Tunable] protected static bool init = false;
+    public class Loader
+    {
+        [Tunable] protected static bool init = false;
 
         [Tunable]
-        public static bool kAllowPetDeath = true;
+        public static bool kAllowPetDiseaseDeath = true;
+        [Tunable]
+        public static bool kPetDiseaseDebug = true;
 
         // Word on the street is that ghost shaders don't require the associated EP.
         [Tunable]
         public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.Shark;
 
         public static List<ulong> BuffGuids = new List<ulong>() {
-			Buffs.BuffEWPetGermy.mGuid,
-			Buffs.BuffEWTummyTrouble.mGuid,
-			Buffs.BuffEWPetstilence.mGuid,
-			Buffs.BuffEWPetPneumonia.mGuid
-		};
+            Buffs.BuffEWPetGermy.mGuid,
+            Buffs.BuffEWTummyTrouble.mGuid,
+            Buffs.BuffEWPetstilence.mGuid,
+            Buffs.BuffEWPetPneumonia.mGuid
+        };
 
         static Loader()
-		{
-			LoadSaveManager.ObjectGroupsPreLoad += OnPreload;
-			World.sOnWorldLoadFinishedEventHandler += OnWorldLoaded;
-		}
+        {
+            LoadSaveManager.ObjectGroupsPreLoad += OnPreload;
+            World.sOnWorldLoadFinishedEventHandler += OnWorldLoaded;
+        }
 
-		public static void Initialize()
-		{
-			for (int i = 0; i < BuffGuids.Count; i++)
-			{
-				Sim.ActiveActor.BuffManager.AddElement(BuffGuids[i], Origin.None);
-			}
-		}
+        // TODO: Remove this before release
+        public static void Initialize()
+        {
+            for (int i = 0; i < BuffGuids.Count; i++)
+            {
+                Sim.ActiveActor.BuffManager.AddElement(BuffGuids[i], Origin.None);
+            }
+        }
 
-		static void OnPreload()
-		{
-			LoadBuffXMLandParse(null);
-		}
+        static void OnPreload()
+        {
+            LoadBuffXMLandParse(null);
+        }
 
         static void OnWorldLoaded(object sender, EventArgs e)
         {
@@ -119,6 +114,13 @@ namespace Echoweaver.Sims3Game.PetDisease
             EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
                 .OnMetSim));
 
+            kPetDiseaseDebug = true;
+            if (kPetDiseaseDebug)
+            {
+                StyledNotification.Show(new StyledNotification.Format("Pet Diseases debug mode ON ",
+                    StyledNotification.NotificationStyle.kDebugAlert));
+            }
+
         }
 
         public static void LoadBuffXMLandParse(ResourceKey[] resourceKeys)
@@ -130,6 +132,14 @@ namespace Echoweaver.Sims3Game.PetDisease
                 BuffManager.ParseBuffData(xmlDbData, true);
             }
             UIManager.NewHotInstallStoreBuffData += LoadBuffXMLandParse;
+        }
+
+        public static void DebugNote(string str)
+        {
+            if (kPetDiseaseDebug)
+            {
+                StyledNotification.Show(new StyledNotification.Format(str, StyledNotification.NotificationStyle.kDebugAlert));
+            }
         }
     }
 }

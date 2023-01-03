@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
-using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.RabbitHoles;
-using Sims3.Gameplay.Socializing;
 using Sims3.SimIFace;
 using Sims3.UI;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 using static Sims3.Gameplay.Actors.Sim;
-using static Sims3.Gameplay.Situations.PaperBoySituation;
-using static Sims3.SimIFace.Route;
 using static Sims3.UI.ObjectPicker;
 
 namespace Echoweaver.Sims3Game.PetDisease

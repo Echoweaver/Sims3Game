@@ -9,6 +9,8 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetGermy;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
+
 
 //Template Created by Battery
 // Pneumonia (Greencough)
@@ -90,8 +92,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 {
                     symptomType = RandomUtil.GetInt(1, 2);
                 }
-                StyledNotification.Show(new StyledNotification.Format("Pneumonia symptom " + symptomType +
-                    ": " + mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Pneumonia symptom " + symptomType + ": " + mSickSim.FullName);
 
                 if (symptomType == 1)
                 {
@@ -135,8 +136,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             buffInstance.isDeadly = RandomUtil.RandomChance(kChanceOfPneumonia);
             if (buffInstance.isDeadly)
             {
-                StyledNotification.Show(new StyledNotification.Format("Pneumonia is deadly: " +
-                    buffInstance.mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("This pneumonia is deadly: " + buffInstance.mSickSim.FullName);
             }
             buffInstance.DoSymptom();
             base.OnAddition(bm, bi, travelReaddition);

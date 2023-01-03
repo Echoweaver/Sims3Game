@@ -11,7 +11,6 @@ using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.Store.Objects;
 using Sims3.UI;
 using Sims3.UI.Controller;
 using static Sims3.Gameplay.Abstracts.RabbitHole;

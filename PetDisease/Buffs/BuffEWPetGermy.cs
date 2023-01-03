@@ -5,13 +5,10 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Seasons;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
-using Sims3.Store.Objects;
-using Sims3.UI;
-using static Sims3.Gameplay.Situations.PaperBoySituation;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
+
 
 //Template Created by Battery
 
@@ -93,8 +90,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void DoSymptom()
             {
-                StyledNotification.Show(new StyledNotification.Format("Germy symptom: " +
-                    mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Germy symptom: " + mSickSim.FullName);
 
                 // Currently only symptom is coughing.
                 mSickSim.CreatedSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mSickSim.CreatedSim,
@@ -136,13 +132,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public override bool Run()
             {
+                DebugNote("Coughing symptom: " + Actor.FullName);
                 StandardEntry();
                 if (Actor.Posture != Actor.PetSittingOnGround)
                 {
                     PetSittingOnGroundPosture.SitOnGround(Actor);
                     Actor.Posture = Actor.PetSittingOnGround;
                 }
-                Actor.PlaySoloAnimation("a_idle_sit_hack_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_sit_hack_x", yield: false, ProductVersion.EP5);
                 Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
                         .GetMotiveValue(CommodityKind.Energy) - 20);
                 StandardExit();
@@ -161,9 +158,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 .kInteractSicknessOdds))
             // kAmbientSicknessOdds = 5%, kInteract = 10%
             {
-                StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
-                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
-                // Get Sick
+                DebugNote("Sim Caught Germy: " + s.Name);
+
+                // Get Sick with incubation time
                 s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
@@ -211,8 +208,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
             if (buffInstance.willBecomePnumonia)
             {
-                StyledNotification.Show(new StyledNotification.Format("Germy will turn into pneumonia: " +
-                    buffInstance.mSickSim.FullName, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Germy can turn into pneumonia: " + buffInstance.mSickSim.FullName);
             }
             buffInstance.PetGermyContagionBroadcaster = new ReactionBroadcaster(bi.TargetSim.CreatedSim,
                 BuffGermy.kSickBroadcastParams, PetGermyContagionCallback);
@@ -248,8 +244,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     .RandomChance01(HealthManager.kAmbientSicknessOdds))
                 {
                     // Get Sick
-                    StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
-                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    DebugNote("Sim Caught Germy: " + s.Name);
                     s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                         HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                         TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
@@ -267,14 +262,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 s.SimDescription.HealthManager?.PossibleProximityContagion();
             } else if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
             {
-                StyledNotification.Show(new StyledNotification.Format("Check proximity contagion: " +
-                    s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                DebugNote("Check proximity contagion: " + s.Name);
                 if (!s.BuffManager.HasElement(buffName) && RandomUtil
                     .RandomChance01(HealthManager.kProximitySicknessOdds))
                 {
                     // Get Sick
-                    StyledNotification.Show(new StyledNotification.Format("Sim Caught Germy: " +
-                        s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    DebugNote("Sim Caught Germy: " + s.Name);
                     s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                         HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                         TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
