@@ -10,7 +10,6 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using Queries = Sims3.Gameplay.Queries;
 
-
 //Template Created by Battery
 
 namespace Echoweaver.Sims3Game.PetDisease
@@ -41,7 +40,6 @@ namespace Echoweaver.Sims3Game.PetDisease
             World.sOnWorldLoadFinishedEventHandler += OnWorldLoaded;
         }
 
-        // TODO: Remove this before release
         public static void Initialize()
         {
             for (int i = 0; i < BuffGuids.Count; i++)
@@ -57,7 +55,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         static void OnWorldLoaded(object sender, EventArgs e)
         {
-            Initialize();
+            //Initialize();
             foreach (Hospital h in Queries.GetObjects<Hospital>())
             {
                 h.AddInteraction(EWVaccinatePet.Singleton, true);
@@ -69,7 +67,12 @@ namespace Echoweaver.Sims3Game.PetDisease
                 {
 
                     s.AddInteraction(EWTakeToVetDisease.Singleton, true);
-                    s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
+                    if (kPetDiseaseDebug)
+                    {
+                        s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
+                        s.AddInteraction(Buffs.BuffEWPetstilence.Shiver.Singleton, true);
+                        s.AddInteraction(Buffs.EWTestAnim.Singleton, true);
+                    }
                 }
             }
 
@@ -114,11 +117,10 @@ namespace Echoweaver.Sims3Game.PetDisease
             EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
                 .OnMetSim));
 
-            kPetDiseaseDebug = true;
             if (kPetDiseaseDebug)
             {
-                StyledNotification.Show(new StyledNotification.Format("Pet Diseases debug mode ON ",
-                    StyledNotification.NotificationStyle.kDebugAlert));
+                AlarmManager.Global.AddAlarm(10f, TimeUnit.Seconds, NotifyDebugState, "Notify that debug is on",
+                    AlarmType.NeverPersisted, null);
             }
 
         }
@@ -132,6 +134,11 @@ namespace Echoweaver.Sims3Game.PetDisease
                 BuffManager.ParseBuffData(xmlDbData, true);
             }
             UIManager.NewHotInstallStoreBuffData += LoadBuffXMLandParse;
+        }
+
+        public static void NotifyDebugState()
+        {
+            DebugNote("Pet Disease Debug Mode ON");
         }
 
         public static void DebugNote(string str)

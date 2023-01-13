@@ -118,7 +118,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Cough in Germy";
+                    return "Disease DEBUG - Cough";
                     //return LocalizeString("Cough");
                 }
 
@@ -139,7 +139,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     PetSittingOnGroundPosture.SitOnGround(Actor);
                     Actor.Posture = Actor.PetSittingOnGround;
                 }
-                Actor.PlaySoloAnimation("a_idle_sit_hack_x", yield: false, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_sit_hack_x", yield: true, ProductVersion.EP5);
                 Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
                         .GetMotiveValue(CommodityKind.Energy) - 20);
                 StandardExit();

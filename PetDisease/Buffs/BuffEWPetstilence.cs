@@ -6,11 +6,13 @@ using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
+using Sims3.Gameplay.Objects;
 using Sims3.SimIFace;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Actors.Sim;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
-
+using Sims3.Gameplay.Objects.Vehicles;
+using Sims3.Gameplay.ThoughtBalloons;
 
 //Template Created by Battery
 
@@ -46,13 +48,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxTimeBetweenSymptoms = 360f;
 
-        [TunableComment("Min petstilence duration (Hours)")]
+        [TunableComment("Min petstilence duration (Minutes)")]
         [Tunable]
-        public static float kMinDuration = 48f; // 2 days
+        // I think this is in minutes
+        public static float kMinDuration = 48f; // 2 days - 69120
 
-        [TunableComment("Max petstilence duration (Hours)")]
+        [TunableComment("Max petstilence duration (Minutes)")]
         [Tunable]
-        public static float kMaxDuration = 96f; // 4 days
+        public static float kMaxDuration = 96f; // 4 days - 138240
 
         [TunableComment("Chance of catching from stranger contact")]
         [Tunable]
@@ -60,17 +63,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public class BuffInstanceEWPetstilence : BuffInstance
         {
-            public SimDescription mSickSim;
-            public override SimDescription TargetSim => mSickSim;
+            public Sim mSickSim;
+            public override SimDescription TargetSim => mSickSim.SimDescription;
             public AlarmHandle mSymptomAlarm = AlarmHandle.kInvalidHandle;
             public AlarmHandle mSickIncubationAlarm = AlarmHandle.kInvalidHandle;
             public AlarmHandle mAdvanceDiseaseAlarm = AlarmHandle.kInvalidHandle;
             public float mStageLength = 24f;  // Length of disease stage in hours
             public int mStage = 0;
 
-            public VisualEffect mDroolEffect;
-            public VisualEffect mDroolEffectJaw;
-            public VisualEffect mFlyEffect;
+            public VisualEffect mDroolEffect; 
+            public VisualEffect mHazeEffect;
+            public VisualEffect mHazeEffect2;
 
             public BuffInstanceEWPetstilence()
             {
@@ -92,39 +95,48 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public override void SetTargetSim(SimDescription targetSim)
             {
-                mSickSim = targetSim;
+                mSickSim = targetSim.CreatedSim;
             }
 
-            public void StartFx(Sim owner)
+            public void StartDroolingFx(Sim owner)
             {
                 DebugNote("Start Petstilence drooling: " + owner.FullName);
 
-                if (owner.IsCat)
+                // Non-looping effects of interest
+                //mDroolEffect = VisualEffect.Create("ep5smalldogdrinkponddrips");
+                //mDroolEffect = VisualEffect.Create("ep5dogmouthdrips");
+
+                if (owner.IsCat || owner.IsLittleDog)
                 {
-                    mDroolEffect = VisualEffect.Create("ep5catdrool");
+                    mDroolEffect = VisualEffect.Create("spongebathdripsshort");
                     mDroolEffect.ParentTo(owner, Sim.FXJoints.Mouth);
-                }
-                else if (owner.IsLittleDog)
-                {
-                    mDroolEffect = VisualEffect.Create("p5doglittledrool");
-                    mDroolEffect.ParentTo(owner, Sim.FXJoints.Mouth);
-                    mDroolEffectJaw = VisualEffect.Create("ep5doglittledrooljaw");
-                    mDroolEffectJaw.ParentTo(owner, Sim.FXJoints.Mouth);
+                    mDroolEffect.Start();
                 }
                 else
                 {
-                    mDroolEffect = VisualEffect.Create("p5dogdrool");
+                    mDroolEffect = VisualEffect.Create("spongebathdrips");
                     mDroolEffect.ParentTo(owner, Sim.FXJoints.Mouth);
-                    mDroolEffectJaw = VisualEffect.Create("ep5dogdrooljaw");
-                    mDroolEffectJaw.ParentTo(owner, Sim.FXJoints.Mouth);
+                    mDroolEffect.Start();
                 }
+            }
 
-                    mFlyEffect = VisualEffect.Create("ep7BuffSickandTired_main");
-                    mFlyEffect.ParentTo(owner, Sim.FXJoints.Pelvis);
-                    mFlyEffect.Start();
-                    //mFlyEffect.mDisgustBroadcaster = new ReactionBroadcaster(sim, DisgustSimsBroadcasterParams, DisgustSims);
-                }
+            public void StartHazeFx()
+            {
+                DebugNote("Start Petstilence fly swarm: " + mSickSim.FullName);
 
+                //mHazeEffect = VisualEffect.Create("ep11buffhealthyglowlrg_main");
+                //mHazeEffect = VisualEffect.Create("ep5unicornblessblacksparklessmpet");
+                mHazeEffect = VisualEffect.Create("ep7BuffSickandTired_main");
+                //mHazeEffect2 = VisualEffect.Create("ep11buffhealthyglowlrg_main");
+                mHazeEffect.ParentTo(mSickSim, Sim.FXJoints.Spine2);
+                //mHazeEffect2.ParentTo(mSickSim, Sim.FXJoints.Crotch);
+                //Vector3 fxColor = new Vector3(0.7f, 8f, 0f);
+                //Vector3 fxColor = new Vector3(0.2f, 0.2f, 0.2f);
+                //mHazeEffect.SetEffectColorScale(fxColor);
+                //mHazeEffect2.SetEffectColorScale(fxColor);
+                mHazeEffect.Start();
+                //mHazeEffect2.Start();
+            }
 
             public void StopFx()
             {
@@ -134,17 +146,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     mDroolEffect.Dispose();
                     mDroolEffect = null;
                 }
-                if (mDroolEffectJaw != null)
+                if (mHazeEffect != null)
                 {
-                    mDroolEffectJaw.Stop(VisualEffect.TransitionType.HardTransition);
-                    mDroolEffectJaw.Dispose();
-                    mDroolEffectJaw = null;
+                    mHazeEffect.Stop(VisualEffect.TransitionType.HardTransition);
+                    mHazeEffect.Dispose();
+                    mHazeEffect = null;
                 }
-                if (mFlyEffect != null)
+                if (mHazeEffect2 != null)
                 {
-                    mFlyEffect.Stop(VisualEffect.TransitionType.HardTransition);
-                    mFlyEffect.Dispose();
-                    mFlyEffect = null;
+                    mHazeEffect2.Stop(VisualEffect.TransitionType.HardTransition);
+                    mHazeEffect2.Dispose();
+                    mHazeEffect2 = null;
                 }
             }
 
@@ -163,52 +175,64 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public void DoSymptom()
             {
                 int symptomType = 0;
-
-                DebugNote("Petstilence Level " + " + " + mStage + " symptom: " + mSickSim.FullName);
+                InteractionPriority priority = new InteractionPriority(InteractionPriorityLevel.High);
+                if (mSickSim.IsSleeping || mSickSim.SimInRabbitHolePosture || mSickSim.Posture is SittingInVehicle)
+                {
+                    // Don't force these situations to terminate just to run a symptom
+                    priority = new InteractionPriority(InteractionPriorityLevel.UserDirected);
+                }
 
                 switch (mStage)
                 {
                     case 0:
                         // First stage, mildest symptoms. Maybe just a fuzzy feeling
                         symptomType = RandomUtil.GetInt(1, 3);
+                        DebugNote("Petstilence stage 0 Symptom type " + symptomType + ": " + mSickSim.FullName);
                         if (symptomType == 1)
                         {
-                            RandomPetStartle action = RandomPetStartle.Singleton.CreateInstance(mSickSim.CreatedSim,
-                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
-                                false, false) as RandomPetStartle;
-                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
-                        }
-                        // a_react_stand_scaredShiver_x
-                        // catfreakoutobject
-                        break;
-                    case 1:
-                        symptomType = RandomUtil.GetInt(1, 3);
-                        if (symptomType == 1)
-                        {
-                            ActWacky action = ActWacky.Singleton.CreateInstance(mSickSim.CreatedSim,
-                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
-                                false, false) as ActWacky;
-                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+
+                            BeSkittish action = BeSkittish.Singleton.CreateInstance(mSickSim,
+                                mSickSim, priority, false, false) as BeSkittish;
+                            mSickSim.InteractionQueue.AddNext(action);
                         }
                         else if (symptomType == 2)
                         {
-                            BeSkittishAboutFullMoon action = BeSkittishAboutFullMoon.Singleton.CreateInstance(mSickSim.CreatedSim,
-                                mSickSim.CreatedSim,new InteractionPriority(InteractionPriorityLevel.UserDirected),
-                                false, false) as BeSkittishAboutFullMoon;
-                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            Shiver action = Shiver.Singleton.CreateInstance(mSickSim, mSickSim,
+                                priority, false, false) as Shiver;
+                            mSickSim.InteractionQueue.AddNext(action);
+                        } else
+                        {
+                            Whine action = Whine.Singleton.CreateInstance(mSickSim, mSickSim, priority,
+                                false, false) as Whine;
+                            mSickSim.InteractionQueue.AddNext(action);
+                        }
+                            
+                        break;
+                    case 1:
+                        symptomType = RandomUtil.GetInt(1, 3);
+                        DebugNote("Petstilence stage 1 Symptom type " + " + " + symptomType + ": " + mSickSim.FullName);
+                        mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
+                                .GetMotiveValue(CommodityKind.Energy) - 20);
+                        if (symptomType == 1)
+                        {
+                            ActWacky action = ActWacky.Singleton.CreateInstance(mSickSim, mSickSim,
+                                priority, false, false) as ActWacky;
+                            mSickSim.InteractionQueue.AddNext(action);
+                        }
+                        else if (symptomType == 2)
+                        {
+                            Yowl action = Yowl.Singleton.CreateInstance(mSickSim,
+                                mSickSim, priority, false, false) as Yowl;
+                            mSickSim.InteractionQueue.AddNext(action);
                         }
                         else
                         {
                             // Hiss/growl at random sim
-                            List<Sim> list = new List<Sim>(mSickSim.CreatedSim.LotCurrent.GetSims());
-                            list.Remove(mSickSim.CreatedSim);
+                            List<Sim> list = new List<Sim>(mSickSim.LotCurrent.GetSims());
+                            list.Remove(mSickSim);
                             foreach (Sim s in list)
                             {
                                 if (s.SimDescription.ChildOrBelow)
-                                {
-                                    list.Remove(s);
-                                }
-                                else if (s.IsHorse)
                                 {
                                     list.Remove(s);
                                 }
@@ -216,27 +240,27 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                             Sim target = null;
                             if (list.Count > 0)
                             {
-                                target = RandomUtil.GetRandomObjectFromList<Sim>(list);
+                                target = RandomUtil.GetRandomObjectFromList(list);
                             } else
                             {
-                                DebugNote("Petstilence attempted at random sim but no targets available");
+                                DebugNote("Petstilence hiss/growl - no targets available");
                                 return;
                             }
-                            DebugNote("Petstilence Hiss/Growl at random sim " + target.FullName);
+                            DebugNote("Petstilence Hiss/Growl at random sim target: " + target.FullName);
                             if (mSickSim.IsCat)
                             {
                                 InteractionInstance action = new SocialInteractionA.Definition("Cat Hiss",
                                     new string[0], null, initialGreet: false).CreateInstance(target,
-                                    mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                    mSickSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
                                     false, false);
-                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                                mSickSim.InteractionQueue.AddNext(action);
                             } else
                             {
                                 InteractionInstance action = new SocialInteractionA.Definition("Growl At",
                                     new string[0], null, initialGreet: false).CreateInstance(target,
-                                    mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
+                                    mSickSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
                                     false, false);
-                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                                mSickSim.InteractionQueue.AddNext(action);
                             }
                         }
                         break;
@@ -245,16 +269,19 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         // Drop hygiene to 0 with fly swarm
                         // Attack/chase random sim
                         symptomType = RandomUtil.GetInt(1, 3);
+                        DebugNote("Petstilence stage 2 Symptom type " + " + " + symptomType + ": " + mSickSim.FullName);
+                        mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
+                                .GetMotiveValue(CommodityKind.Energy) - 50);
                         if (symptomType == 1)
                         {
-                            BuffExhausted.PassOut action = BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim.CreatedSim,
-                                mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.High),
+                            BuffExhausted.PassOut action = BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
+                                mSickSim, new InteractionPriority(InteractionPriorityLevel.High),
                                 false, false) as BuffExhausted.PassOut;
-                            mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                            mSickSim.InteractionQueue.AddNext(action);
                         } else if (symptomType == 2)
                         {
-                            List<Sim> list = new List<Sim>(mSickSim.CreatedSim.LotCurrent.GetSims());
-                            list.Remove(mSickSim.CreatedSim);
+                            List<Sim> list = new List<Sim>(mSickSim.LotCurrent.GetSims());
+                            list.Remove(mSickSim);
 
                             foreach (Sim s in list)
                             {
@@ -279,55 +306,64 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                             DebugNote("Petstilence fight/chase random sim " + target.FullName);
                             if (target.IsCat || target.IsADogSpecies)
                             {
-                                FightPet action = FightPet.Singleton.CreateInstance(target, mSickSim.CreatedSim,
+                                FightPet action = FightPet.Singleton.CreateInstance(target, mSickSim,
                                     new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as FightPet;
-                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                                mSickSim.InteractionQueue.AddNext(action);
                             } else
                             {
-                                ChaseMean action = ChaseMean.Singleton.CreateInstance(target, mSickSim.CreatedSim,
+                                ChaseMean action = ChaseMean.Singleton.CreateInstance(target, mSickSim,
                                     new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as ChaseMean;
-                                mSickSim.CreatedSim.InteractionQueue.AddNext(action);
+                                mSickSim.InteractionQueue.AddNext(action);
                             }
                         } else
                         {
-                            
+                            DebugNote("Petstilence run in terror ");
+                            ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData("balloon_flames");
+                            balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
+                            balloonData.Duration = ThoughtBalloonDuration.Medium;
+                            balloonData.mPriority = ThoughtBalloonPriority.High;
+                            mSickSim.ThoughtBalloonManager.ShowBalloon(balloonData);
+                            Fire.PetRunAwayFromFire action = Fire.PetRunAwayFromFire.Singleton.CreateInstance(mSickSim,
+                                mSickSim, new InteractionPriority(InteractionPriorityLevel.Fire), false, false) as
+                                Fire.PetRunAwayFromFire;
+                            mSickSim.InteractionQueue.AddNext(action);
                         }
                         break;
                     default:
                         break;
                 }
 
-                mSymptomAlarm = mSickSim.CreatedSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+                mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetstilence: Time until next symptom",
                     AlarmType.DeleteOnReset);
             }
 
             public void AdvanceDisease()
             {
+                mStage++;
+                DebugNote("Petstilence advance to level " + mStage + ": " + mSickSim.FullName);
                 if (mStage < 3)
                 {
-                    mStage++;
-                    mAdvanceDiseaseAlarm = mSickSim.CreatedSim.AddAlarm(mStageLength, TimeUnit.Minutes,
+                    mAdvanceDiseaseAlarm = mSickSim.AddAlarm(mStageLength, TimeUnit.Minutes,
                         AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
                         AlarmType.DeleteOnReset);
                     if (mStage == 1)
                     {
                         // Start drooling
+                        StartDroolingFx(mSickSim);
+                    } else if (mStage == 2)
+                    {
+                        // Start haze/fly swarm/whatever indicator of serious illness
+                        StartHazeFx();
                     }
                     DoSymptom();
                 } else if (mStage >= 3)
                 {
                     // This disease is lethal if not cured
-                    if (Loader.kAllowPetDiseaseDeath)
-                    {
-                        mSickSim.CreatedSim.Kill(Loader.diseaseDeathType);
-                    } else
-                    {
-                        EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(mSickSim.CreatedSim,
-                            mSickSim.CreatedSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false)
-                            as EWPetSuccumbToDisease;
-                        mSickSim.CreatedSim.InteractionQueue.AddNext(die);
-                    }
+                    EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(mSickSim,
+                        mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false)
+                        as EWPetSuccumbToDisease;
+                    mSickSim.InteractionQueue.AddNext(die);
                 }
             }
         }
@@ -357,6 +393,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public override bool Run()
             {
+                DebugNote("Act wacky symptom.");
                 StandardEntry();
                 EnterStateMachine("wacky_pet", "Enter", "x");
                 AnimateSim("Loop");
@@ -367,6 +404,139 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 StandardExit();
                 return flag;
             }
+        }
+
+        public class Shiver : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, Shiver>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Shiver";
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                DebugNote("Petstilence shiver symptom: " + Actor.FullName);
+                StandardEntry();
+                Actor.PlaySoloAnimation("a_react_stand_scaredShiver_x", yield: true, ProductVersion.EP5);
+                StandardExit();
+
+                return true;
+            }
+
+        }
+
+        public class BeSkittish : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, BeSkittish>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Jump at Shadows";
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                DebugNote("Petstilence skittish symptom: " + Actor.FullName);
+                StandardEntry();
+                Actor.PlaySoloAnimation("a_trait_skittish_x", yield: true, ProductVersion.EP5);
+                StandardExit();
+
+                return true;
+            }
+
+        }
+
+        public class Yowl : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, Yowl>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Complain of Discomfort";
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                DebugNote("Petstilence yowl/howl symptom: " + Actor.FullName);
+                StandardEntry();
+                if (Actor.IsCat)
+                {
+                    Actor.PlaySoloAnimation("a_idle_sit_yowl_x", yield: true, ProductVersion.EP5);
+                } else
+                {
+                    Actor.PlaySoloAnimation("a_react_stand_howl_x", yield: true, ProductVersion.EP5);
+                }
+                StandardExit();
+
+                return true;
+            }
+
+        }
+
+        public class Whine : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, Whine>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Feel Uncomfortable";
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                DebugNote("Petstilence whine symptom: " + Actor.FullName);
+                StandardEntry();
+                Actor.PlaySoloAnimation("a_react_layDown_whine_start_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_react_layDown_whine_loop2_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_react_layDown_whine_stop_x", yield: true, ProductVersion.EP5);
+
+                StandardExit();
+
+                return true;
+            }
+
         }
 
         public static void CheckAmbientContagion(Sim s)
@@ -457,22 +627,20 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public override BuffInstance CreateBuffInstance()
         {
-            return new BuffInstanceEWPetstilence(this, base.BuffGuid, base.EffectValue, base.TimeoutSimMinutes);
+            return new BuffInstanceEWPetstilence(this, BuffGuid, EffectValue, TimeoutSimMinutes);
         }
 
         public override void OnAddition(BuffManager bm, BuffInstance bi, bool travelReaddition)
         {
             BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
-            buffInstance.mSickSim = bm.Actor.SimDescription;
+            buffInstance.mSickSim = bm.Actor;
             buffInstance.mStageLength = bi.TimeoutCount / 3;
             buffInstance.mAdvanceDiseaseAlarm = bm.Actor.AddAlarm(buffInstance.mStageLength,
                 TimeUnit.Minutes, buffInstance.AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
                 AlarmType.DeleteOnReset);
+            //TODO: This should go on final stage
             buffInstance.DoSymptom();
             base.OnAddition(bm, bi, travelReaddition);
-
-            // When complete, this effect will start after first stage advance
-            buffInstance.StartFx(buffInstance.mSickSim.CreatedSim);
         }
 
         public override void OnRemoval(BuffManager bm, BuffInstance bi)
@@ -505,9 +673,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public override bool Run()
         {
-            Actor.InteractionQueue.AddNext(BuffEWPetGermy.Cough.Singleton.CreateInstance(Actor,
-                Actor, new InteractionPriority(InteractionPriorityLevel.UserDirected),
-                isAutonomous: true, cancellableByPlayer: false));
+            Actor.PlaySoloAnimation("a_react_sit_whine_loop_x");
             return true;
         }
     }
