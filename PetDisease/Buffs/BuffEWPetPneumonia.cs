@@ -5,6 +5,7 @@ using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
+using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -82,38 +83,109 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public void DoSymptom()
             {
                 int symptomType;
+                InteractionPriority priority = new InteractionPriority(InteractionPriorityLevel.High);
+                if (mSickSim.IsSleeping || mSickSim.SimInRabbitHolePosture || mSickSim.Posture is SittingInVehicle)
+                {
+                    // Don't force these situations to terminate just to run a symptom
+                    priority = new InteractionPriority(InteractionPriorityLevel.UserDirected);
+                }
                 if (mSickSim.IsSleeping)
                 {
                     // if sim is sleeping 50% nothing will happen
-                    // Otherwise wake up sim unless tuning says otherwise.
-                    symptomType = RandomUtil.GetInt(1, 4);
+                    // Symptoms while sleeping will queue instead of interrupting
+                    symptomType = RandomUtil.GetInt(1, 6);
                 }
                 else
                 {
-                    symptomType = RandomUtil.GetInt(1, 2);
+                    symptomType = RandomUtil.GetInt(1, 3);
                 }
                 DebugNote("Pneumonia symptom " + symptomType + ": " + mSickSim.FullName);
 
                 if (symptomType == 1)
                 {
                     mSickSim.InteractionQueue.AddNext(BuffEWPetGermy.Cough.Singleton.CreateInstance(mSickSim,
-                        mSickSim, new InteractionPriority(InteractionPriorityLevel.UserDirected),
-                        isAutonomous: true, cancellableByPlayer: false));
+                        mSickSim, priority, isAutonomous: false, cancellableByPlayer: false));
                     // Additional energy loss for pneumonia
                     mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
                             .GetMotiveValue(CommodityKind.Energy) - 10);
                 }
                 else if (symptomType == 2)
                 {
-                    mSickSim.Motives.SetValue(CommodityKind.Energy, 20);
+                    mSickSim.InteractionQueue.AddNext(Wheeze.Singleton.CreateInstance(mSickSim,
+                        mSickSim, priority, isAutonomous: false, cancellableByPlayer: false));
+                    mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
+                            .GetMotiveValue(CommodityKind.Energy) - 20);
+                } else
+                {
+                    mSickSim.InteractionQueue.AddNext(BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
+                        mSickSim, priority, isAutonomous: false, cancellableByPlayer: false));
+                    if (mSickSim.Motives.GetMotiveValue(CommodityKind.Energy) > 20)
+                    {
+                        mSickSim.Motives.SetValue(CommodityKind.Energy, 20);
+                    }
                 }
 
                 mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetPneumonia: Time until next symptom",
                     AlarmType.DeleteOnReset);
             }
+
         }
 
+        public class Wheeze : Interaction<Sim, Sim>
+        {
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, Wheeze>
+            {
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Wheeze";
+                    //return LocalizeString("Wheeze");
+                }
+
+                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override bool Run()
+            {
+                DebugNote("Wheezing symptom: " + Actor.FullName);
+                StandardEntry();
+                if (Actor.Posture != Actor.PetSittingOnGround)
+                {
+                    PetSittingOnGroundPosture.SitOnGround(Actor);
+                    Actor.Posture = Actor.PetSittingOnGround;
+                }
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_start_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
+                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_stop_x", yield: true, ProductVersion.EP5);
+                if (Actor.IsCat)
+                {
+                    Actor.PlaySoloAnimation("a_trans_down2sit_x", yield: true, ProductVersion.EP5);
+                } else if (Actor.SimDescription.Elder)
+                {
+                    Actor.PlaySoloAnimation("a_trans_down2sit_elder_x", yield: true, ProductVersion.EP5);
+                } else
+                {
+                    Actor.PlaySoloAnimation("a_trans_down2sit_slow_x", yield: true, ProductVersion.EP5);
+                }
+                Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
+                        .GetMotiveValue(CommodityKind.Energy) - 30);
+                StandardExit();
+
+                return true;
+            }
+
+        }
         public BuffEWPetPneumonia(Buff.BuffData info) : base(info)
 		{
 			
@@ -145,7 +217,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         public override void OnRemoval(BuffManager bm, BuffInstance bi)
         {
             BuffInstanceEWPetPneumonia buffInstance = bi as BuffInstanceEWPetPneumonia;
-            // Check to see if this turns into Pneumonia and add buff if applicable.
             // TODO: when the buff is removed from treatment, make sure to set the
             // pneumonia check to false.
             if (buffInstance.isDeadly)
@@ -158,5 +229,16 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             base.OnRemoval(bm, bi);
         }
-    }		
+
+        public static void CureIfPresent(Sim s)
+        {
+            if (s.BuffManager.HasElement(buffName))
+            {
+                BuffInstanceEWPetPneumonia instance = s.BuffManager.GetElement(buffName) as BuffInstanceEWPetPneumonia;
+                instance.isDeadly = false;
+                s.BuffManager.RemoveElement(buffName);
+            } 
+        }
+
+    }
 }

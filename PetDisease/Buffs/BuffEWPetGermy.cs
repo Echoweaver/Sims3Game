@@ -118,7 +118,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Disease DEBUG - Cough";
+                    return "Localize - Cough";
                     //return LocalizeString("Cough");
                 }
 

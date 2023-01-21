@@ -21,7 +21,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Tunable]
         public static bool kAllowPetDiseaseDeath = true;
         [Tunable]
-        public static bool kPetDiseaseDebug = true;
+        public static bool kPetDiseaseDebug = false;
 
         // Word on the street is that ghost shaders don't require the associated EP.
         [Tunable]
@@ -71,11 +71,13 @@ namespace Echoweaver.Sims3Game.PetDisease
                     {
                         s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
                         s.AddInteraction(Buffs.BuffEWPetstilence.Shiver.Singleton, true);
-                        s.AddInteraction(Buffs.EWTestAnim.Singleton, true);
+                        s.AddInteraction(Buffs.BuffEWPetPneumonia.Wheeze.Singleton, true);
                     }
                 }
             }
 
+            // Replace Seasons pet germy with this germy moodlet
+            EventTracker.AddListener(EventTypeId.kGotBuff, new ProcessEventDelegate(PetDiseaseManager.OnGotBuff));
 
             // Germy check
             EventTracker.AddListener(EventTypeId.kWeatherStarted, new ProcessEventDelegate(PetDiseaseManager

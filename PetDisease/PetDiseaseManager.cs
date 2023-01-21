@@ -14,6 +14,7 @@ using Sims3.Gameplay.Socializing;
 using Sims3.SimIFace.Enums;
 using Sims3.UI.Controller;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
+using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -124,6 +125,35 @@ namespace Echoweaver.Sims3Game.PetDisease
             // TODO: See if this sting makes any sense for pets. We can make a new one.
             s.ShowTNSAndPlayStingIfSelectable("sting_get_immunized", TNSNames.FluShotTNS, s,
                 null, null, null, new bool[1] { s.IsFemale }, false, s);
+        }
+
+        public static ListenerAction OnGotBuff(Event e)
+        {
+            Sim sim = e.Actor as Sim;
+            if (sim != null)
+            {
+                // I'm pretty sure cats don't get EA's Germy, but might as well check
+                if (sim.IsADogSpecies || sim.IsCat)
+                {
+                    // An MTS thread indicated that you needed a delay after the event triggered to
+                    // be able to check the buff
+                    Simulator.AddObject(new OneShotFunctionWithParams(new FunctionWithParam(ProcessBuff),
+                        sim));
+                }
+            }
+            return ListenerAction.Keep;
+        }
+
+        private static void ProcessBuff(object obj)
+        {
+            Sim sim = obj as Sim;
+            if (sim.BuffManager.HasElement(BuffNames.Germy))
+            {
+                DebugNote("Recieved Germy moodlet. Replaced with Pet Germy: " + sim.FullName);
+                sim.BuffManager.RemoveElement(BuffNames.Germy);
+                sim.BuffManager.AddElement(Buffs.BuffEWPetGermy.buffName, Origin.None);
+            }
+
         }
 
         public static ListenerAction OnWeatherStarted(Event e)
