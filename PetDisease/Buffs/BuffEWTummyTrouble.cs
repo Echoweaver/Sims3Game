@@ -62,13 +62,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxIncubationTime = 24f;
 
-        [TunableComment("Min stomach flu duration (Hours)")]
+        [TunableComment("Min stomach flu duration (Minutes)")]
         [Tunable]
-        public static float kMinDuration = 12f;
+        public static float kMinDuration = 720f; // 12 hours
 
-        [TunableComment("Max stomach flu duration (Hours)")]
+        [TunableComment("Max stomach flu duration (Minutes)")]
         [Tunable]
-        public static float kMaxDuration = 48f;
+        public static float kMaxDuration = 2880f; // 2 days
 
         public class BuffInstanceEWTummyTrouble : BuffInstance
 		{
@@ -96,15 +96,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 				return buffInstance;
 			}
 
-			public override void Dispose(BuffManager bm)
-			{
-				if (mSymptomAlarm != AlarmHandle.kInvalidHandle)
-				{
-					bm.Actor.RemoveAlarm(mSymptomAlarm);
-					mSymptomAlarm = AlarmHandle.kInvalidHandle;
-				}
-			}
-
             public void SetIsFlu(bool p_isFlu)
             {
                 isFlu = p_isFlu;
@@ -121,9 +112,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 DebugNote("Tummy Trouble add nauseous buff: " + mSickSim.FullName);
                 mSickSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
 
-				mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenNausea,
-					kMaxTimeBetweenNausea), TimeUnit.Minutes, DoSymptom, "BuffEWTummyTrouble: Time until next symptom",
-					AlarmType.DeleteOnReset);
+                if (mSickSim.BuffManager.HasElement(buffName))
+                {
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenNausea,
+                    kMaxTimeBetweenNausea), TimeUnit.Minutes, DoSymptom, "BuffEWTummyTrouble: Time until next symptom",
+                    AlarmType.DeleteOnReset);
+                }
 			}
 
             public void NauseaContagionCallback(Sim s, ReactionBroadcaster rb)
@@ -259,8 +253,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 if (!sickSim.BuffManager.HasElement(buffName))
                 {
-                    sickSim.BuffManager.AddElement(buffName, RandomUtil.GetFloat(kMinDuration,
-                        kMaxDuration), Origin.None);
+                    sickSim.BuffManager.AddElement(buffName, Origin.None);
                     BuffInstanceEWTummyTrouble buffInstance = sickSim.BuffManager.GetElement(buffName)
                         as BuffInstanceEWTummyTrouble;
                     buffInstance.SetIsFlu(isFlu);  
@@ -289,6 +282,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWTummyTrouble buffInstance = bi as BuffInstanceEWTummyTrouble;
             buffInstance.mSickSim = bm.Actor;
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
             buffInstance.DoSymptom();
         }
 
@@ -299,6 +293,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 buffInstance.NauseaContagionBroadcaster.Dispose();
                 buffInstance.NauseaContagionBroadcaster = null;
+            }
+            if (buffInstance.mSymptomAlarm != AlarmHandle.kInvalidHandle)
+            {
+                bm.Actor.RemoveAlarm(buffInstance.mSymptomAlarm);
+                buffInstance.mSymptomAlarm = AlarmHandle.kInvalidHandle;
             }
             base.OnRemoval(bm, bi);
         }

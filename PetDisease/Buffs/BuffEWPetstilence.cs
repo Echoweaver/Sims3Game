@@ -50,16 +50,15 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         [TunableComment("Min petstilence duration (Minutes)")]
         [Tunable]
-        // I think this is in minutes
-        public static float kMinDuration = 48f; // 2 days - 69120
+        public static float kMinDuration = 5760f;  // 4 days
 
         [TunableComment("Max petstilence duration (Minutes)")]
         [Tunable]
-        public static float kMaxDuration = 96f; // 4 days - 138240
+        public static float kMaxDuration = 10080f;  // 1 week
 
         [TunableComment("Chance of catching from stranger contact")]
         [Tunable]
-        public static float kAmbientSicknessOdds = 0.01f; 
+        public static float kAmbientSicknessOdds = 0.05f; 
 
         public class BuffInstanceEWPetstilence : BuffInstance
         {
@@ -157,18 +156,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     mHazeEffect2.Stop(VisualEffect.TransitionType.HardTransition);
                     mHazeEffect2.Dispose();
                     mHazeEffect2 = null;
-                }
-            }
-
-            public override void Dispose(BuffManager bm)
-            {
-                StopFx();
-                if (mSymptomAlarm != AlarmHandle.kInvalidHandle)
-                {
-                    bm.Actor.RemoveAlarm(mSymptomAlarm);
-                    bm.Actor.RemoveAlarm(mAdvanceDiseaseAlarm);
-                    mSymptomAlarm = AlarmHandle.kInvalidHandle;
-                    mAdvanceDiseaseAlarm = AlarmHandle.kInvalidHandle;
                 }
             }
 
@@ -333,9 +320,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         break;
                 }
 
-                mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+                if (mSickSim.BuffManager.HasElement(buffName))
+                {
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetstilence: Time until next symptom",
                     AlarmType.DeleteOnReset);
+                }
             }
 
             public void AdvanceDisease()
@@ -609,8 +599,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 {
                     // TODO: Should check for cooldown buff so pet can't get the same disease
                     // immediately after?
-                    sickSim.BuffManager.AddElement(buffName, RandomUtil.GetFloat(kMinDuration,
-                    kMaxDuration), Origin.None);
+                    sickSim.BuffManager.AddElement(buffName, Origin.None);
                 }
             }
         }
@@ -634,6 +623,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
             buffInstance.mSickSim = bm.Actor;
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
             buffInstance.mStageLength = bi.TimeoutCount / 3;
             buffInstance.mAdvanceDiseaseAlarm = bm.Actor.AddAlarm(buffInstance.mStageLength,
                 TimeUnit.Minutes, buffInstance.AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
@@ -645,7 +635,15 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public override void OnRemoval(BuffManager bm, BuffInstance bi)
         {
-            //BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
+            BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
+            buffInstance.StopFx();
+            if (buffInstance.mSymptomAlarm != AlarmHandle.kInvalidHandle)
+            {
+                bm.Actor.RemoveAlarm(buffInstance.mSymptomAlarm);
+                bm.Actor.RemoveAlarm(buffInstance.mAdvanceDiseaseAlarm);
+                buffInstance.mSymptomAlarm = AlarmHandle.kInvalidHandle;
+                buffInstance.mAdvanceDiseaseAlarm = AlarmHandle.kInvalidHandle;
+            }
             base.OnRemoval(bm, bi);
         }
 

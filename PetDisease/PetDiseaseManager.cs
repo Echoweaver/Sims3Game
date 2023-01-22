@@ -63,6 +63,10 @@ namespace Echoweaver.Sims3Game.PetDisease
         [TunableComment("Float. Temp in F where fishing pets could catch cold.")]
         public static float kChillyEnoughToCatchCold = 40f;
 
+        [Tunable]
+        [TunableComment("Float. Time in minutes between contagion checks for a specific illness.")]
+        public static float kCheckForContagionInterval = 360f;
+
         static public Dictionary<ulong, DateAndTime> LastGermyCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFluCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFoodPoisonCheck = new Dictionary<ulong, DateAndTime>();
@@ -108,7 +112,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             checkRecord.TryGetValue(s.SimDescriptionId, out lastCheck);
 
             if (lastCheck == null || lastCheck == DateAndTime.Invalid
-                || SimClock.ElapsedTime(TimeUnit.Minutes, lastCheck) >= 60f)
+                || SimClock.ElapsedTime(TimeUnit.Minutes, lastCheck) >= kCheckForContagionInterval)
             {
                 DebugNote("Ready to check Contagion = TRUE: " + s.FullName);
                 checkRecord[s.SimDescriptionId] = SimClock.CurrentTime();

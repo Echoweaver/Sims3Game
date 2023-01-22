@@ -39,6 +39,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         [Tunable]
         public static float kMaxTimeBetweenSymptoms = 90f;
 
+        [TunableComment("Min cold duration (Minutes)")]
+        [Tunable]
+        public static float kMinDuration = 2880f;  // 2 days
+
+        [TunableComment("Max cold duration (Minutes)")]
+        [Tunable]
+        public static float kMaxDuration = 7200f;  // 5 days
+
 
         public class BuffInstanceEWPetPneumonia : BuffInstance
         {
@@ -69,15 +77,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public override void SetTargetSim(SimDescription targetSim)
             {
                 mSickSim = targetSim.CreatedSim;
-            }
-
-            public override void Dispose(BuffManager bm)
-            {
-                if (mSymptomAlarm != AlarmHandle.kInvalidHandle)
-                {
-                    bm.Actor.RemoveAlarm(mSymptomAlarm);
-                    mSymptomAlarm = AlarmHandle.kInvalidHandle;
-                }
             }
 
             public void DoSymptom()
@@ -125,9 +124,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     }
                 }
 
-                mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
+                if (mSickSim.BuffManager.HasElement(buffName))
+                {
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
                     kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetPneumonia: Time until next symptom",
                     AlarmType.DeleteOnReset);
+                }
             }
 
         }
@@ -206,9 +208,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             BuffInstanceEWPetPneumonia buffInstance = bi as BuffInstanceEWPetPneumonia;
             buffInstance.mSickSim = bm.Actor;
             buffInstance.isDeadly = RandomUtil.RandomChance(kChanceOfPneumonia);
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
             if (buffInstance.isDeadly)
             {
                 DebugNote("This pneumonia is deadly: " + buffInstance.mSickSim.FullName);
+            } else
+            {
+                DebugNote("This pneumonia NOT is deadly: " + buffInstance.mSickSim.FullName);
             }
             buffInstance.DoSymptom();
             base.OnAddition(bm, bi, travelReaddition);
@@ -217,6 +223,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         public override void OnRemoval(BuffManager bm, BuffInstance bi)
         {
             BuffInstanceEWPetPneumonia buffInstance = bi as BuffInstanceEWPetPneumonia;
+            if (buffInstance.mSymptomAlarm != AlarmHandle.kInvalidHandle)
+            {
+                bm.Actor.RemoveAlarm(buffInstance.mSymptomAlarm);
+                buffInstance.mSymptomAlarm = AlarmHandle.kInvalidHandle;
+            }
             // TODO: when the buff is removed from treatment, make sure to set the
             // pneumonia check to false.
             if (buffInstance.isDeadly)
