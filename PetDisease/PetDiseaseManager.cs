@@ -50,7 +50,7 @@ namespace Echoweaver.Sims3Game.PetDisease
     //   -- Not contagious
     //   -- Symptoms: random nausea moodlets
     //   -- Called Tummy Trouble, looks identical to Stomach Flu
-    // Childbirth Crisis:
+    // Childbirth Crisis (not implemented in this mod):
     //   -- Triggered when pet enters childbirth?
     //   -- If not cured, generates a wound and/or one offspring doesn't survive.
 

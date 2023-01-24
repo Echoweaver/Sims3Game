@@ -2,6 +2,7 @@ using System;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -95,6 +96,19 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 				buffInstance.mSickSim = mSickSim;
 				return buffInstance;
 			}
+
+            public override void SetTargetSim(SimDescription targetSim)
+            {
+                mSickSim = targetSim.CreatedSim;
+            }
+
+            public override float UITimeoutCount
+            {
+                get
+                {
+                    return -1f;
+                }
+            }
 
             public void SetIsFlu(bool p_isFlu)
             {

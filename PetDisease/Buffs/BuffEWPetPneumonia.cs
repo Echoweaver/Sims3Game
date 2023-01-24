@@ -79,6 +79,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 mSickSim = targetSim.CreatedSim;
             }
 
+            public override float UITimeoutCount
+            {
+                get
+                {
+                    return -1f;
+                }
+            }
+
             public void DoSymptom()
             {
                 int symptomType;
@@ -228,8 +236,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 bm.Actor.RemoveAlarm(buffInstance.mSymptomAlarm);
                 buffInstance.mSymptomAlarm = AlarmHandle.kInvalidHandle;
             }
-            // TODO: when the buff is removed from treatment, make sure to set the
-            // pneumonia check to false.
+            base.OnRemoval(bm, bi);
+        }
+
+        public override void OnTimeout(BuffManager bm, BuffInstance bi, OnTimeoutReasons reason)
+        {
+            BuffInstanceEWPetPneumonia buffInstance = bi as BuffInstanceEWPetPneumonia;
             if (buffInstance.isDeadly)
             {
                 EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
@@ -237,19 +249,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     false, false) as EWPetSuccumbToDisease;
                 buffInstance.mSickSim.InteractionQueue.AddNext(die);
             }
-
-            base.OnRemoval(bm, bi);
+            base.OnTimeout(bm, bi, reason);
         }
-
-        public static void CureIfPresent(Sim s)
-        {
-            if (s.BuffManager.HasElement(buffName))
-            {
-                BuffInstanceEWPetPneumonia instance = s.BuffManager.GetElement(buffName) as BuffInstanceEWPetPneumonia;
-                instance.isDeadly = false;
-                s.BuffManager.RemoveElement(buffName);
-            } 
-        }
-
     }
 }

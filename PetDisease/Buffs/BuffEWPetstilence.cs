@@ -97,6 +97,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 mSickSim = targetSim.CreatedSim;
             }
 
+            public override float UITimeoutCount
+            {
+                get
+                {
+                    return -1f;
+                }
+            }
+
             public void StartDroolingFx(Sim owner)
             {
                 DebugNote("Start Petstilence drooling: " + owner.FullName);

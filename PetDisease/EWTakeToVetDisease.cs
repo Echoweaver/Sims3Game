@@ -203,9 +203,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                     actor.UnpaidBills += kCostOfVet;
                 }
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetGermy.buffName);
-                // It's weird to do this one buff differently. May want to try something else.
-                Buffs.BuffEWPetPneumonia.CureIfPresent(mPet);
-                //mPet.BuffManager.RemoveElement(Buffs.BuffEWPetPneumonia.buffName);
+                mPet.BuffManager.RemoveElement(Buffs.BuffEWPetPneumonia.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetstilence.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWTummyTrouble.buffName);
                 EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
