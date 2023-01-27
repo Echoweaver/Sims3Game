@@ -69,7 +69,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasElement(LoadThis.buffNamePetstilence))
+					if (s != actor && s.BuffManager.HasElement(Loader.buffNamePetstilence))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -79,7 +79,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasElement(LoadThis.buffNamePetstilence)
+				if (sim != actor && sim.BuffManager.HasElement(Loader.buffNamePetstilence)
 					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
@@ -90,7 +90,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNamePetstilence);
+			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNamePetstilence);
 			if (badBuff == null)
 			{
 				return false;

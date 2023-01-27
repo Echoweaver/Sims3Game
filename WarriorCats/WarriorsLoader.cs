@@ -25,17 +25,18 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static BuffNames[] woundBuffList = new BuffNames[] { buffNameGraveWound,
             buffNameMinorWound, buffNameSeriousWound };
 
-        public static BuffNames buffNamePetstilence = (BuffNames)0xD79EDE5CB789F85D;
-        public static BuffNames buffNameFeverish = (BuffNames)0x0A6994F5F35A8CD8;
-        public static BuffNames buffNameSniffles = (BuffNames)0x2AFC0D6468CD9CD7;
+        public static BuffNames buffNamePetstilence = (BuffNames)0x7768716F913C2054;
+        public static BuffNames buffNamePneumoniaPet = (BuffNames)0x904F100B14974699;
+        public static BuffNames buffNameGermyPet = (BuffNames)0x9086F0050AC3673D;
 
-        public static BuffNames buffNameFoodPoisingPet = (BuffNames)0x41BFC2124133973F;
-        public static BuffNames buffNameStomachFluPet = (BuffNames)0xB6F4522A924504ED;
+        public static BuffNames buffNameTummyTrouble = (BuffNames)0xDFF72BA95943E99;
         public static BuffNames[] nauseaBuffList = new BuffNames[] { BuffNames.NauseousPet,
-            buffNameFoodPoisingPet, buffNameStomachFluPet };
+            buffNameTummyTrouble };
 
         [Tunable]
         protected static bool kInstantiator = false;
+
+        [Tunable]
         public static bool kAllowPetDeath = true;
 
 

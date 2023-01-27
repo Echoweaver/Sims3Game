@@ -80,7 +80,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasAnyElement(LoadThis.nauseaBuffList))
+					if (s != actor && s.BuffManager.HasAnyElement(Loader.nauseaBuffList))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -90,7 +90,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasAnyElement(LoadThis.nauseaBuffList)
+				if (sim != actor && sim.BuffManager.HasAnyElement(Loader.nauseaBuffList)
 					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
@@ -103,12 +103,12 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			BuffInstance badBuff = simToPresentTo.BuffManager.GetElement(BuffNames.NauseousPet);
 			// Cure the nastiest buff first if there are multiple types of nausea.
-			if (simToPresentTo.BuffManager.HasElement(LoadThis.buffNameStomachFluPet))
+			if (simToPresentTo.BuffManager.HasElement(Loader.buffNameStomachFluPet))
             {
-				badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNameStomachFluPet);
-			} else if (simToPresentTo.BuffManager.HasElement(LoadThis.buffNameFoodPoisingPet))
+				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameStomachFluPet);
+			} else if (simToPresentTo.BuffManager.HasElement(Loader.buffNameTummyTrouble))
             {
-				badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNameFoodPoisingPet);
+				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameTummyTrouble);
 			}
 			if (badBuff == null)
 			{

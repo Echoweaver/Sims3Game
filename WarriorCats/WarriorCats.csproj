@@ -20,7 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Loader.cs" />
+    <Compile Include="WarriorsLoader.cs" />
     <Compile Include="EWMedicineCatSkill.cs" />
     <Compile Include="EWHerbLoreSkill.cs" />
     <Compile Include="EWPetMarkPlant.cs" />
@@ -37,8 +37,8 @@
     <Compile Include="EWPetTreatNausea.cs" />
     <Compile Include="EWPetTreatWoundWeak.cs" />
     <Compile Include="EWCarryFish.cs" />
-    <Compile Include="EWPetTreatSniffles.cs" />
-    <Compile Include="EWPetTreatFeverish.cs" />
+    <Compile Include="EWPetTreatGermy.cs" />
+    <Compile Include="EWPetTreatPneumonia.cs" />
     <Compile Include="EWAbstractPetTreatPlantable.cs" />
     <Compile Include="EWPetTreatPetstilence.cs" />
   </ItemGroup>

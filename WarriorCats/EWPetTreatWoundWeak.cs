@@ -71,7 +71,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasAnyElement(LoadThis.woundBuffList))
+					if (s != actor && s.BuffManager.HasAnyElement(Loader.woundBuffList))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -92,25 +92,25 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNameGraveWound);
+			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameGraveWound);
 			if (badBuff == null)
 			{
-				badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNameSeriousWound);
+				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameSeriousWound);
 			}
 			else
 			{
 				// Add a wound a level lower. The original will be removed with treat.
-				simToPresentTo.BuffManager.AddElement(LoadThis.buffNameSeriousWound, badBuff.TimeoutCount / 2,
+				simToPresentTo.BuffManager.AddElement(Loader.buffNameSeriousWound, badBuff.TimeoutCount / 2,
 					badBuff.BuffOrigin);
 			}
 			if (badBuff == null)
 			{
-				badBuff = simToPresentTo.BuffManager.GetElement(LoadThis.buffNameMinorWound);
+				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameMinorWound);
 			}
 			else
 			{
 				// Add wound a level lower
-				simToPresentTo.BuffManager.AddElement(LoadThis.buffNameMinorWound, badBuff.TimeoutCount / 2,
+				simToPresentTo.BuffManager.AddElement(Loader.buffNameMinorWound, badBuff.TimeoutCount / 2,
 					badBuff.BuffOrigin);
 			}
 
