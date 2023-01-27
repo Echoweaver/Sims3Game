@@ -22,15 +22,6 @@ using Sims3.Gameplay.ThoughtBalloons;
 //   -- Symptoms: passing out and vomiting, moments of psychosis, drooling
 //   -- Frequently lethal.
 
-// drool effect codes:
-// ep5catdrool
-// ep5dogdrool
-// ep5dogdrooljaw
-// ep5doglittledrool
-// ep5doglittledrooljaw
-
-// ep5DogDroolSpitUp
-// ep5DogLittleDroolSpitUp
 
 namespace Echoweaver.Sims3Game.PetDisease.Buffs
 {
@@ -58,7 +49,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         [TunableComment("Chance of catching from stranger contact")]
         [Tunable]
-        public static float kAmbientSicknessOdds = 0.05f; 
+        public static float kAmbientSicknessOdds = 0.05f;
+
+        [TunableComment("Chance of catching from stranger contact")]
+        [Tunable]
+        public static float kFluidContactOdds = 0.6f;
 
         public class BuffInstanceEWPetstilence : BuffInstance
         {
@@ -71,7 +66,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public int mStage = 0;
 
             public VisualEffect mDroolEffect; 
-            public VisualEffect mHazeEffect;
+            public VisualEffect mFliesEffect;
             public VisualEffect mHazeEffect2;
 
             public BuffInstanceEWPetstilence()
@@ -101,7 +96,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 get
                 {
-                    return -1f;
+                    if (kPetDiseaseDebug)
+                    {
+                        return this.TimeoutCount;
+                    }
+                    else return -1f;
                 }
             }
 
@@ -127,21 +126,21 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 }
             }
 
-            public void StartHazeFx()
+            public void StartFliesEffect()
             {
                 DebugNote("Start Petstilence fly swarm: " + mSickSim.FullName);
 
                 //mHazeEffect = VisualEffect.Create("ep11buffhealthyglowlrg_main");
                 //mHazeEffect = VisualEffect.Create("ep5unicornblessblacksparklessmpet");
-                mHazeEffect = VisualEffect.Create("ep7BuffSickandTired_main");
+                mFliesEffect = VisualEffect.Create("ep7BuffSickandTired_main");
                 //mHazeEffect2 = VisualEffect.Create("ep11buffhealthyglowlrg_main");
-                mHazeEffect.ParentTo(mSickSim, Sim.FXJoints.Spine2);
+                mFliesEffect.ParentTo(mSickSim, Sim.FXJoints.Spine2);
                 //mHazeEffect2.ParentTo(mSickSim, Sim.FXJoints.Crotch);
                 //Vector3 fxColor = new Vector3(0.7f, 8f, 0f);
                 //Vector3 fxColor = new Vector3(0.2f, 0.2f, 0.2f);
                 //mHazeEffect.SetEffectColorScale(fxColor);
                 //mHazeEffect2.SetEffectColorScale(fxColor);
-                mHazeEffect.Start();
+                mFliesEffect.Start();
                 //mHazeEffect2.Start();
             }
 
@@ -153,11 +152,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     mDroolEffect.Dispose();
                     mDroolEffect = null;
                 }
-                if (mHazeEffect != null)
+                if (mFliesEffect != null)
                 {
-                    mHazeEffect.Stop(VisualEffect.TransitionType.HardTransition);
-                    mHazeEffect.Dispose();
-                    mHazeEffect = null;
+                    mFliesEffect.Stop(VisualEffect.TransitionType.HardTransition);
+                    mFliesEffect.Dispose();
+                    mFliesEffect = null;
                 }
                 if (mHazeEffect2 != null)
                 {
@@ -352,12 +351,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     } else if (mStage == 2)
                     {
                         // Start haze/fly swarm/whatever indicator of serious illness
-                        StartHazeFx();
+                        StartFliesEffect();
                     }
                     DoSymptom();
                 } else if (mStage >= 3)
                 {
                     // This disease is lethal if not cured
+                    DebugNote("Queuing succumb to disease");
                     EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(mSickSim,
                         mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false)
                         as EWPetSuccumbToDisease;
@@ -537,10 +537,27 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         }
 
+        private static bool CheckContagionEligibility(Sim s)
+        {
+            if (s.BuffManager.HasElement(buffName))
+            {
+                DebugNote("Sim already has Petstilence: " + s.Name);
+                return false;
+            }
+            if (PetDiseaseManager.CheckForVaccination(s))
+            {
+                DebugNote("Sim is vaccinated: " + s.Name);
+                return false;
+            }
+            return true;
+        }
+
         public static void CheckAmbientContagion(Sim s)
         {
-            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(kAmbientSicknessOdds))
-            // This ambient check is 1%. It's rare to catch.
+            if (!CheckContagionEligibility(s))
+                return;
+            if (RandomUtil.RandomChance01(kAmbientSicknessOdds))
+            // This ambient check is 5%. It's rare to catch.
             {
                 DebugNote("Sim Caught Petstilence: " + s.Name);
                 // Get Sick
@@ -548,6 +565,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
                     AlarmType.AlwaysPersisted);
+            } else
+            {
+                DebugNote("Sim did NOT catch Petstilence: " + s.Name);
             }
         }
 
@@ -555,7 +575,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             // Contact with subject that always has a chance of transmitting Petstilence
             // (Probably raccoon)
-            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager.kInteractSicknessOdds))
+            if (!CheckContagionEligibility(s))
+                return;
+            if (RandomUtil.RandomChance01(HealthManager.kInteractSicknessOdds))
             {
                 DebugNote("Sim Caught Petstilence: " + s.Name);
                 // Get Sick
@@ -564,15 +586,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
                     AlarmType.AlwaysPersisted);
             }
+            else
+            {
+                DebugNote("Sim did NOT catch Petstilence: " + s.Name);
+            }
         }
 
         public static void CheckBloodborneContagion(Sim s)
         {
-            float test = RandomUtil.GetFloat(0f, 1f);
-
-            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
-                .kRomanticSicknessOdds))
-            // Woohoo/blood contact is 60%
+            if (!CheckContagionEligibility(s))
+                return;
+            if (RandomUtil.RandomChance01(kFluidContactOdds))
             {
                 // Get Sick
                 DebugNote("Sim Caught Petstilence: " + s.Name);
@@ -580,16 +604,10 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s).Execute, "petstilence incubation alarm",
                     AlarmType.AlwaysPersisted);
-            } else
+            }
+            else
             {
-                if (s.BuffManager.HasElement(buffName))
-                {
-                    DebugNote("Sim already has petstilence: " + s.Name);
-                }
-                else
-                {
-                    DebugNote("Sim did not catch pestilence: " + s.Name);
-                }
+                DebugNote("Sim did not catch pestilence: " + s.Name);
             }
         }
 

@@ -25,7 +25,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         // Word on the street is that ghost shaders don't require the associated EP.
         [Tunable]
-        public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.Shark;
+        public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.JellyBeanDeath;
 
         public static List<ulong> BuffGuids = new List<ulong>() {
             Buffs.BuffEWPetGermy.mGuid,
@@ -72,6 +72,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                         s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
                         s.AddInteraction(Buffs.BuffEWPetstilence.Shiver.Singleton, true);
                         s.AddInteraction(Buffs.BuffEWPetPneumonia.Wheeze.Singleton, true);
+                        s.AddInteraction(EWPetSuccumbToDisease.Singleton, true);
                     }
                 }
             }
@@ -102,6 +103,10 @@ namespace Echoweaver.Sims3Game.PetDisease
                 .OnAteHumanFood));
             EventTracker.AddListener(EventTypeId.kAteFish, new ProcessEventDelegate(PetDiseaseManager
                 .OnAtePrey));
+            EventTracker.AddListener(EventTypeId.kAteFromPetBowl, new ProcessEventDelegate(PetDiseaseManager
+                .OnAteFromBowl));
+            EventTracker.AddListener(EventTypeId.kAteHarvestable, new ProcessEventDelegate(PetDiseaseManager
+                .OnAteHarvestable));
 
             // Petstilence Check
             EventTracker.AddListener(EventTypeId.kGotFleas, new ProcessEventDelegate(PetDiseaseManager
@@ -116,8 +121,8 @@ namespace Echoweaver.Sims3Game.PetDisease
                 .OnSocialInteraction));
 
             // Any disease check
-            EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
-                .OnMetSim));
+            //EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
+                //.OnMetSim));
 
             if (kPetDiseaseDebug)
             {

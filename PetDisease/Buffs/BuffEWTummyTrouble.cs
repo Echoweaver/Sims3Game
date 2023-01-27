@@ -106,7 +106,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 get
                 {
-                    return -1f;
+                    if (kPetDiseaseDebug)
+                    {
+                        return this.TimeoutCount;
+                    }
+                    else return -1f;
                 }
             }
 

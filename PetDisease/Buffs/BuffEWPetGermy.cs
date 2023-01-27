@@ -82,7 +82,10 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 get
                 {
-                    return -1f;
+                    if (kPetDiseaseDebug)
+                    {
+                        return this.TimeoutCount;
+                    } else return -1f;
                 }
             }
 
@@ -149,13 +152,30 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         }
 
+        private static bool CheckContagionEligibility(Sim s)
+        {
+            if (s.BuffManager.HasElement(buffName))
+            {
+                DebugNote("Sim already has Germy: " + s.Name);
+                return false;
+            }
+            if (s.BuffManager.HasElement(Buffs.BuffEWPetPneumonia.buffName))
+            {
+                DebugNote("Sim already has Pneumonia: " + s.Name);
+                return false;
+            }
+            // Can't vaccinate against the common cold.
+            return true;
+        }
+
         public static void CheckWeatherContagion(Sim s)
         {
             // Check to see if sim catches a cold.
             // TODO: Should there be a greater chance if it's cold? Or strong wind?
             // TODO: Should there be a cooldown timer/buff?
-            if (!s.BuffManager.HasElement(buffName) && RandomUtil.RandomChance01(HealthManager
-                .kInteractSicknessOdds))
+            if (!CheckContagionEligibility(s))
+                return;
+            if (RandomUtil.RandomChance01(HealthManager.kInteractSicknessOdds))
             // kAmbientSicknessOdds = 5%, kInteract = 10%
             {
                 DebugNote("Sim Caught Germy: " + s.Name);
@@ -165,6 +185,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                     TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
                     AlarmType.AlwaysPersisted);
+            } else
+            {
+                DebugNote("Sim did NOT catch Germy: " + s.Name);
             }
         }
 
@@ -204,15 +227,25 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
             buffInstance.mSickSim = bm.Actor;
-            buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
             buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
-            if (buffInstance.willBecomePnumonia)
+            if (!PetDiseaseManager.CheckForVaccination(buffInstance.mSickSim))
             {
-                DebugNote("Germy will turn into pneumonia if untreated: " + buffInstance.mSickSim.FullName);
-            } else
-            {
-                DebugNote("Germy will NOT turn into pneumonia: " + buffInstance.mSickSim.FullName);
+                buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
+                if (buffInstance.willBecomePnumonia)
+                {
+                    DebugNote("Germy will turn into pneumonia if untreated: " + buffInstance.mSickSim.FullName);
+                }
+                else
+                {
+                    DebugNote("Germy will NOT turn into pneumonia: " + buffInstance.mSickSim.FullName);
+                }
             }
+            else
+            {
+                buffInstance.willBecomePnumonia = false;
+                DebugNote("Germy can't become pneumonia because sim is vaccinated: " + buffInstance.mSickSim.FullName);
+            }
+
             buffInstance.PetGermyContagionBroadcaster = new ReactionBroadcaster(bm.Actor,
                 BuffGermy.kSickBroadcastParams, PetGermyContagionCallback);
             buffInstance.DoSymptom();
@@ -251,20 +284,21 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public static void CheckAmbientContagion(Sim s)
         {
-            // Humans can catch from cats but not the reverse unless I can figure
-            // out some broadcaster magic.
-            if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
+            if (!CheckContagionEligibility(s))
+                return;
+            if (!s.BuffManager.HasElement(buffName) && RandomUtil
+                .RandomChance01(HealthManager.kAmbientSicknessOdds))
             {
-                if (!s.BuffManager.HasElement(buffName) && RandomUtil
-                    .RandomChance01(HealthManager.kAmbientSicknessOdds))
-                {
-                    // Get Sick
-                    DebugNote("Sim Caught Germy: " + s.Name);
-                    s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
-                        HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
-                        TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
-                        AlarmType.AlwaysPersisted);
-                }
+                // Get Sick
+                DebugNote("Sim Caught Germy: " + s.Name);
+                s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
+                    HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
+                    TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
+                    AlarmType.AlwaysPersisted);
+            }
+            else
+            {
+                DebugNote("Sim did NOT catch Germy: " + s.Name);
             }
         }
 
@@ -278,15 +312,21 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             } else if ((s.IsADogSpecies || s.IsCat) && s.SimDescription.AdultOrAbove)
             {
                 DebugNote("Check proximity contagion: " + s.Name);
+                if (!CheckContagionEligibility(s))
+                    return;
                 if (!s.BuffManager.HasElement(buffName) && RandomUtil
                     .RandomChance01(HealthManager.kProximitySicknessOdds))
                 {
                     // Get Sick
-                    DebugNote("Sim Caught Germy: " + s.Name);
+                    DebugNote("Sim Caught Germy (Proximity): " + s.Name);
                     s.AddAlarm(RandomUtil.GetFloat(HealthManager.kMaxIncubationTime -
                         HealthManager.kMinIncubationTime) + HealthManager.kMinIncubationTime,
                         TimeUnit.Hours, new GetSick(s).Execute, "pet germy incubation alarm",
                         AlarmType.AlwaysPersisted);
+                }
+                else
+                {
+                    DebugNote("Sim did NOT catch Germy (Proximity): " + s.Name);
                 }
             }
         }

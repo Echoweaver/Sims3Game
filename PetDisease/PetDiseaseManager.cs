@@ -70,6 +70,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         static public Dictionary<ulong, DateAndTime> LastGermyCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFluCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFoodPoisonCheck = new Dictionary<ulong, DateAndTime>();
+        static public Dictionary<ulong, DateAndTime> LastPetstilenceCheck = new Dictionary<ulong, DateAndTime>();
 
         public static BuffNames[] CurableDiseases =
         {
@@ -114,11 +115,11 @@ namespace Echoweaver.Sims3Game.PetDisease
             if (lastCheck == null || lastCheck == DateAndTime.Invalid
                 || SimClock.ElapsedTime(TimeUnit.Minutes, lastCheck) >= kCheckForContagionInterval)
             {
-                DebugNote("Ready to check Contagion = TRUE: " + s.FullName);
+                DebugNote("Ready to check Contagion" + s.FullName);
                 checkRecord[s.SimDescriptionId] = SimClock.CurrentTime();
                 return true;
             }
-            DebugNote("Ready to check Contagion = FALSE: " + s.FullName);
+            DebugNote("Contagion check to recent for this disease: " + s.FullName);
             return false;
         }
 
@@ -263,8 +264,11 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                DebugNote("Check for fleas contagion " + e.Actor.Name);
-                Buffs.BuffEWPetstilence.CheckAmbientContagion(e.Actor as Sim);
+                DebugNote("Check for fleas/hunting contagion " + e.Actor.Name);
+                if (ReadyToCheckContagion(LastPetstilenceCheck, e.Actor.SimDescription))
+                {
+                    Buffs.BuffEWPetstilence.CheckAmbientContagion(e.Actor as Sim);
+                }
             }
             return ListenerAction.Keep;
         }
@@ -281,6 +285,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public static ListenerAction OnAteHumanFood(Event e)
         {
+            DebugNote("Ate meal " + e.Actor.Name);
             PreparedFood food = e.TargetObject as PreparedFood;
 
             if (food != null)
@@ -318,17 +323,31 @@ namespace Echoweaver.Sims3Game.PetDisease
             return ListenerAction.Keep;
         }
 
+        public static ListenerAction OnAteFromBowl(Event e)
+        {
+            DebugNote("Ate From Bowl Event " + e.Actor.Name);
+            return ListenerAction.Keep;
+        }
+
+        public static ListenerAction OnAteHarvestable(Event e)
+        {
+            DebugNote("Ate Havestable Event " + e.Actor.Name);
+            return ListenerAction.Keep;
+        }
+
         public static ListenerAction OnMetSim(Event e)
         {
             if (e.Actor.SimDescription.IsCat || e.Actor.SimDescription.IsADogSpecies)
             {
-                DebugNote("On Met Sim Actor: " + e.Actor.Name + "; Target: " + e.TargetObject.GetLocalizedName());
+                DebugNote("On Met Sim: " + e.Actor.Name + " met " + e.TargetObject.GetLocalizedName());
                 if (ReadyToCheckContagion(LastGermyCheck, e.Actor.SimDescription))
                 {
+                    DebugNote("Check for stranger germy contagion " + e.Actor.Name);
                     Buffs.BuffEWPetGermy.CheckAmbientContagion(e.Actor as Sim);
                 }
                 if (ReadyToCheckContagion(LastFluCheck, e.Actor.SimDescription))
                 {
+                    DebugNote("Check for stranger germy contagion " + e.Actor.Name);
                     Buffs.BuffEWTummyTrouble.CheckAmbientContagion(e.Actor as Sim);
                 }
 
@@ -352,43 +371,45 @@ namespace Echoweaver.Sims3Game.PetDisease
                 if (cevent != null && cevent.SocialName.Contains("Fight Pet"))
                 {
                     DebugNote("Fight Pet Contagion Check");
-                    if (targetSim.BuffManager.HasElement(Buffs.BuffEWPetstilence.buffName))
+                    if (!actorSim.BuffManager.HasElement(Buffs.BuffEWPetstilence.buffName))
                     {
-                        DebugNote("Check for bloodborne contagion " + actorSim.Name);
-                        Buffs.BuffEWPetstilence.CheckBloodborneContagion(actorSim);
-                    }
-                    else if (targetSim.IsRaccoon)
-                    {
-                        // Raccoon can always transmit Petstilence
-                        DebugNote("Check for raccoon contagion " + actorSim.Name);
-                        Buffs.BuffEWPetstilence.CheckContactContagion(actorSim);
-                    }
-                    else
-                    {
-                        // A fight with a stranger has a low chance of generating Petstilence
-                        Relationship relationship = Relationship.Get(actorSim, targetSim, createIfNone: false);
-
-                        // This is a bit clunky, but I don't want it to crash because I tried to check
-                        // against an attribute of a null object
-                        if (relationship == null || relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
+                        if (targetSim.BuffManager.HasElement(Buffs.BuffEWPetstilence.buffName))
                         {
-                            DebugNote("Check for stranger contagion " + actorSim.Name);
-                            Buffs.BuffEWPetstilence.CheckAmbientContagion(actorSim);
+                            DebugNote("Check for bloodborne contagion " + actorSim.Name);
+                            Buffs.BuffEWPetstilence.CheckBloodborneContagion(actorSim);
                         }
+                        else if (targetSim.IsRaccoon)
+                        {
+                            // Raccoon can always transmit Petstilence
+                            DebugNote("Check for fight raccoon contagion " + actorSim.Name);
+                            Buffs.BuffEWPetstilence.CheckContactContagion(actorSim);
+                        }
+                        else
+                        {
+                            // A fight with a stranger has a low chance of generating Petstilence
+                            Relationship relationship = Relationship.Get(actorSim, targetSim, createIfNone: false);
+
+                            // This is a bit clunky, but I don't want it to crash because I tried to check
+                            // against an attribute of a null object
+                            if (relationship == null || relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
+                            {
+                                DebugNote("Check for fight stranger contagion " + actorSim.Name);
+                                Buffs.BuffEWPetstilence.CheckAmbientContagion(actorSim);
+                            }
+                        }
+                    } else
+                    {
+                        DebugNote(actorSim.FullName + " already has Petstilence");
                     }
                 }
 
                 else if (cevent.SocialName.Contains("Greet Sniff") && (actorSim.IsCat || actorSim.IsADogSpecies)
                     && actorSim.SimDescription.AdultOrAbove)
                 {
-                    DebugNote("Greet sniff check for " + actorSim.Name);
-
-                    // Meeting a strange pet has a low chance of generating any proximity contagion
                     Relationship relationship = Relationship.Get(actorSim, targetSim, createIfNone: false);
-
                     if (relationship == null)
                     {
-                        DebugNote("Check for stranger contagion " + e.Actor.Name);
+                        DebugNote("Check for stranger germy contagion " + e.Actor.Name);
                         if (ReadyToCheckContagion(LastGermyCheck, actorSim.SimDescription))
                         {
                             Buffs.BuffEWPetGermy.CheckAmbientContagion(actorSim);
@@ -398,9 +419,9 @@ namespace Echoweaver.Sims3Game.PetDisease
                             Buffs.BuffEWTummyTrouble.CheckAmbientContagion(actorSim);
                         }
                     }
-                    else if (relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
+                    else if (targetSim.IsRaccoon || relationship.CurrentLTR == LongTermRelationshipTypes.Stranger)
                     {
-                        DebugNote("Check for stranger contagion " + e.Actor.Name);
+                        DebugNote("Check for stranger germy contagion " + e.Actor.Name);
                         if (ReadyToCheckContagion(LastGermyCheck, actorSim.SimDescription))
                         {
                             Buffs.BuffEWPetGermy.CheckAmbientContagion(actorSim);

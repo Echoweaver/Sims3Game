@@ -7,6 +7,8 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using static Sims3.Gameplay.ActorSystems.PetSurfacePosture;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
+using Sims3.Gameplay.CAS;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -23,7 +25,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
                 //return Localization.LocalizeString("Echoweaver/PetDisease:Succumb");
-                return "Succumb to Disease (no STBL)";
+                return "Localize - Succumb to Disease)";
             }
         }
 
@@ -39,7 +41,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 StyledNotification.Show(new StyledNotification.Format("Localize - You have died of disentery",
                     StyledNotification.NotificationStyle.kGameMessageNegative));
-                Target.Kill(Loader.diseaseDeathType);
+                Target.Kill(SimDescription.DeathType.JellyBeanDeath);
             }
             else
             {
