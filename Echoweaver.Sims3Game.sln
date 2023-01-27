@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetBreedFix", "PetBreeding\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetFighting", "Echoweaver.Sims3Game.PetFighting\PetFighting.csproj", "{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetIllness", "PetIllness\PetIllness.csproj", "{8CC812ED-1F2F-4269-A0D9-59F561A5783C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarriorCats", "WarriorCats\WarriorCats.csproj", "{59AFFD9E-45C2-42E7-87DB-93D4276A5A4B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breastfeed", "Breastfeed\Breastfeed.csproj", "{44C9F1C7-EC8D-4CC2-A11D-86040A606B4A}"
@@ -59,10 +57,6 @@ Global
 		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81FE7536-5AC3-4A77-9E6F-9576982EF3FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8CC812ED-1F2F-4269-A0D9-59F561A5783C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8CC812ED-1F2F-4269-A0D9-59F561A5783C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8CC812ED-1F2F-4269-A0D9-59F561A5783C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8CC812ED-1F2F-4269-A0D9-59F561A5783C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{59AFFD9E-45C2-42E7-87DB-93D4276A5A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{59AFFD9E-45C2-42E7-87DB-93D4276A5A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59AFFD9E-45C2-42E7-87DB-93D4276A5A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
