@@ -11,6 +11,7 @@ using Sims3.SimIFace;
 using Sims3.UI;
 using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetGermy;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
+using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
 
 
 //Template Created by Battery
@@ -30,23 +31,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 	{
 		public const ulong mGuid = 0x904F100B14974699ul;
         public const BuffNames buffName = (BuffNames)mGuid;
-
-        [Tunable]
-        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
-        public static float kMinTimeBetweenSymptoms = 45f;
-
-        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
-        [Tunable]
-        public static float kMaxTimeBetweenSymptoms = 90f;
-
-        [TunableComment("Min cold duration (Minutes)")]
-        [Tunable]
-        public static float kMinDuration = 2880f;  // 2 days
-
-        [TunableComment("Max cold duration (Minutes)")]
-        [Tunable]
-        public static float kMaxDuration = 7200f;  // 5 days
-
 
         public class BuffInstanceEWPetPneumonia : BuffInstance
         {
@@ -126,10 +110,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         mSickSim, priority, isAutonomous: false, cancellableByPlayer: false));
                     mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
                             .GetMotiveValue(CommodityKind.Energy) - 20);
-                } else
+                }
+                else
                 {
                     mSickSim.InteractionQueue.AddNext(BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
-                        mSickSim, priority, isAutonomous: false, cancellableByPlayer: false));
+                        mSickSim, new InteractionPriority(InteractionPriorityLevel.High),
+                        isAutonomous: false, cancellableByPlayer: false));
                     if (mSickSim.Motives.GetMotiveValue(CommodityKind.Energy) > 20)
                     {
                         mSickSim.Motives.SetValue(CommodityKind.Energy, 20);
@@ -138,12 +124,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 if (mSickSim.BuffManager.HasElement(buffName))
                 {
-                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
-                    kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetPneumonia: Time until next symptom",
+                    DebugNote("Set Symptom alarm: " + mSickSim.FullName);
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenPneumoniaSymptoms,
+                    kMaxTimeBetweenPneumoniaSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetPneumonia: Time until next symptom",
                     AlarmType.DeleteOnReset);
                 }
-            }
 
+            }
         }
 
         public class Wheeze : Interaction<Sim, Sim>
@@ -219,8 +206,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWPetPneumonia buffInstance = bi as BuffInstanceEWPetPneumonia;
             buffInstance.mSickSim = bm.Actor;
-            buffInstance.isDeadly = RandomUtil.RandomChance(kChanceOfPneumonia);
-            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
+            buffInstance.isDeadly = RandomUtil.RandomChance(kChanceOfLethalPneumonia);
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinPneumoniaDuration, kMaxPneumoniaDuration);
             if (buffInstance.isDeadly)
             {
                 DebugNote("This pneumonia is deadly: " + buffInstance.mSickSim.FullName);
@@ -228,7 +215,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 DebugNote("This pneumonia NOT is deadly: " + buffInstance.mSickSim.FullName);
             }
-            buffInstance.DoSymptom();
+            buffInstance.mSymptomAlarm = buffInstance.mSickSim.AddAlarm(2f, TimeUnit.Minutes,
+                buffInstance.DoSymptom, "BuffEWPetPneumonia: Time until next symptom", AlarmType.DeleteOnReset);
             base.OnAddition(bm, bi, travelReaddition);
         }
 

@@ -9,6 +9,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetPneumonia;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
+using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
 
 
 //Template Created by Battery
@@ -28,25 +29,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 		public const ulong mGuid = 0x9086F0050AC3673Dul;
         public const BuffNames buffName = (BuffNames)mGuid;
 
-        [Tunable]
-        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
-        public static float kMinTimeBetweenSymptoms = 60f;
 
-        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
-        [Tunable]
-        public static float kMaxTimeBetweenSymptoms = 120f;
-
-        [TunableComment("Min cold duration (Minutes")]
-        [Tunable]
-        public static float kMinDuration = 2880f; // 2 days
-
-        [TunableComment("Max cold duration (Minutes)")]
-        [Tunable]
-        public static float kMaxDuration = 10080f;  // 7 days
-
-        [TunableComment("1 in x chance cold will become pneumonia if left untreated")]
-        [Tunable]
-        public static float kChanceOfPneumonia = 4f;
 
         public class BuffInstanceEWPetGermy : BuffInstance
         {
@@ -60,7 +43,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             public BuffInstanceEWPetGermy()
             {
             }
-        
+
             public BuffInstanceEWPetGermy(Buff buff, BuffNames buffGuid, int effectValue, float timeoutCount)
                 : base(buff, buffGuid, effectValue, timeoutCount)
             {
@@ -85,14 +68,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     if (kPetDiseaseDebug)
                     {
                         return this.TimeoutCount;
-                    } else return -1f;
+                    }
+                    else return -1f;
                 }
             }
 
             public void DoSymptom()
             {
-                DebugNote("Germy symptom: " + mSickSim.FullName);
-
                 // Currently only symptom is coughing.
                 mSickSim.InteractionQueue.AddNext(Cough.Singleton.CreateInstance(mSickSim, mSickSim,
                     new InteractionPriority(InteractionPriorityLevel.UserDirected),
@@ -100,9 +82,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 if (mSickSim.BuffManager.HasElement(buffName))
                 {
-                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
-                        kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetGermy: Time until next symptom",
-                        AlarmType.DeleteOnReset);
+
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenGermySymptoms,
+                    kMaxTimeBetweenGermySymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetGermy: Time until next symptom",
+                    AlarmType.DeleteOnReset);
+                }
+                else
+                {
+                    DebugNote("Attempted Pet Germy symptom, but moodlet was remmoved: " + mSickSim.FullName);
                 }
             }
         }
@@ -227,7 +214,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
             buffInstance.mSickSim = bm.Actor;
-            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinGermyDuration, kMaxGermyDuration);
             if (!PetDiseaseManager.CheckForVaccination(buffInstance.mSickSim))
             {
                 buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
@@ -248,7 +235,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             buffInstance.PetGermyContagionBroadcaster = new ReactionBroadcaster(bm.Actor,
                 BuffGermy.kSickBroadcastParams, PetGermyContagionCallback);
-            buffInstance.DoSymptom();
+            base.OnAddition(bm, bi, travelReaddition);
+            buffInstance.mSymptomAlarm = buffInstance.mSickSim.AddAlarm(2f, TimeUnit.Minutes,
+                buffInstance.DoSymptom, "BuffEWPetGermy: Time until next symptom", AlarmType.DeleteOnReset);
             base.OnAddition(bm, bi, travelReaddition);
         }
 
@@ -276,8 +265,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
             if (buffInstance.willBecomePnumonia)
             {
-                bm.AddElement(BuffEWPetPneumonia.buffName, RandomUtil.GetFloat(BuffEWPetPneumonia.kMinDuration,
-                    BuffEWPetPneumonia.kMaxDuration), Origin.None);
+                bm.AddElement(BuffEWPetPneumonia.buffName, RandomUtil.GetFloat(kMinPneumoniaDuration,
+                    kMaxPneumoniaDuration), Origin.None);
             }
             base.OnTimeout(bm, bi, reason);
         }

@@ -67,6 +67,108 @@ namespace Echoweaver.Sims3Game.PetDisease
         [TunableComment("Float. Time in minutes between contagion checks for a specific illness.")]
         public static float kCheckForContagionInterval = 360f;
 
+
+        // Tunable parameters for PetGermy moodlet
+        [Tunable]
+        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
+        public static float kMinTimeBetweenGermySymptoms = 60f;
+
+        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
+        [Tunable]
+        public static float kMaxTimeBetweenGermySymptoms = 120f;
+
+        [TunableComment("Min cold duration (Minutes")]
+        [Tunable]
+        public static float kMinGermyDuration = 2880f; // 2 days
+
+        [TunableComment("Max cold duration (Minutes)")]
+        [Tunable]
+        public static float kMaxGermyDuration = 10080f;  // 7 days
+
+        [TunableComment("1 in x chance cold will become pneumonia if left untreated")]
+        [Tunable]
+        public static float kChanceOfPneumonia = 4f;
+
+        // Tunable parameters for TummyTrouble moodlet
+        [Tunable]
+        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
+        public static float kMinTimeBetweenNauseaSymptoms = 60f;
+
+        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
+        [Tunable]
+        public static float kMaxTimeBetweenNauseaSymptoms = 180f;
+
+        [TunableComment("Odds of getting sick from being in proximity to a sick sim")]
+        [Tunable]
+        public static float kStomachFluProximityOdds = 0.5f;
+
+        [TunableComment("Odds of getting food poisoning from eating unobjectionable food")]
+        [Tunable]
+        public static float kAmbientPoisonOdds = 0.01f;
+
+        [TunableComment("Min stomach flu incubation time (Hours)")]
+        [Tunable]
+        public static float kMinStomachFluIncubationTime = 6f;
+
+        [TunableComment("Max stomach flu incubation time (Hours)")]
+        [Tunable]
+        public static float kMaxStomachFluIncubationTime = 24f;
+
+        [TunableComment("Min tummy trouble duration (Minutes)")]
+        [Tunable]
+        public static float kMinNauseaDuration = 720f; // 12 hours
+
+        [TunableComment("Max tummy trouble duration (Minutes)")]
+        [Tunable]
+        public static float kMaxNauseaDuration = 2880f; // 2 days
+
+        // Tunable parameters for Pneumonia moodlet
+
+        [Tunable]
+        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
+        public static float kMinTimeBetweenPneumoniaSymptoms = 45f;
+
+        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
+        [Tunable]
+        public static float kMaxTimeBetweenPneumoniaSymptoms = 90f;
+
+        [TunableComment("Min cold duration (Minutes)")]
+        [Tunable]
+        public static float kMinPneumoniaDuration = 2880f;  // 2 days
+
+        [TunableComment("Max cold duration (Minutes)")]
+        [Tunable]
+        public static float kMaxPneumoniaDuration = 7200f;  // 5 days
+
+        [TunableComment("1 in x chance pneumonia will become lethal if left untreated")]
+        [Tunable]
+        public static float kChanceOfLethalPneumonia = 4f;
+
+        // Tunable parameters for Petstilence moodlet
+        [Tunable]
+        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
+        public static float kMinTimeBetweenPetstilenceSymptoms = 120f;
+
+        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
+        [Tunable]
+        public static float kMaxTimeBetweenPetstilenceSymptoms = 360f;
+
+        [TunableComment("Min petstilence duration (Minutes)")]
+        [Tunable]
+        public static float kMinPetstilenceDuration = 5760f;  // 4 days
+
+        [TunableComment("Max petstilence duration (Minutes)")]
+        [Tunable]
+        public static float kMaxPetstilenceDuration = 10080f;  // 1 week
+
+        [TunableComment("Chance of catching from hunting/fleas/etc.")]
+        [Tunable]
+        public static float kAmbientPetstilenceOdds = 0.05f;  // 5%
+
+        [TunableComment("Chance of catching petstilence from bodily fluid contact")]
+        [Tunable]
+        public static float kBloodbornePetstilenceOdds = 0.6f;  // 60%
+
         static public Dictionary<ulong, DateAndTime> LastGermyCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFluCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFoodPoisonCheck = new Dictionary<ulong, DateAndTime>();

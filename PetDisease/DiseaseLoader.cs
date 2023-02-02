@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.CAS;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -122,7 +124,10 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             // Any disease check
             //EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
-                //.OnMetSim));
+            //.OnMetSim));
+
+            // Fix cat ghost (remove inappropriate effects)
+            EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(FixGhost));
 
             if (kPetDiseaseDebug)
             {
@@ -131,6 +136,48 @@ namespace Echoweaver.Sims3Game.PetDisease
             }
 
         }
+
+        public static ListenerAction FixGhost(Event e)
+        {
+            Sim s = e.TargetObject as Sim;
+            DebugNote("Sim spawned. Actor: " + e.Actor.Name + ", Target: " + e.TargetObject.GetLocalizedName());
+            if (s != null)
+            {
+                DebugNote("Sim spawned is not null.");
+                if (s.SimDescription.IsGhost && s.IsPet)
+                {
+                    DebugNote("Sim spawned is pet ghost.");
+                    if (s.SimDescription.DeathStyle ==
+                        SimDescription.DeathType.HauntingCurse)
+                    {
+                        DebugNote("Pet disease ghost has spawned.");
+                        Urnstone urn = GetUrnstoneForGhost(s);
+                        if (urn != null)
+                        {
+                            urn.GhostTurnDeathEffectOff(VisualEffect.TransitionType.HardTransition);
+                        }
+                    }
+
+                }
+            }
+            
+            return ListenerAction.Keep;
+        }
+
+        public static Urnstone GetUrnstoneForGhost(Sim s)
+        {
+            List<Urnstone> list = new List<Urnstone>();
+            Urnstone[] objects = Queries.GetObjects<Urnstone>();
+            foreach (Urnstone val in objects)
+            {
+                if (val.DeadSimsDescription == s.SimDescription)
+                {
+                    return val;
+                }
+            }
+            return null;
+        }
+
 
         public static void LoadBuffXMLandParse(ResourceKey[] resourceKeys)
         {

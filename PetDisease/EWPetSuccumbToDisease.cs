@@ -31,6 +31,25 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public static InteractionDefinition Singleton = new Definition();
 
+        public override ThumbnailKey GetIconKey()
+        {
+            if (kAllowPetDiseaseDeath)
+            {
+                return new ThumbnailKey(new ResourceKey(ResourceUtils.HashString64("moodlet_EWDeath"),
+                    0x2F7D0004, 0u), ThumbnailSize.Medium);
+            }
+            else if (Target.IsCat)
+            {
+                return new ThumbnailKey(new ResourceKey(ResourceUtils.HashString64("moodlet_EWRecuperateCat"),
+                    0x2F7D0004, 0u), ThumbnailSize.Medium);
+            }
+            else
+            {
+                // TODO: We want a dog icon too
+                return new ThumbnailKey(new ResourceKey(ResourceUtils.HashString64("moodlet_EWRecuperateCat"),
+                    0x2F7D0004, 0u), ThumbnailSize.Medium);
+            }
+        }
 
         public override bool Run()
         {
@@ -41,7 +60,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 StyledNotification.Show(new StyledNotification.Format("Localize - You have died of disentery",
                     StyledNotification.NotificationStyle.kGameMessageNegative));
-                Target.Kill(SimDescription.DeathType.JellyBeanDeath);
+                Target.Kill(SimDescription.DeathType.HauntingCurse);
             }
             else
             {

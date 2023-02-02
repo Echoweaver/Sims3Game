@@ -9,10 +9,10 @@ using Sims3.Gameplay.Utilities;
 using Sims3.Gameplay.Objects;
 using Sims3.SimIFace;
 using System.Collections.Generic;
-using static Sims3.Gameplay.Actors.Sim;
-using static Echoweaver.Sims3Game.PetDisease.Loader;
 using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.ThoughtBalloons;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
+using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
 
 //Template Created by Battery
 
@@ -30,30 +30,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 	{
 		public const ulong mGuid = 0x7768716F913C2054ul;
         public const BuffNames buffName = (BuffNames)mGuid;
-
-        [Tunable]
-        [TunableComment("Range: Sim minutes.  Description:  Min time between symptoms.")]
-        public static float kMinTimeBetweenSymptoms = 120f;
-
-        [TunableComment("Range: Sim minutes.  Description:  Max time between symptoms.")]
-        [Tunable]
-        public static float kMaxTimeBetweenSymptoms = 360f;
-
-        [TunableComment("Min petstilence duration (Minutes)")]
-        [Tunable]
-        public static float kMinDuration = 5760f;  // 4 days
-
-        [TunableComment("Max petstilence duration (Minutes)")]
-        [Tunable]
-        public static float kMaxDuration = 10080f;  // 1 week
-
-        [TunableComment("Chance of catching from stranger contact")]
-        [Tunable]
-        public static float kAmbientSicknessOdds = 0.05f;
-
-        [TunableComment("Chance of catching from stranger contact")]
-        [Tunable]
-        public static float kFluidContactOdds = 0.6f;
 
         public class BuffInstanceEWPetstilence : BuffInstance
         {
@@ -300,13 +276,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                             DebugNote("Petstilence fight/chase random sim " + target.FullName);
                             if (target.IsCat || target.IsADogSpecies)
                             {
-                                FightPet action = FightPet.Singleton.CreateInstance(target, mSickSim,
-                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as FightPet;
+                                Sim.FightPet action = Sim.FightPet.Singleton.CreateInstance(target, mSickSim,
+                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as Sim.FightPet;
                                 mSickSim.InteractionQueue.AddNext(action);
                             } else
                             {
-                                ChaseMean action = ChaseMean.Singleton.CreateInstance(target, mSickSim,
-                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as ChaseMean;
+                                Sim.ChaseMean action = Sim.ChaseMean.Singleton.CreateInstance(target, mSickSim,
+                                    new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as Sim.ChaseMean;
                                 mSickSim.InteractionQueue.AddNext(action);
                             }
                         } else
@@ -329,9 +305,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 if (mSickSim.BuffManager.HasElement(buffName))
                 {
-                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenSymptoms,
-                    kMaxTimeBetweenSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetstilence: Time until next symptom",
+                    mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenPetstilenceSymptoms,
+                    kMaxTimeBetweenPetstilenceSymptoms), TimeUnit.Minutes, DoSymptom, "BuffEWPetstilence: Time until next symptom",
                     AlarmType.DeleteOnReset);
+                } else
+                {
+                    DebugNote("Attempted petstilence symptom, but the moodlet has been removed: " + mSickSim.FullName);
                 }
             }
 
@@ -556,7 +535,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             if (!CheckContagionEligibility(s))
                 return;
-            if (RandomUtil.RandomChance01(kAmbientSicknessOdds))
+            if (RandomUtil.RandomChance01(kAmbientPetstilenceOdds))
             // This ambient check is 5%. It's rare to catch.
             {
                 DebugNote("Sim Caught Petstilence: " + s.Name);
@@ -596,7 +575,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             if (!CheckContagionEligibility(s))
                 return;
-            if (RandomUtil.RandomChance01(kFluidContactOdds))
+            if (RandomUtil.RandomChance01(kBloodbornePetstilenceOdds))
             {
                 // Get Sick
                 DebugNote("Sim Caught Petstilence: " + s.Name);
@@ -649,13 +628,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
         {
             BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
             buffInstance.mSickSim = bm.Actor;
-            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinDuration, kMaxDuration);
+            buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinPetstilenceDuration, kMaxPetstilenceDuration);
             buffInstance.mStageLength = bi.TimeoutCount / 3;
             buffInstance.mAdvanceDiseaseAlarm = bm.Actor.AddAlarm(buffInstance.mStageLength,
                 TimeUnit.Minutes, buffInstance.AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
                 AlarmType.DeleteOnReset);
-            //TODO: This should go on final stage
-            buffInstance.DoSymptom();
+            buffInstance.mSymptomAlarm = buffInstance.mSickSim.AddAlarm(2f, TimeUnit.Minutes,
+                buffInstance.DoSymptom, "BuffEWPetstilence: Time until next symptom", AlarmType.DeleteOnReset);
             base.OnAddition(bm, bi, travelReaddition);
         }
 
