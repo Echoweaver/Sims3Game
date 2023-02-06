@@ -13,6 +13,7 @@ using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.ThoughtBalloons;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
 using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
+using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetPneumonia;
 
 //Template Created by Battery
 
@@ -157,21 +158,28 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     case 0:
                         // First stage, mildest symptoms. Maybe just a fuzzy feeling
                         symptomType = RandomUtil.GetInt(1, 3);
+                        mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
+                                .GetMotiveValue(CommodityKind.Energy) - 5);
                         DebugNote("Petstilence stage 0 Symptom type " + symptomType + ": " + mSickSim.FullName);
                         if (symptomType == 1)
                         {
-
+                            ShowBalloon(mSickSim, "moodlet_feelingAnxious");
+                            mSickSim.BuffManager.AddElement(BuffNames.FeelingAnxious, Origin.FromUnknown);
                             BeSkittish action = BeSkittish.Singleton.CreateInstance(mSickSim,
                                 mSickSim, priority, false, false) as BeSkittish;
                             mSickSim.InteractionQueue.AddNext(action);
                         }
                         else if (symptomType == 2)
                         {
+                            ShowBalloon(mSickSim, "moodlet_spooked");
+                            mSickSim.BuffManager.AddElement(BuffNames.Spooked, Origin.FromUnknown);
                             Shiver action = Shiver.Singleton.CreateInstance(mSickSim, mSickSim,
                                 priority, false, false) as Shiver;
                             mSickSim.InteractionQueue.AddNext(action);
                         } else
                         {
+                            mSickSim.BuffManager.AddElement(BuffNames.Scolded, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "moodlet_embarrassed");
                             Whine action = Whine.Singleton.CreateInstance(mSickSim, mSickSim, priority,
                                 false, false) as Whine;
                             mSickSim.InteractionQueue.AddNext(action);
@@ -185,12 +193,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                                 .GetMotiveValue(CommodityKind.Energy) - 20);
                         if (symptomType == 1)
                         {
+                            // This moodlet does not show up.
+                            //mSickSim.BuffManager.AddElement(BuffNames.SqueakSqueak, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "moodlet_excited");
                             ActWacky action = ActWacky.Singleton.CreateInstance(mSickSim, mSickSim,
                                 priority, false, false) as ActWacky;
                             mSickSim.InteractionQueue.AddNext(action);
                         }
                         else if (symptomType == 2)
                         {
+                            mSickSim.BuffManager.AddElement(BuffNames.Embarrassed, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "moodlet_embarrassed");
                             Yowl action = Yowl.Singleton.CreateInstance(mSickSim,
                                 mSickSim, priority, false, false) as Yowl;
                             mSickSim.InteractionQueue.AddNext(action);
@@ -198,11 +211,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         else
                         {
                             // Hiss/growl at random sim
+                            mSickSim.BuffManager.AddElement(BuffNames.OutOfSorts, 240f, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "moodlet_offended");
                             List<Sim> list = new List<Sim>(mSickSim.LotCurrent.GetSims());
+                            list.AddRange(mSickSim.LotCurrent.GetAnimals());
                             list.Remove(mSickSim);
                             foreach (Sim s in list)
                             {
-                                if (s.SimDescription.ChildOrBelow)
+                                if (s.SimDescription.ToddlerOrBelow)
                                 {
                                     list.Remove(s);
                                 }
@@ -250,7 +266,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                             mSickSim.InteractionQueue.AddNext(action);
                         } else if (symptomType == 2)
                         {
-                            List<Sim> list = new List<Sim>(mSickSim.LotCurrent.GetSims());
+                            mSickSim.BuffManager.AddElement(BuffNames.Betrayed, 240f, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "moodlet_enemy");
+                            List<Sim> list = new List<Sim>(mSickSim.LotCurrent.GetAllActors());
                             list.Remove(mSickSim);
 
                             foreach (Sim s in list)
@@ -264,6 +282,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                                 }
                             }
                             Sim target = null;
+                            DebugNote(list.Count + "Fight/Chase target optons.");
                             if (list.Count > 0)
                             {
                                 target = RandomUtil.GetRandomObjectFromList<Sim>(list);
@@ -274,13 +293,15 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                                 return;
                             }
                             DebugNote("Petstilence fight/chase random sim " + target.FullName);
-                            if (target.IsCat || target.IsADogSpecies)
+                            if (target.IsPet)
                             {
+                                DebugNote("Fight/Chase target is pet.");
                                 Sim.FightPet action = Sim.FightPet.Singleton.CreateInstance(target, mSickSim,
                                     new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as Sim.FightPet;
                                 mSickSim.InteractionQueue.AddNext(action);
                             } else
                             {
+                                DebugNote("Fight/Chase target is NOT pet.");
                                 Sim.ChaseMean action = Sim.ChaseMean.Singleton.CreateInstance(target, mSickSim,
                                     new InteractionPriority(InteractionPriorityLevel.UserDirected), false, false) as Sim.ChaseMean;
                                 mSickSim.InteractionQueue.AddNext(action);
@@ -288,11 +309,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         } else
                         {
                             DebugNote("Petstilence run in terror ");
-                            ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData("balloon_flames");
-                            balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
-                            balloonData.Duration = ThoughtBalloonDuration.Medium;
-                            balloonData.mPriority = ThoughtBalloonPriority.High;
-                            mSickSim.ThoughtBalloonManager.ShowBalloon(balloonData);
+                            mSickSim.BuffManager.AddElement(BuffNames.Panicked, Origin.FromUnknown);
+                            ShowBalloon(mSickSim, "balloon_flames");
                             Fire.PetRunAwayFromFire action = Fire.PetRunAwayFromFire.Singleton.CreateInstance(mSickSim,
                                 mSickSim, new InteractionPriority(InteractionPriorityLevel.Fire), false, false) as
                                 Fire.PetRunAwayFromFire;
@@ -303,6 +321,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         break;
                 }
 
+                // Make sure sim still has the moodlet so we don't get an infinite repeating timer.
                 if (mSickSim.BuffManager.HasElement(buffName))
                 {
                     mSymptomAlarm = mSickSim.AddAlarm(RandomUtil.GetFloat(kMinTimeBetweenPetstilenceSymptoms,
@@ -314,11 +333,20 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 }
             }
 
+            protected void ShowBalloon(Sim s, string thought_name)
+            {
+                ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData(thought_name);
+                balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
+                balloonData.Duration = ThoughtBalloonDuration.Medium;
+                balloonData.mPriority = ThoughtBalloonPriority.High;
+                s.ThoughtBalloonManager.ShowBalloon(balloonData);
+            }
+
             public void AdvanceDisease()
             {
                 mStage++;
                 DebugNote("Petstilence advance to level " + mStage + ": " + mSickSim.FullName);
-                if (mStage < 3)
+                if (mStage <= 2)
                 {
                     mAdvanceDiseaseAlarm = mSickSim.AddAlarm(mStageLength, TimeUnit.Minutes,
                         AdvanceDisease, "BuffEWPetstilence: Time until disease gets worse",
@@ -333,15 +361,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         StartFliesEffect();
                     }
                     DoSymptom();
-                } else if (mStage >= 3)
-                {
-                    // This disease is lethal if not cured
-                    DebugNote("Queuing succumb to disease");
-                    EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(mSickSim,
-                        mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false)
-                        as EWPetSuccumbToDisease;
-                    mSickSim.InteractionQueue.AddNext(die);
-                }
+                } 
             }
         }
 
@@ -649,7 +669,17 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 buffInstance.mSymptomAlarm = AlarmHandle.kInvalidHandle;
                 buffInstance.mAdvanceDiseaseAlarm = AlarmHandle.kInvalidHandle;
             }
-            base.OnRemoval(bm, bi);
+            base.OnRemoval(bm, bi);        }
+
+        public override void OnTimeout(BuffManager bm, BuffInstance bi, OnTimeoutReasons reason)
+        {
+            BuffInstanceEWPetstilence buffInstance = bi as BuffInstanceEWPetstilence;
+            DebugNote("Moodlet complete - Petstilence is always lethal.");
+            EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
+                    buffInstance.mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath),
+                    false, false) as EWPetSuccumbToDisease;
+            buffInstance.mSickSim.InteractionQueue.AddNext(die);
+            base.OnTimeout(bm, bi, reason);
         }
 
     }

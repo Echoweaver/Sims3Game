@@ -56,11 +56,17 @@ namespace Echoweaver.Sims3Game.PetDisease
             if (Loader.kAllowPetDiseaseDeath)
             {
                 // TODO: Localize!
+                if (!Target.IsSleeping)
+                {
+                    EnterStateMachine("PetPassOut", "Enter", "x");
+                    AnimateSim("PassOutLoop");
+                    AnimateSim("Exit");
+                }
                 //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetDie",
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 StyledNotification.Show(new StyledNotification.Format("Localize - You have died of disentery",
                     StyledNotification.NotificationStyle.kGameMessageNegative));
-                Target.Kill(SimDescription.DeathType.HauntingCurse);
+                Target.Kill(kDiseaseDeathType);
             }
             else
             {

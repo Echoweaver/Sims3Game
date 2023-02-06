@@ -26,8 +26,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         public static bool kPetDiseaseDebug = false;
 
         // Word on the street is that ghost shaders don't require the associated EP.
-        [Tunable]
-        public static SimDescription.DeathType diseaseDeathType = SimDescription.DeathType.JellyBeanDeath;
+        public static SimDescription.DeathType kDiseaseDeathType = SimDescription.DeathType.MermaidDehydrated;
 
         public static List<ulong> BuffGuids = new List<ulong>() {
             Buffs.BuffEWPetGermy.mGuid,
@@ -127,7 +126,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             //.OnMetSim));
 
             // Fix cat ghost (remove inappropriate effects)
-            EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(FixGhost));
+            //EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(FixGhost));
 
             if (kPetDiseaseDebug)
             {
@@ -139,42 +138,49 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public static ListenerAction FixGhost(Event e)
         {
+            // Weirdly, for a SimInstantiated event, the sim is in TargetObject.
             Sim s = e.TargetObject as Sim;
-            DebugNote("Sim spawned. Actor: " + e.Actor.Name + ", Target: " + e.TargetObject.GetLocalizedName());
             if (s != null)
             {
-                DebugNote("Sim spawned is not null.");
                 if (s.SimDescription.IsGhost && s.IsPet)
                 {
-                    DebugNote("Sim spawned is pet ghost.");
                     if (s.SimDescription.DeathStyle ==
-                        SimDescription.DeathType.HauntingCurse)
+                        kDiseaseDeathType)
                     {
                         DebugNote("Pet disease ghost has spawned.");
                         Urnstone urn = GetUrnstoneForGhost(s);
                         if (urn != null)
                         {
+                            DebugNote("Trying to remove death effect.");
+                            urn.mDeathEffect.Stop();
                             urn.GhostTurnDeathEffectOff(VisualEffect.TransitionType.HardTransition);
+                        } else
+                        {
+                            DebugNote("Pet disease urnstone not found.");
                         }
                     }
-
                 }
+            } else
+            {
+                DebugNote("Sim spawned. Target is null. ");
             }
-            
+
             return ListenerAction.Keep;
         }
 
         public static Urnstone GetUrnstoneForGhost(Sim s)
         {
-            List<Urnstone> list = new List<Urnstone>();
             Urnstone[] objects = Queries.GetObjects<Urnstone>();
-            foreach (Urnstone val in objects)
+            DebugNote(objects.Length + "Urnstones in world.");
+            foreach (Urnstone urn in objects)
             {
-                if (val.DeadSimsDescription == s.SimDescription)
+                if (object.ReferenceEquals(urn.DeadSimsDescription, s.SimDescription))
                 {
-                    return val;
+                    DebugNote("Urn reference matches simdescription");
+                    return urn;
                 }
             }
+            DebugNote("No urn matches");
             return null;
         }
 
