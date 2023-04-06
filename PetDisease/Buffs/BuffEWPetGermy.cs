@@ -7,7 +7,6 @@ using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetPneumonia;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
 using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
 

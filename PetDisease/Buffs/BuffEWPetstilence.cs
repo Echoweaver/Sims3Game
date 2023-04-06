@@ -256,13 +256,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                         // Attack/chase random sim
                         symptomType = RandomUtil.GetInt(1, 3);
                         DebugNote("Petstilence stage 2 Symptom type " + " + " + symptomType + ": " + mSickSim.FullName);
-                        mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
-                                .GetMotiveValue(CommodityKind.Energy) - 50);
+                        mSickSim.Motives.SetValue(CommodityKind.Hygiene, mSickSim.Motives
+                                .GetMotiveValue(CommodityKind.Hygiene) - 50);
                         if (symptomType == 1)
                         {
-                            BuffExhausted.PassOut action = BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
+                            Stagger action = Stagger.Singleton.CreateInstance(mSickSim,
                                 mSickSim, new InteractionPriority(InteractionPriorityLevel.High),
-                                false, false) as BuffExhausted.PassOut;
+                                false, false) as Stagger;
                             mSickSim.InteractionQueue.AddNext(action);
                         } else if (symptomType == 2)
                         {
@@ -374,6 +374,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 {
                     return a.IsCat || a.IsADogSpecies;
                 }
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Act Wacky";
+                }
+
             }
 
             [TunableComment("Min/Max Num sim minutes cat should animate randomly picked between these values")]
@@ -408,7 +414,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             [DoesntRequireTuning]
             public class Definition : InteractionDefinition<Sim, Sim, Shiver>
             {
-
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
                     return "Localize - Shiver";
@@ -534,6 +539,40 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 return true;
             }
 
+        }
+
+        public class Stagger : Interaction<Sim, Sim>
+        {
+            public class Definition : InteractionDefinition<Sim, Sim, Stagger>
+            {
+                public override bool Test(Sim a, Sim target, bool isAutonomous,
+                    ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return a.IsCat || a.IsADogSpecies;
+                }
+
+                public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
+                {
+                    return "Localize - Stagger";
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public override void ConfigureInteraction()
+            {
+                base.ConfigureInteraction();
+                base.Hidden = true;
+            }
+
+            public override bool Run()
+            {
+                DebugNote("Stagger symptom.");
+                StandardEntry();
+                Actor.PlaySoloAnimation("a_stagger_x", yield: true, ProductVersion.EP5);
+                StandardExit();
+                return true;
+            }
         }
 
         private static bool CheckContagionEligibility(Sim s)

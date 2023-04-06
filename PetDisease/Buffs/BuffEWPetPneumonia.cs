@@ -8,8 +8,6 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
-using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetGermy;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
 using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
 
@@ -77,7 +75,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
             public void DoSymptom()
             {
-                int symptomType;
+                int symptomType = 0;
                 InteractionPriority priority = new InteractionPriority(InteractionPriorityLevel.High);
                 if (mSickSim.IsSleeping || mSickSim.SimInRabbitHolePosture || mSickSim.Posture is SittingInVehicle)
                 {
@@ -111,11 +109,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                     mSickSim.Motives.SetValue(CommodityKind.Energy, mSickSim.Motives
                             .GetMotiveValue(CommodityKind.Energy) - 20);
                 }
-                else
+                else if (symptomType == 3)
                 {
+
+                    mSickSim.BuffManager.AddElement(BuffNames.ExhaustedPet, 30f, Origin.FromUnknown);
                     mSickSim.InteractionQueue.AddNext(BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
-                        mSickSim, new InteractionPriority(InteractionPriorityLevel.High),
-                        isAutonomous: false, cancellableByPlayer: false));
+                        mSickSim, priority, isAutonomous: false, cancellableByPlayer: false) as BuffExhausted.PassOut);
                     if (mSickSim.Motives.GetMotiveValue(CommodityKind.Energy) > 20)
                     {
                         mSickSim.Motives.SetValue(CommodityKind.Energy, 20);
@@ -157,28 +156,9 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 DebugNote("Wheezing symptom: " + Actor.FullName);
                 StandardEntry();
-                if (Actor.Posture != Actor.PetSittingOnGround)
-                {
-                    PetSittingOnGroundPosture.SitOnGround(Actor);
-                    Actor.Posture = Actor.PetSittingOnGround;
-                }
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_start_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_loop_x", yield: true, ProductVersion.EP5);
-                Actor.PlaySoloAnimation("a_idle_laydown_breathe_pant_stop_x", yield: true, ProductVersion.EP5);
-                if (Actor.IsCat)
-                {
-                    Actor.PlaySoloAnimation("a_trans_down2sit_x", yield: true, ProductVersion.EP5);
-                } else if (Actor.SimDescription.Elder)
-                {
-                    Actor.PlaySoloAnimation("a_trans_down2sit_elder_x", yield: true, ProductVersion.EP5);
-                } else
-                {
-                    Actor.PlaySoloAnimation("a_trans_down2sit_slow_x", yield: true, ProductVersion.EP5);
-                }
+
+                Actor.PlaySoloAnimation("a_wheeze_x", yield: true, ProductVersion.EP5);
+
                 Actor.Motives.SetValue(CommodityKind.Energy, Actor.Motives
                         .GetMotiveValue(CommodityKind.Energy) - 30);
                 StandardExit();

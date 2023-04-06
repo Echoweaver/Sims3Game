@@ -66,12 +66,11 @@ namespace Echoweaver.Sims3Game.PetDisease
             {
                 if ((s.IsCat || s.IsADogSpecies) && s.SimDescription.AdultOrAbove)
                 {
-
                     s.AddInteraction(EWTakeToVetDisease.Singleton, true);
                     if (kPetDiseaseDebug)
                     {
                         s.AddInteraction(Buffs.BuffEWPetGermy.Cough.Singleton, true);
-                        s.AddInteraction(Buffs.BuffEWPetstilence.Shiver.Singleton, true);
+                        s.AddInteraction(Buffs.BuffEWPetstilence.Stagger.Singleton, true);
                         s.AddInteraction(Buffs.BuffEWPetPneumonia.Wheeze.Singleton, true);
                         s.AddInteraction(EWPetSuccumbToDisease.Singleton, true);
                     }

@@ -57,10 +57,9 @@ namespace Echoweaver.Sims3Game.PetDisease
             {
                 // TODO: Localize!
                 if (!Target.IsSleeping)
-                {
+                {   
                     EnterStateMachine("PetPassOut", "Enter", "x");
                     AnimateSim("PassOutLoop");
-                    AnimateSim("Exit");
                 }
                 //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetDie",
                 //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
