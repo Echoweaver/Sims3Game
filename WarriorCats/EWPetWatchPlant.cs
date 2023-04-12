@@ -28,7 +28,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 			public override string GetInteractionName(Sim actor, Plant target, InteractionObjectPair iop)
 			{
-				return "EWPetWatchPlant";
+				return "Localize - Investigate";
 			}
 		}
 

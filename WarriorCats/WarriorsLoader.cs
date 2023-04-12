@@ -1,7 +1,6 @@
 ﻿using System;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Utilities;
@@ -11,10 +10,12 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Objects.Fishing;
+using Sims3.Gameplay.Objects.FoodObjects;
+using Sims3.Gameplay.ObjectComponents;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-    public class LoadThis : GameObject
+    public class Loader 
     {
         static bool HasBeenLoaded = false;
 
@@ -27,11 +28,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static BuffNames buffNamePetstilence = (BuffNames)0x7768716F913C2054;
         public static BuffNames buffNamePneumoniaPet = (BuffNames)0x904F100B14974699;
-        public static BuffNames buffNameGermyPet = (BuffNames)0x9086F0050AC3673D;
-
+        public static BuffNames buffNameGermyPet = (BuffNames)0x9086F0050AC3673Dul;
         public static BuffNames buffNameTummyTrouble = (BuffNames)0xDFF72BA95943E99;
-        public static BuffNames[] nauseaBuffList = new BuffNames[] { BuffNames.NauseousPet,
-            buffNameTummyTrouble };
 
         [Tunable]
         protected static bool kInstantiator = false;
@@ -40,7 +38,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static bool kAllowPetDeath = true;
 
 
-        static LoadThis()
+        static Loader()
         {
             // gets the OnPreload method to run before the whole savegame is loaded so your sim doesn't find
             // the skill missing if they need to access its data
@@ -67,81 +65,104 @@ namespace Echoweaver.Sims3Game.WarriorCats
         {
             foreach (Plant p in Queries.GetObjects<Plant>())
             {
-                //p.AddInteraction(EWPetMarkPlant.Singleton);
-                p.AddInteraction(EWPetWatchPlant.Singleton);
-                p.AddInteraction(EWPetHarvest.Singleton);
-                p.AddInteraction(EWPetWeedPlant.Singleton);
-                p.AddInteraction(EWPetWaterPlant.Singleton);
-                p.AddInteraction(EWPetDisposePlant.Singleton);
+                AddPlantInteractions(p);
             }
 
-            foreach (GameObject p in Queries.GetObjects<GameObject>())
+            foreach (Ingredient i in Queries.GetObjects<Ingredient>())
             {
-                if (!(p.Plantable == null))
+                PlantableComponent plantable = i.Plantable;
+                if (plantable != null)
                 {
-                    p.AddInteraction(EWPetPickUpPlantable.Singleton);
-                    p.AddInventoryInteraction(EWPetPlantSeed.Singleton);
-                    p.AddInventoryInteraction(EWPetTreatNausea.Singleton);
-                }
-                if (p.CatHuntingComponent != null)
-                {
-                    if (p.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Rodent)
-                    {
-                        p.AddInventoryInteraction(EWPetTreatFleas.Singleton);
-                    }
-                }
-
-                Fish fish = p as Fish;
-                if (fish != null)
-                {
-                    fish.AddInventoryInteraction(EWCarryFish.Singleton);
+                    //if (plantable.PlantDef != null)
+                    //{
+                    //    if (!plantable.PlantDef.LimitedAvailability)
+                    //    {
+                            i.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+                            AddPlantableInventoryInteractions(i);
+                    //    }
+                    //}
                 }
             }
+
+            foreach(MinorPet p in Queries.GetObjects<MinorPet>())
+            if (p.CatHuntingComponent != null)
+            {
+                if (p.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Rodent)
+                {
+                    p.AddInventoryInteraction(EWPetTreatFleas.Singleton);
+                }
+            }
+
+            //Fish fish = p as Fish;
+            //if (fish != null)
+            //{
+            //    fish.AddInventoryInteraction(EWCarryFish.Singleton);
+            //}
 
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
 
+        public static void AddPlantableInventoryInteractions(Ingredient i)
+        {
+            i.AddInventoryInteraction(EWPetPlantSeed.Singleton);
+            i.AddInventoryInteraction(EWPetTreatNausea.Singleton);
+            i.AddInventoryInteraction(EWPetTreatWound.Singleton);
+            i.AddInventoryInteraction(EWPetTreatPneumonia.Singleton);
+            i.AddInventoryInteraction(EWPetTreatPetstilence.Singleton);
+        }
+
+        public static void AddPlantInteractions(Plant p)
+        {
+            p.AddInteraction(EWPetWatchPlant.Singleton, true);
+            p.AddInteraction(EWPetHarvest.Singleton, true);
+            p.AddInteraction(EWPetWeedPlant.Singleton, true);
+            p.AddInteraction(EWPetWaterPlant.Singleton, true);
+            p.AddInteraction(EWPetDisposePlant.Singleton, true);
+        }
+
         public static ListenerAction OnObjectChanged(Event e)
         {
-            Sim a = e.Actor as Sim;
+            Sim sim = e.Actor as Sim;
             Plant p = e.TargetObject as Plant;
             if (p != null)
             {
-                //p.AddInteraction(EWPetMarkPlant.Singleton, true);
-                p.AddInteraction(EWPetWatchPlant.Singleton, true);
-                p.AddInteraction(EWPetHarvest.Singleton, true);
-                p.AddInteraction(EWPetWeedPlant.Singleton, true);
-                p.AddInteraction(EWPetWaterPlant.Singleton, true);
-                p.AddInteraction(EWPetDisposePlant.Singleton, true);
+                AddPlantInteractions(p);
             }
 
-            // Turning this off until I can test it
-            if (a.IsPet && e.TargetObject.InInventory && !(e.TargetObject.Plantable == null) && false)
+            Ingredient i = e.TargetObject as Ingredient;
+
+            if (i != null)
             {
-                bool has_plant = false;
-                foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(a))
+                PlantableComponent pc = i.Plantable;
+                if (pc != null)
                 {
-                    if (pair.InteractionDefinition.GetType() == EWPetPlantSeed.Singleton.GetType())
+                    i.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+
+                    if (sim.IsPet && i.InInventory)
                     {
-                        has_plant = true;
-                        break;
+                        bool has_plantable_interactions = false;
+                        foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(sim))
+                        {
+                            if (pair.InteractionDefinition.GetType() == EWPetPlantSeed.Singleton.GetType())
+                            {
+                                has_plantable_interactions = true;
+                                break;
+                            }
+                        }
+                        if (!has_plantable_interactions)
+                        {
+                            AddPlantableInventoryInteractions(i);
+                        }
                     }
                 }
-                if (!has_plant)
-                {
-                    GameObject o = e.TargetObject as GameObject;
-                    o.AddInventoryInteraction(EWPetPlantSeed.Singleton);
-                    o.AddInventoryInteraction(EWPetTreatNausea.Singleton);
-                    o.AddInteraction(EWPetPickUpPlantable.Singleton, true);
-                }
             }
-            else if (e.TargetObject.CatHuntingComponent != null)
+            else if (e.TargetObject.CatHuntingComponent != null && sim.IsPet && e.TargetObject.InInventory)
             {
                 if (e.TargetObject.CatHuntingComponent.mPreyData.PreyType == CatHuntingSkill.PreyType.Rodent)
                 {
                     bool has_treatFleas = false;
-                    foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(e.Actor))
+                    foreach (InteractionObjectPair pair in e.TargetObject.GetAllInventoryInteractionsForActor(sim))
                     {
                         if (pair.InteractionDefinition.GetType() == EWPetTreatFleas.Singleton.GetType())
                         {

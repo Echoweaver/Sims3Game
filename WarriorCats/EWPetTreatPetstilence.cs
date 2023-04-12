@@ -19,7 +19,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "EWPetFeverish" + Localization.Ellipsis;
+				return "Localize - Treat Petstilence" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
@@ -36,7 +36,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					return false;
 				}
 				// TODO: Do I want to use non-herb stuff?
-				if (ingredient.IngredientKey != "Wonderpetal")
+				if (ingredient.IngredientKey != "Lavender")
 				{
 					return false;
 				}

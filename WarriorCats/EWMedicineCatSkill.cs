@@ -18,34 +18,38 @@ using Sims3.UI.Hud;
  *    - Higher levels: Remove wound entirely
  *      > goldenrod, marigold [sulfur], GARLIC, (WOLFSBANE), (WATERMELON), burdock root (MANDRAKE ROOT) 
  *      > BLACKBERRY, poppy [cosmos], chervil, comfrey root, dandelion, dock leaf 
- *      > elder leaf (BUMBLELEAF), fennel, goldenrod, horsetail, oak leaf (APPLE), stinging nettle (LEMON LIME), 
+ *      > elder leaf (BUMBLELEAF), fennel, goldenrod, horsetail, oak leaf (APPLE), stinging nettle, 
  *      > willow bark
+ *      > Spider
  *  - Treatment of disease 
- *    - Whitecough Coughing and sneezing, fatigue
+ *    - Whitecough (Germy) Coughing and sneezing, fatigue
  *      > HONEY, (ONION), bright eyes [sweet william]
- *    - Greencough (Develops from untreated whitecough) Coughing, Fever, Rheumy Eyes, Difficulty Breathing
- *      > blazing star flower (WONDERPETAL)[azalea], catmint (PEPPERMINT), chickweed, hawkweed, LAVENDER, 
+ *    - Greencough (Pneumonia) (Develops from untreated whitecough) Coughing, Fever, Rheumy Eyes, Difficulty Breathing
+ *      > blazing star flower (WONDERPETAL)[azalea], chickweed, hawkweed, catmint (PEPPERMINT),
  *        borage leaves [blue flax], lungwort, sweet-sedge (LICORICE), tansy
- *  - Nausea (Vomits reduce hunger motive. Eating causes vomiting and halves the gain from eating)
+ *    - Nausea 
  *      > Watermint, williow leaves (GREENLEAF), wintergreen, juniper berries (BUZZBERRY), mallow leaves, parsley, yarrow
- *      > (SWEETGRASS), (WATERMELON)
+ *        Snake root (Mandrake)
+ *    - Pestilence 
+ *      > (Sweetgrass), Wonderpetal, LAVENDER
  *  - Problems with childbirth (requires childbirth trouble event)
  *    > RASPBERRY, chervil, fennel(BASIL), ragwort leaves, (BELL PEPPER)
  *  - ? Problems with nursing
+ *  
  */
 
 /* 
- * Types of medicine (converted to Sims)
+ * Types of medicine (converted to Sims)  
  * 1 - Fleas: RODENT
- * 2 - Disease, nausea: PEPPERMINT (35)
- * 3 - Wounds, reduce by one level: BASIL (45)
- * 4 - Disease, whitecough (Sniffles): BUMBLELEAF (55)
+ * 2 - Disease, nausea: BUZZBERRY (35)
+ * 3 - Wounds, reduce by one level: GREENLEAF, Garlic, Spider(?) (45)
+ * 4 - Disease, Germy (whitecough): GENSING (55)
  * 4 - Heat Exhaustion: WATERMELON (#Future release#)
- * 5 - Disease, Feverish: CINNAMON, GARLIC (65)
- * 5 - Frostbite: FLAME FRUIT (#Future release#)
- * 6 - Disease, greencough (Petstilence): WONDERPETAL (75)
+ * 5 - Disease, Pneumonia (Greencough):  PEPPERMINT (65)
+ * 5 - Frostbite: FLAME FRUIT, CINNAMON (#Future release#)
+ * 6 - Disease, Pestilence (Carrionplace Disease): LAVENDER, Mandrake Root (75)
  * 7 - Childbirth: RASPBERRY, CHAMOMILE (85)
- * 8 - Wounds, remove: BLACKBERRY, GINSENG (95)
+ * 8 - Wounds, remove: Same as above (95)
  * 9 - Extend Life: LIFE FRUIT (100)
 */
 

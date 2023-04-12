@@ -19,7 +19,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override string GetInteractionName(Sim a, Plant target, InteractionObjectPair interaction)
 			{
-				return LocalizeString("DisposeAlivePlant");
+				return LocalizeString("Localize - Dispose");
 			}
 
 			public override bool Test(Sim a, Plant target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)

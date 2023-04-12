@@ -13,13 +13,13 @@ using Queries = Sims3.Gameplay.Queries;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-	public class EWPetTreatFeverish : EWAbstractPetTreatPlantable
+	public class EWPetTreatPneumonia : EWAbstractPetTreatPlantable
 	{
-		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatFeverish>
+		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatPneumonia>
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "EWPetFeverish" + Localization.Ellipsis;
+				return "Localize - Treat Pneumonia" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
@@ -43,7 +43,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				// TODO: Localize
 				if (GetTreatableSims(a, target.InInventory ? a.LotCurrent : target.LotCurrent) == null)
 				{
-					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with fever");
+					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with pneumonia");
 					return false;
 				}
 				return true;

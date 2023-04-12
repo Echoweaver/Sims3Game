@@ -20,7 +20,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "EWPetTreatNausea" + Localization.Ellipsis;
+				return "Localize - Treat Nausea" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
@@ -80,7 +80,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasAnyElement(Loader.nauseaBuffList))
+					if (s != actor && s.BuffManager.HasElement(Loader.buffNameTummyTrouble))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -90,7 +90,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasAnyElement(Loader.nauseaBuffList)
+				if (sim != actor && sim.BuffManager.HasElement(Loader.buffNameTummyTrouble)
 					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
@@ -101,15 +101,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			BuffInstance badBuff = simToPresentTo.BuffManager.GetElement(BuffNames.NauseousPet);
-			// Cure the nastiest buff first if there are multiple types of nausea.
-			if (simToPresentTo.BuffManager.HasElement(Loader.buffNameStomachFluPet))
-            {
-				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameStomachFluPet);
-			} else if (simToPresentTo.BuffManager.HasElement(Loader.buffNameTummyTrouble))
-            {
-				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameTummyTrouble);
-			}
+			BuffInstance badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameTummyTrouble);
+
 			if (badBuff == null)
 			{
 				return false;
@@ -146,7 +139,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				EWWait waitInstance = waitDefinition.CreateInstance(mSimToPresent, mSimToPresent,
 					new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
 					CancellableByPlayer) as EWWait;
-				waitInstance.SetInteractionName("Wait for Medicine");
+				waitInstance.SetInteractionName("Localize - Wait for Medicine");
 				mSimToPresent.InteractionQueue.AddNext(waitInstance);
 
 				Route val = Actor.CreateRoute();

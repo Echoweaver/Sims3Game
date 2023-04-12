@@ -14,13 +14,14 @@ using Queries = Sims3.Gameplay.Queries;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-	public class EWPetTreatWoundWeak : EWAbstractPetTreatPlantable
+	public class EWPetTreatWound : EWAbstractPetTreatPlantable
 	{
-		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatWoundWeak>
+		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatWound>
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "EWPetTreatWoundWeak" + Localization.Ellipsis;
+				// Localize!
+				return "Localize - Treat Wound" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
@@ -37,7 +38,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					return false;
 				}
 				// TODO: Do I want to use non-herb stuff?
-				if (ingredient.IngredientKey != "Basil")
+				if (ingredient.IngredientKey != "Greenleaf" && ingredient.IngredientKey != "Garlic")
 				{
 					return false;
 				}
@@ -81,8 +82,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasElement(BuffNames.NauseousPet)
-					&& !Lazy.Contains(list, sim))
+				if (sim != actor && sim.BuffManager.HasAnyElement(Loader.woundBuffList)
+                    && !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
 				}
@@ -97,23 +98,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameSeriousWound);
 			}
-			else
-			{
-				// Add a wound a level lower. The original will be removed with treat.
-				simToPresentTo.BuffManager.AddElement(Loader.buffNameSeriousWound, badBuff.TimeoutCount / 2,
-					badBuff.BuffOrigin);
-			}
 			if (badBuff == null)
 			{
 				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameMinorWound);
 			}
-			else
-			{
-				// Add wound a level lower
-				simToPresentTo.BuffManager.AddElement(Loader.buffNameMinorWound, badBuff.TimeoutCount / 2,
-					badBuff.BuffOrigin);
-			}
-
 			if (badBuff == null)
 			{
 				return false;
@@ -123,7 +111,29 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
-			return skill.TreatSim(simToPresentTo, badBuff, Target.GetLocalizedName());
+			bool success = skill.TreatSim(simToPresentTo, badBuff, Target.GetLocalizedName());
+			if (success && badBuff.BuffGuid != (ulong)Loader.buffNameMinorWound)
+			{
+                if (skill.SkillLevel >= 8)
+                {
+                    // Skill levels 8 and above have a chance of completely removing the buff
+                    if (RandomUtil.RandomChance(6.25f * skill.SkillLevel))
+                    {
+                        return true;
+                    }
+                }
+				if (badBuff.BuffGuid == (ulong)Loader.buffNameGraveWound)
+				{
+                    // Add a wound a level lower. The original will be removed with treat.
+                    simToPresentTo.BuffManager.AddElement(Loader.buffNameSeriousWound, badBuff.TimeoutCount,
+                        badBuff.BuffOrigin);
+                } else
+				{
+                    simToPresentTo.BuffManager.AddElement(Loader.buffNameMinorWound, badBuff.TimeoutCount,
+                        badBuff.BuffOrigin);
+                }
+            }
+			return success;
 		}
 
 	}

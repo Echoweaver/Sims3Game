@@ -25,7 +25,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			public override string GetInteractionName(Sim a, Plant target, InteractionObjectPair interaction)
 			{
-				return "EWPetWeedPlant";
+				return "Localize - Weed";
 			}
 		}
 

@@ -17,7 +17,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 {
     /*
      * Herb Lore Skill Levels:
-     * 0: View Plant, Play with Plant, Pick up seeds
+     * 0: Investigate Plant, Play with Plant (kitten), Pick up seeds
      * 1: Harvest
      * 2: Weed
      * 3: Dispose, Plant Harvestables
@@ -26,7 +26,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
      * 6: Fertilize with Fish
      * 7: Tend gains speed
      * 8: Harvest gains quality
-     * 9: Make traveling herbs
+     * 9: ?
      * 10: Make more traveling herbs
      */
 

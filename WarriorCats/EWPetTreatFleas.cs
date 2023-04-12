@@ -23,7 +23,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
 			public override string GetInteractionName(Sim actor, ICatPrey target, InteractionObjectPair iop)
 			{
-				return "EWPetTreatFleas" + Localization.Ellipsis;
+				return "Localize - Treat Fleas" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, ICatPrey target, bool isAutonomous,

@@ -40,7 +40,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			public override string GetInteractionName(Sim a, Plant target, InteractionObjectPair interaction)
 			{
-				return "EWPetWaterPlant";
+				return "Localize - Water";
 			}
 		}
 
@@ -93,17 +93,14 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			mossBall = GlobalFunctions.CreateObjectOutOfWorld("petToyBallFoil", ProductVersion.EP5);
 			//bool isChaining = Actor.CurrentInteraction is ITendGarden;
-			mossBall.SetColorTint(74, 93, 35, 0);  // RGB value for Dark Moss Green
+			mossBall.SetColorTint(0.75f, 1f, 0.35f, 0);  // RGB value for Dark Moss Green
             mossBall.AddToWorld();
 			mossBall.SetPosition(Actor.Position);
 			CarryUtils.Acquire(Actor, mossBall);
 			EnterCarry(Actor, mossBall);
 			CarryUtils.Request(Actor, "PickUp");
 			CarryUtils.Request(Actor, "Carry");
-			//if (!PetCarrySystem.PickUpWithoutRouting(Actor, mossBall as IPetCarryable))
-			//         {
-			//	return false;
-			//         }
+
 			EnterStateMachine("DrinkFromPond", "Enter", "x");
 			AnimateSim("Loop");
 			AnimateSim("Loop");
@@ -166,7 +163,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				SetParameter("IsEatingOnGround", paramValue: true);
 				AnimateSim("EatHarvestable");
 				StartWateringSound();
-				//AddOneShotScriptEventHandler(1001u, new SacsEventHandler(StartWateringSound));
 				AddOneShotScriptEventHandler(201u, new SacsEventHandler(StopWateringSound));
 				StartStagesForTendableInteraction(this);
 				float duration = Target.GetWaterDuration(Actor);
