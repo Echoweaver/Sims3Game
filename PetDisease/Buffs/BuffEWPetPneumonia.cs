@@ -140,8 +140,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Wheeze";
-                    //return LocalizeString("Wheeze");
+                    return LocalizeString("Wheeze");
                 }
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -167,6 +166,13 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             }
 
         }
+
+        public static string LocalizeString(string name, params object[] parameters)
+        {
+            return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWPetPneumonia:"
+                + name, parameters);
+        }
+
         public BuffEWPetPneumonia(Buff.BuffData info) : base(info)
 		{
 			
@@ -219,6 +225,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
                     buffInstance.mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath),
                     false, false) as EWPetSuccumbToDisease;
+                die.SetDiseaseName(buffInstance.BuffName);
                 buffInstance.mSickSim.InteractionQueue.AddNext(die);
             }
             base.OnTimeout(bm, bi, reason);

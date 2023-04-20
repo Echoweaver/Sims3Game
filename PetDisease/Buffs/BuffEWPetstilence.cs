@@ -13,7 +13,6 @@ using Sims3.Gameplay.Objects.Vehicles;
 using Sims3.Gameplay.ThoughtBalloons;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
 using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
-using static Echoweaver.Sims3Game.PetDisease.Buffs.BuffEWPetPneumonia;
 
 //Template Created by Battery
 
@@ -377,7 +376,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Act Wacky";
+                    return LocalizeString("ActWacky");
                 }
 
             }
@@ -416,7 +415,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             {
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Shiver";
+                    return LocalizeString("Shiver");
                 }
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -447,7 +446,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Jump at Shadows";
+                    return LocalizeString("Jumpy");
                 }
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -478,7 +477,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Complain of Discomfort";
+                    return LocalizeString("Yowl");
                 }
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -515,12 +514,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Feel Uncomfortable";
+                    return LocalizeString("Whine");
                 }
 
                 public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
                 {
-                    return true;
+                    return a.IsCat || a.IsADogSpecies;
                 }
             }
 
@@ -553,7 +552,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Stagger";
+                    return LocalizeString("Stagger");
                 }
             }
 
@@ -672,8 +671,14 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 		{
 			
 		}
-		
-		public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
+
+        public static string LocalizeString(string name, params object[] parameters)
+        {
+            return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWPetstilence:"
+                + name, parameters);
+        }
+
+        public override bool ShouldAdd(BuffManager bm, MoodAxis axisEffected, int moodValue)
 		{
             return (bm.Actor.IsADogSpecies || bm.Actor.IsCat) && bm.Actor.SimDescription.AdultOrAbove;
         }
@@ -717,6 +722,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
                     buffInstance.mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath),
                     false, false) as EWPetSuccumbToDisease;
+            die.SetDiseaseName(buffInstance.BuffName);
             buffInstance.mSickSim.InteractionQueue.AddNext(die);
             base.OnTimeout(bm, bi, reason);
         }

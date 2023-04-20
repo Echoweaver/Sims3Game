@@ -26,7 +26,7 @@ namespace Echoweaver.Sims3Game.PetDisease
         public static bool kPetDiseaseDebug = false;
 
         // Word on the street is that ghost shaders don't require the associated EP.
-        public static SimDescription.DeathType kDiseaseDeathType = SimDescription.DeathType.MermaidDehydrated;
+        public static SimDescription.DeathType kDiseaseDeathType = SimDescription.DeathType.HauntingCurse;
 
         public static List<ulong> BuffGuids = new List<ulong>() {
             Buffs.BuffEWPetGermy.mGuid,

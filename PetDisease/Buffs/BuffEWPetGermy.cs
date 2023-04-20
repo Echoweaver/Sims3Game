@@ -93,12 +93,6 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             }
         }
 
-        public static string LocalizeString(string name, params object[] parameters)
-        {
-            return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWGermy:"
-                + name, parameters);
-        }
-
         public class Cough : Interaction<Sim, Sim>
         {
             [DoesntRequireTuning]
@@ -107,11 +101,11 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
                 {
-                    return "Localize - Cough";
-                    //return LocalizeString("Cough");
+                    return LocalizeString("Cough");
                 }
 
-                public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                public override bool Test(Sim a, Sim target, bool isAutonomous,
+                    ref GreyedOutTooltipCallback greyedOutTooltipCallback)
                 {
                     return true;
                 }
@@ -196,6 +190,12 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             }
         }
 
+        public static string LocalizeString(string name, params object[] parameters)
+        {
+            return Localization.LocalizeString("Gameplay/ActorSystems/BuffEWGermy:"
+                + name, parameters);
+        }
+
         public BuffEWPetGermy(Buff.BuffData info) : base(info)
         {
         }
@@ -214,7 +214,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             BuffInstanceEWPetGermy buffInstance = bi as BuffInstanceEWPetGermy;
             buffInstance.mSickSim = bm.Actor;
             buffInstance.TimeoutCount = RandomUtil.GetFloat(kMinGermyDuration, kMaxGermyDuration);
-            if (!PetDiseaseManager.CheckForVaccination(buffInstance.mSickSim))
+            if (!CheckForVaccination(buffInstance.mSickSim))
             {
                 buffInstance.willBecomePnumonia = RandomUtil.RandomChance(kChanceOfPneumonia);
                 if (buffInstance.willBecomePnumonia)

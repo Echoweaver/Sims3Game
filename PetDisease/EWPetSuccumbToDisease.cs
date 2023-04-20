@@ -20,12 +20,11 @@ namespace Echoweaver.Sims3Game.PetDisease
                 ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
                 return true;
-            }
+            }   
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
-                //return Localization.LocalizeString("Echoweaver/PetDisease:Succumb");
-                return "Localize - Succumb to Disease)";
+                return Localization.LocalizeString("Echoweaver/PetDisease:Succumb");
             }
         }
 
@@ -51,6 +50,19 @@ namespace Echoweaver.Sims3Game.PetDisease
             }
         }
 
+        public static string LocalizeString(string name, bool isFemale, params object[] parameters)
+        {
+            return Localization.LocalizeString(isFemale, "Echoweaver/PetDisease/Succumb:"
+                + name, parameters);
+        }
+
+        string diseaseName = "Disease";
+
+        public void SetDiseaseName(string dName)
+        {
+            diseaseName = dName;
+        }
+
         public override bool Run()
         {
             if (Loader.kAllowPetDiseaseDeath)
@@ -61,10 +73,9 @@ namespace Echoweaver.Sims3Game.PetDisease
                     EnterStateMachine("PetPassOut", "Enter", "x");
                     AnimateSim("PassOutLoop");
                 }
-                //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetDie",
-                //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                StyledNotification.Show(new StyledNotification.Format("Localize - You have died of disentery",
-                    StyledNotification.NotificationStyle.kGameMessageNegative));
+
+                StyledNotification.Show(new StyledNotification.Format(LocalizeString("Die", Target.IsFemale,
+                    diseaseName, Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 Target.Kill(kDiseaseDeathType);
             }
             else
@@ -76,11 +87,8 @@ namespace Echoweaver.Sims3Game.PetDisease
                     Target.SetIsSleeping(value: true);
                 }
 
-                // TODO: Localize!
-                //StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetDisease:PetRecuperate",
-                //    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                StyledNotification.Show(new StyledNotification.Format("Localize - You are only mostly dead.",
-                    StyledNotification.NotificationStyle.kGameMessageNegative));
+                StyledNotification.Show(new StyledNotification.Format(LocalizeString("Recuperate", Target.IsFemale,
+                    diseaseName, Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 // TODO: Needs an origin for diseases
                 // I guess we need a copy of the recuperate moodlet.
                 //Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
