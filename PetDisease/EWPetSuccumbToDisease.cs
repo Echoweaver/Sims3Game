@@ -1,14 +1,12 @@
-﻿using Echoweaver.Sims3Game.PetDisease;
-using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
-using static Sims3.Gameplay.ActorSystems.PetSurfacePosture;
 using static Echoweaver.Sims3Game.PetDisease.Loader;
-using Sims3.Gameplay.CAS;
+using static Echoweaver.Sims3Game.PetDisease.PetDiseaseManager;
+using System.Collections.Generic;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -24,6 +22,10 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
             {
+                if (!kAllowPetDiseaseDeath)
+                {
+                    return Localization.LocalizeString("Echoweaver/PetDisease:RecuperateName");
+                }
                 return Localization.LocalizeString("Echoweaver/PetDisease:Succumb");
             }
         }
@@ -65,7 +67,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public override bool Run()
         {
-            if (Loader.kAllowPetDiseaseDeath)
+            if (kAllowPetDiseaseDeath)
             {
                 // TODO: Localize!
                 if (!Target.IsSleeping)
@@ -73,7 +75,11 @@ namespace Echoweaver.Sims3Game.PetDisease
                     EnterStateMachine("PetPassOut", "Enter", "x");
                     AnimateSim("PassOutLoop");
                 }
+                World.ObjectSetGhostState(Target.ObjectId, (uint)kDiseaseDeathType,
+                    (uint)Target.SimDescription.AgeGenderSpecies);
+                AnimateSim("Exit");
 
+                Target.BuffManager.RemoveAllElements();
                 StyledNotification.Show(new StyledNotification.Format(LocalizeString("Die", Target.IsFemale,
                     diseaseName, Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
                 Target.Kill(kDiseaseDeathType);
@@ -89,10 +95,17 @@ namespace Echoweaver.Sims3Game.PetDisease
 
                 StyledNotification.Show(new StyledNotification.Format(LocalizeString("Recuperate", Target.IsFemale,
                     diseaseName, Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                // TODO: Needs an origin for diseases
-                // I guess we need a copy of the recuperate moodlet.
-                //Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
-                //    Origin.FromFight);
+
+                TimedStage timedStage = new TimedStage(GetInteractionName(), kRecuperateTime,
+                    showCompletionTime: false, selectable: true, visibleProgress: true);
+                Stages = new List<Stage>(new Stage[1] { timedStage });
+                ActiveStage = timedStage;
+
+                StartStages();
+                VisualEffect mSleepZs;
+                mSleepZs = VisualEffect.Create("zzz");
+                mSleepZs.ParentTo(Target, Sim.FXJoints.Mouth);
+                mSleepZs.Start();
 
                 Target.Motives.FreezeDecay(CommodityKind.Hunger, false);
                 Target.Motives.FreezeDecay(CommodityKind.Energy, true);
@@ -102,21 +115,16 @@ namespace Echoweaver.Sims3Game.PetDisease
                 Target.BuffManager.RemoveElement(Buffs.BuffEWPetstilence.buffName);
                 Target.BuffManager.RemoveElement(Buffs.BuffEWTummyTrouble.buffName);
 
+                // Remove wound buffs if Fighting is installed
+                Target.BuffManager.RemoveElement(buffNameMinorWound);
+                Target.BuffManager.RemoveElement(buffNameSeriousWound);
+                Target.BuffManager.RemoveElement(buffNameGraveWound);
+
                 // TODO: This should be tunable
-                float passOutMinutes = 720f;
-                ExitReason acceptedExitReasons = ~(ExitReason.Finished);
-                float startTime = SimClock.ElapsedTime(TimeUnit.Minutes);
-                while (!Target.WaitForExitReason(1f, acceptedExitReasons))
-                {
-                    float currentTime = SimClock.ElapsedTime(TimeUnit.Minutes);
-                    if (currentTime - startTime > passOutMinutes)
-                    {
-                        AnimateSim(kJazzStateSleep);
-                        break;
-                    }
-                }
+                DoLoop(ExitReason.StageComplete);
                 Target.Motives.RestoreDecay(CommodityKind.Hunger);
                 Target.Motives.RestoreDecay(CommodityKind.Energy);
+                mSleepZs.Stop();
                 AnimateSim("Exit");
                 Target.SetIsSleeping(false);
             }

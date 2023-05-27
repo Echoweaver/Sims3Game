@@ -112,7 +112,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 else if (symptomType == 3)
                 {
 
-                    mSickSim.BuffManager.AddElement(BuffNames.ExhaustedPet, 30f, Origin.FromUnknown);
+                    mSickSim.BuffManager.AddElement(BuffNames.ExhaustedPet, 30f,
+                        (Origin)ResourceUtils.HashString64("FromDisease"));
                     mSickSim.InteractionQueue.AddNext(BuffExhausted.PassOut.Singleton.CreateInstance(mSickSim,
                         mSickSim, priority, isAutonomous: false, cancellableByPlayer: false) as BuffExhausted.PassOut);
                     if (mSickSim.Motives.GetMotiveValue(CommodityKind.Energy) > 20)
@@ -225,7 +226,7 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
                 EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
                     buffInstance.mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath),
                     false, false) as EWPetSuccumbToDisease;
-                die.SetDiseaseName(buffInstance.BuffName);
+                die.SetDiseaseName(Localization.LocalizeString(0x07AB0D4FA0FFBCC1));
                 buffInstance.mSickSim.InteractionQueue.AddNext(die);
             }
             base.OnTimeout(bm, bi, reason);

@@ -1,5 +1,4 @@
-﻿using System;
-using Sims3.Gameplay.Abstracts;
+﻿using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.ActorSystems.Children;
@@ -9,13 +8,13 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
 using Sims3.UI.Controller;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 using static Sims3.Gameplay.Actors.Sim;
 using System.Collections.Generic;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -36,14 +35,12 @@ namespace Echoweaver.Sims3Game.PetDisease
                     return false;
                 if (GetRabbitHolesOfType(RabbitHoleType.Hospital).Count <= 0)
                 {
-                    // TODO: Localize "There is no hospital to treat this pet."
-                    greyedOutTooltipCallback = CreateTooltipCallback("Localize - No Hospital");
+                    greyedOutTooltipCallback = CreateTooltipCallback(LocalizeStr("NoHospital"));
                     return false;
                 }
                 if (a.LotCurrent != target.LotCurrent)
                 {
-                    // TODO: Localize.
-                    greyedOutTooltipCallback = CreateTooltipCallback("Localize - Pet not on Actor's lot");
+                    greyedOutTooltipCallback = CreateTooltipCallback(LocalizeStr("PetNotOnLot"));
                     return false;
                 }
                 return true;
@@ -51,8 +48,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
             {
-                return "Localize - Take to vet for disease §" + kCostOfVetVisit;
-                //return LocalizeString("TakeToVetCost", target.Name, kCostOfVetVisit);
+                return LocalizeStr("TakeToVetCost", kCostOfVetVisit);
             }
 
             public bool IsSick(Sim pet)
@@ -61,19 +57,11 @@ namespace Echoweaver.Sims3Game.PetDisease
             }
         }
 
-        public static string sLocalizeKey = "Echoweaver/PetDisease:";
-
         [Tunable]
         public static int kCostOfVetVisit = 200;
         public static int kLTRBoostOfVetVisit = 20;
 
         public static InteractionDefinition Singleton = new Definition();
-
-        public static string LocalizeString(string name, params object[] parameters)
-        {
-            return Localization.LocalizeString(sLocalizeKey + name, parameters);
-        }
-
 
         public override bool Run()
         {
@@ -143,13 +131,12 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public static string LocalizeString(string name, params object[] parameters)
         {
-            return EWTakeToVetDisease.LocalizeString(name, parameters);
+            return LocalizeStr(name, parameters);
         }
 
         public override string GetSlaveInteractionName()
         {
-            // TODO: Localize "Be Taken to Vet"
-            return "Localize - Be taken to vet";
+            return LocalizeStr("BeTakenToVet");
         }
 
         public override bool Run()
@@ -193,21 +180,22 @@ namespace Echoweaver.Sims3Game.PetDisease
             {
                 if (Actor.FamilyFunds > kCostOfVet)
                 {
+                    Actor.ShowTNSIfSelectable(LocalizeString("VetCureBill", mPet.Name, kCostOfVet),
+                        StyledNotification.NotificationStyle.kGameMessagePositive);
                     Actor.ModifyFunds(-kCostOfVet);
                 }
                 else if (!GameUtils.IsFutureWorld())
                 {
-                    Actor.ShowTNSIfSelectable(LocalizeString("VetCureBill", kCostOfVet),
-                        StyledNotification.NotificationStyle.kGameMessagePositive);
-                    Sim actor = Actor;
-                    actor.UnpaidBills += kCostOfVet;
+                    Actor.ShowTNSIfSelectable(LocalizeString("NoMoneyVetCure", mPet.Name, kCostOfVet),
+                        StyledNotification.NotificationStyle.kGameMessageNegative);
+                    Actor.UnpaidBills += kCostOfVet;
                 }
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetGermy.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetPneumonia.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetstilence.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWTummyTrouble.buffName);
                 EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, Actor, Target);
-                EventTracker.SendEvent(EventTypeId.kVisitedRabbitHoleWithPet, mPet, Target);
+                EventTracker.SendEvent(EventTypeId.kVisitedRabbitHole, mPet, Target);
             }
             if (goToHospital != null)
             {

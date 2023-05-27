@@ -56,8 +56,12 @@ namespace Echoweaver.Sims3Game.PetDisease
 
     public class PetDiseaseManager
     {
-        [Persistable]
-        static public Dictionary<ulong, DateAndTime> VaccineRecord = new Dictionary<ulong, DateAndTime>();
+        [Tunable]
+        public static bool kAllowPetDiseaseDeath = true;
+
+        [Tunable]
+        [TunableComment("Range: Sim minutes.  Description:  Length of time a pet will recuperate instead of dying for games with death turned off.")]
+        public static float kRecuperateTime = 720f;
 
         [Tunable]
         [TunableComment("Float. Temp in F where fishing pets could catch cold.")]
@@ -168,6 +172,10 @@ namespace Echoweaver.Sims3Game.PetDisease
         [TunableComment("Chance of catching petstilence from bodily fluid contact")]
         [Tunable]
         public static float kBloodbornePetstilenceOdds = 0.6f;  // 60%
+
+
+        [Persistable]
+        static public Dictionary<ulong, DateAndTime> VaccineRecord = new Dictionary<ulong, DateAndTime>();
 
         static public Dictionary<ulong, DateAndTime> LastGermyCheck = new Dictionary<ulong, DateAndTime>();
         static public Dictionary<ulong, DateAndTime> LastFluCheck = new Dictionary<ulong, DateAndTime>();

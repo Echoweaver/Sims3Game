@@ -366,7 +366,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 
         public class ActWacky : Interaction<Sim, Sim>
         {
-            public class Definition : SoloSimInteractionDefinition<ActWacky>
+            [DoesntRequireTuning]
+            public class Definition : InteractionDefinition<Sim, Sim, ActWacky>
             {
                 public override bool Test(Sim a, Sim target, bool isAutonomous,
                     ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -385,32 +386,49 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             [Tunable]
             public static int[] kMinMaxMinsToLoop = new int[2] { 10, 15 };
 
-            public static ISoloInteractionDefinition Singleton = new Definition();
-
-            public override void ConfigureInteraction()
-            {
-                base.ConfigureInteraction();
-                base.Hidden = true;
-            }
+            public static InteractionDefinition Singleton = new Definition();
 
             public override bool Run()
             {
                 DebugNote("Act wacky symptom.");
+                // My jazz script is not working, and I'm sick of messing with it, so we do this
+                // the stupid way
+
                 StandardEntry();
-                EnterStateMachine("wacky_pet", "Enter", "x");
-                AnimateSim("Loop");
-                BeginCommodityUpdates();
-                bool flag = DoTimedLoop(RandomUtil.GetInt(kMinMaxMinsToLoop[0], kMinMaxMinsToLoop[1]));
-                EndCommodityUpdates(flag);
-                AnimateSim("Exit");
+                int loopLength = RandomUtil.GetInt(kMinMaxMinsToLoop[0],
+                    kMinMaxMinsToLoop[1]);
+                float startTime = SimClock.ElapsedTime(TimeUnit.Minutes);
+                while (SimClock.ElapsedTime(TimeUnit.Minutes) - startTime < loopLength)
+                {
+                    int actType = RandomUtil.GetInt(1, 4);
+                    if (actType == 1)
+                    {
+                        Actor.PlaySoloAnimation("a_react_stand_scaredJump_x", yield: true, ProductVersion.EP5);
+                    } else if (actType == 2)
+                    {
+                        Actor.PlaySoloAnimation("a_react_stand_jumpBackandForthPlayful_x", yield: true, ProductVersion.EP5);
+                    } else if (actType == 3)
+                    {
+                        Actor.PlaySoloAnimation("a_trait_hyper_x", yield: true, ProductVersion.EP5);
+                    } else
+                    {
+                        if (Actor.IsCat)
+                        {
+                            Actor.PlaySoloAnimation("a_idleMusic_yowl_x", yield: true, ProductVersion.EP5);
+                        } else
+                        {
+                            Actor.PlaySoloAnimation("a_idleMusic_barkHowl_x", yield: true, ProductVersion.EP5);
+                        }
+                    }
+                }
                 StandardExit();
-                return flag;
+                return true;
             }
         }
 
         public class Shiver : Interaction<Sim, Sim>
         {
-            [DoesntRequireTuning]
+            [DoesntRequireTuning]   
             public class Definition : InteractionDefinition<Sim, Sim, Shiver>
             {
                 public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
@@ -722,7 +740,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
             EWPetSuccumbToDisease die = EWPetSuccumbToDisease.Singleton.CreateInstance(buffInstance.mSickSim,
                     buffInstance.mSickSim, new InteractionPriority(InteractionPriorityLevel.MaxDeath),
                     false, false) as EWPetSuccumbToDisease;
-            die.SetDiseaseName(buffInstance.BuffName);
+            // What I thought was the STBL key isn't working.
+            die.SetDiseaseName(Localization.LocalizeString(0x163D208457B345EC));
             buffInstance.mSickSim.InteractionQueue.AddNext(die);
             base.OnTimeout(bm, bi, reason);
         }

@@ -21,8 +21,6 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Tunable] protected static bool init = false;
 
         [Tunable]
-        public static bool kAllowPetDiseaseDeath = true;
-        [Tunable]
         public static bool kPetDiseaseDebug = false;
 
         // Word on the street is that ghost shaders don't require the associated EP.
@@ -35,18 +33,22 @@ namespace Echoweaver.Sims3Game.PetDisease
             Buffs.BuffEWPetPneumonia.mGuid
         };
 
+        // Wound buffs from Pet Fighting mod
+        public static BuffNames buffNameGraveWound = (BuffNames)0x384B537AE0B8F97A;
+        public static BuffNames buffNameSeriousWound = (BuffNames)0xAE4D28F1BCEC603D;
+        public static BuffNames buffNameMinorWound = (BuffNames)0x3BE0F368D4653A9E;
+        public static BuffNames[] woundBuffList = new BuffNames[] { buffNameGraveWound,
+            buffNameMinorWound, buffNameSeriousWound };
+
+        public static string LocalizeStr(string name, params object[] parameters)
+        {
+            return Localization.LocalizeString("Echoweaver/PetDisease:" + name, parameters);
+        }
+
         static Loader()
         {
             LoadSaveManager.ObjectGroupsPreLoad += OnPreload;
             World.sOnWorldLoadFinishedEventHandler += OnWorldLoaded;
-        }
-
-        public static void Initialize()
-        {
-            for (int i = 0; i < BuffGuids.Count; i++)
-            {
-                Sim.ActiveActor.BuffManager.AddElement(BuffGuids[i], Origin.None);
-            }
         }
 
         static void OnPreload()
@@ -73,6 +75,7 @@ namespace Echoweaver.Sims3Game.PetDisease
                         s.AddInteraction(Buffs.BuffEWPetstilence.Stagger.Singleton, true);
                         s.AddInteraction(Buffs.BuffEWPetPneumonia.Wheeze.Singleton, true);
                         s.AddInteraction(EWPetSuccumbToDisease.Singleton, true);
+                        s.AddInteraction(Buffs.BuffEWPetstilence.ActWacky.Singleton, true);
                     }
                 }
             }
@@ -124,7 +127,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             //EventTracker.AddListener(EventTypeId.kMetSim, new ProcessEventDelegate(PetDiseaseManager
             //.OnMetSim));
 
-            // Fix cat ghost (remove inappropriate effects)
+            // Fix cat ghost (remove inappropriate effects) -- Currently does not work
             //EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(FixGhost));
 
             if (kPetDiseaseDebug)
@@ -143,20 +146,20 @@ namespace Echoweaver.Sims3Game.PetDisease
             {
                 if (s.SimDescription.IsGhost && s.IsPet)
                 {
-                    if (s.SimDescription.DeathStyle ==
-                        kDiseaseDeathType)
+                    if (s.SimDescription.DeathStyle == kDiseaseDeathType)
                     {
                         DebugNote("Pet disease ghost has spawned.");
+                        World.ObjectSetGhostState(s.ObjectId, 23u, (uint)s.SimDescription.AgeGenderSpecies);
                         Urnstone urn = GetUrnstoneForGhost(s);
-                        if (urn != null)
-                        {
-                            DebugNote("Trying to remove death effect.");
-                            urn.mDeathEffect.Stop();
-                            urn.GhostTurnDeathEffectOff(VisualEffect.TransitionType.HardTransition);
-                        } else
-                        {
-                            DebugNote("Pet disease urnstone not found.");
-                        }
+                        //if (urn != null)
+                        //{
+                        //    DebugNote("Trying to remove death effect.");
+                        //urn.mDeathEffect.Stop();
+                        //    urn.GhostTurnDeathEffectOff(VisualEffect.TransitionType.HardTransition);
+                        //} else
+                        //{
+                        //    DebugNote("Pet disease urnstone not found.");
+                        //}
                     }
                 }
             } else

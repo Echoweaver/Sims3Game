@@ -96,7 +96,8 @@ namespace Echoweaver.Sims3Game.PetDisease.Buffs
 			{
                 // TODO: Add correct buff origin (from Tummy Trouble)
                 DebugNote("Tummy Trouble add nauseous buff: " + mSickSim.FullName);
-                mSickSim.BuffManager.AddElement(BuffNames.NauseousPet, Origin.FromUnknown);
+                mSickSim.BuffManager.AddElement(BuffNames.NauseousPet, (Origin)ResourceUtils
+                    .HashString64("FromTummyTrouble"));
 
                 if (mSickSim.BuffManager.HasElement(buffName))
                 {

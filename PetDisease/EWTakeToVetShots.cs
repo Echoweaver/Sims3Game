@@ -13,6 +13,7 @@ using Sims3.UI;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 using static Sims3.Gameplay.Actors.Sim;
 using static Sims3.UI.ObjectPicker;
+using static Echoweaver.Sims3Game.PetDisease.Loader;
 
 namespace Echoweaver.Sims3Game.PetDisease
 {
@@ -27,16 +28,16 @@ namespace Echoweaver.Sims3Game.PetDisease
             public override bool Test(Sim a, Hospital target, bool isAutonomous,
                 ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
-                if (a.IsHuman)
+                if (a.IsHuman && a.Household.Pets.Count > 0)
                 {
                     if (a.FamilyFunds < kCostOfPetVaccine)
                     {
-                        greyedOutTooltipCallback = CreateTooltipCallback("Localize - Can't afford vaccine");
+                        greyedOutTooltipCallback = CreateTooltipCallback(LocalizeStr("NoMoneyForVaccine"));
                         return false;
                     }
                     if (GetUnvaccinatedPets(a.Household).Count == 0)
                     {
-                        greyedOutTooltipCallback = CreateTooltipCallback("Localize - No pets need vaccines");
+                        greyedOutTooltipCallback = CreateTooltipCallback(LocalizeStr("NoPetsNeedVaccine"));
                         return false;
                     }
                     return true;
@@ -46,20 +47,18 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, Hospital target, InteractionObjectPair iop)
             {
-                return "Localize - Vaccinate Pet §" + kCostOfPetVaccine;
+                return LocalizeStr("VaccinatePet", kCostOfPetVaccine);
             }
 
             public override void PopulatePieMenuPicker(ref InteractionInstanceParameters parameters,
                 out List<TabInfo> listObjs, out List<HeaderInfo> headers, out int NumSelectableRows)
             {
                 Sim sim = parameters.Actor as Sim;
-                NumSelectableRows = -1;  // TODO: 
+                NumSelectableRows = -1; 
                 PopulateSimPicker(ref parameters, out listObjs, out headers, GetUnvaccinatedPets(sim.Household),
                     includeActor: false);
             }
         }
-
-        public const string sLocalizationKey = "Echoweaver/PetDisease/Vaccinate:";
 
         [Tunable]
         public static int kSimMinutesForPetVaccine = 60;
@@ -73,7 +72,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         public override string GetSlaveInteractionName()
         {
-            return "Localize - Be Taken To Vet";
+            return LocalizeStr("BeTakenToVet");
         }
 
         public static List<Sim> GetUnvaccinatedPets(Household household)
@@ -151,16 +150,26 @@ namespace Echoweaver.Sims3Game.PetDisease
             bool result = DoLoop(ExitReason.Default);
             if (Actor.HasExitReason(ExitReason.StageComplete))
             {
-                if (Actor.FamilyFunds > kCostOfPetVaccine)
+                if (Actor.FamilyFunds > mPetsToVaccinate.Count*kCostOfPetVaccine)
                 {
-                    Actor.ShowTNSIfSelectable("Localize - You were charged §" + kCostOfPetVaccine,
-                        StyledNotification.NotificationStyle.kGameMessagePositive);
-                    Actor.ModifyFunds(-kCostOfPetVaccine);
+                    if (mPetsToVaccinate.Count.Equals(1))
+                    {
+                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargeSingular", kCostOfPetVaccine),
+                            StyledNotification.NotificationStyle.kGameMessagePositive);
+                    }
+                    else
+                    {
+                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargePlural"
+                            + mPetsToVaccinate.Count * kCostOfPetVaccine, mPetsToVaccinate.Count),
+                            StyledNotification.NotificationStyle.kGameMessagePositive);
+                    }
+                    Actor.ModifyFunds(-mPetsToVaccinate.Count*kCostOfPetVaccine);
                 }
                 else if (!GameUtils.IsFutureWorld())
                 {
                     // Shouldn't hit this because interaction requires funds, but just in case
-                    Actor.ShowTNSIfSelectable("Localize - Insufficient funds billed §" + kCostOfPetVaccine,
+                    Actor.ShowTNSIfSelectable(LocalizeStr("InsufficientFundsVaccine",
+                        mPetsToVaccinate.Count*kCostOfPetVaccine),
                         StyledNotification.NotificationStyle.kGameMessageNegative);
                     Actor.UnpaidBills += kCostOfPetVaccine;
                 }
@@ -192,7 +201,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, RabbitHole target, InteractionObjectPair iop)
             {
-                return "Localize - See Vet";
+                return LocalizeStr("GoToVet");
             }
         }
 
