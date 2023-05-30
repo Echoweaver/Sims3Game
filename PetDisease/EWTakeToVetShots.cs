@@ -30,7 +30,7 @@ namespace Echoweaver.Sims3Game.PetDisease
             {
                 if (a.IsHuman && a.Household.Pets.Count > 0)
                 {
-                    if (a.FamilyFunds < kCostOfPetVaccine)
+                    if (a.FamilyFunds < PetDiseaseManager.kPetVaccineCost)
                     {
                         greyedOutTooltipCallback = CreateTooltipCallback(LocalizeStr("NoMoneyForVaccine"));
                         return false;
@@ -47,7 +47,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, Hospital target, InteractionObjectPair iop)
             {
-                return LocalizeStr("VaccinatePet", kCostOfPetVaccine);
+                return LocalizeStr("VaccinatePet", PetDiseaseManager.kPetVaccineCost);
             }
 
             public override void PopulatePieMenuPicker(ref InteractionInstanceParameters parameters,
@@ -62,9 +62,6 @@ namespace Echoweaver.Sims3Game.PetDisease
 
         [Tunable]
         public static int kSimMinutesForPetVaccine = 60;
-
-        [Tunable]
-        public static int kCostOfPetVaccine = 200;
 
         public List<Sim> mPetsToVaccinate = new List<Sim>();
 
@@ -150,28 +147,27 @@ namespace Echoweaver.Sims3Game.PetDisease
             bool result = DoLoop(ExitReason.Default);
             if (Actor.HasExitReason(ExitReason.StageComplete))
             {
-                if (Actor.FamilyFunds > mPetsToVaccinate.Count*kCostOfPetVaccine)
+                int vetBill = mPetsToVaccinate.Count * PetDiseaseManager.kPetVaccineCost;
+                if (Actor.FamilyFunds > vetBill)
                 {
                     if (mPetsToVaccinate.Count.Equals(1))
                     {
-                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargeSingular", kCostOfPetVaccine),
+                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargeSingular", vetBill),
                             StyledNotification.NotificationStyle.kGameMessagePositive);
                     }
                     else
                     {
-                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargePlural"
-                            + mPetsToVaccinate.Count * kCostOfPetVaccine, mPetsToVaccinate.Count),
+                        Actor.ShowTNSIfSelectable(LocalizeStr("VaccineChargePlural", vetBill, mPetsToVaccinate.Count),
                             StyledNotification.NotificationStyle.kGameMessagePositive);
                     }
-                    Actor.ModifyFunds(-mPetsToVaccinate.Count*kCostOfPetVaccine);
+                    Actor.ModifyFunds(-vetBill);
                 }
                 else if (!GameUtils.IsFutureWorld())
                 {
                     // Shouldn't hit this because interaction requires funds, but just in case
-                    Actor.ShowTNSIfSelectable(LocalizeStr("InsufficientFundsVaccine",
-                        mPetsToVaccinate.Count*kCostOfPetVaccine),
+                    Actor.ShowTNSIfSelectable(LocalizeStr("InsufficientFundsVaccine", vetBill),
                         StyledNotification.NotificationStyle.kGameMessageNegative);
-                    Actor.UnpaidBills += kCostOfPetVaccine;
+                    Actor.UnpaidBills += vetBill;
                 }
                 foreach(EWGoToHospitalPet interaction in goToHospital)
                 {

@@ -48,7 +48,7 @@ namespace Echoweaver.Sims3Game.PetDisease
 
             public override string GetInteractionName(Sim actor, Sim target, InteractionObjectPair iop)
             {
-                return LocalizeStr("TakeToVetCost", kCostOfVetVisit);
+                return LocalizeStr("TakeToVetCost", PetDiseaseManager.kPetCureCost);
             }
 
             public bool IsSick(Sim pet)
@@ -57,8 +57,6 @@ namespace Echoweaver.Sims3Game.PetDisease
             }
         }
 
-        [Tunable]
-        public static int kCostOfVetVisit = 200;
         public static int kLTRBoostOfVetVisit = 20;
 
         public static InteractionDefinition Singleton = new Definition();
@@ -124,9 +122,6 @@ namespace Echoweaver.Sims3Game.PetDisease
         [Tunable]
         public static float kSimMinutesForVet = 120f;
 
-        [Tunable]
-        public static int kCostOfVet = EWTakeToVetDisease.kCostOfVetVisit;
-
         public static InteractionDefinition Singleton = new Definition();
 
         public static string LocalizeString(string name, params object[] parameters)
@@ -178,17 +173,17 @@ namespace Echoweaver.Sims3Game.PetDisease
             bool result = DoLoop(ExitReason.Default);
             if (Actor.HasExitReason(ExitReason.StageComplete))
             {
-                if (Actor.FamilyFunds > kCostOfVet)
+                if (Actor.FamilyFunds > PetDiseaseManager.kPetCureCost)
                 {
-                    Actor.ShowTNSIfSelectable(LocalizeString("VetCureBill", mPet.Name, kCostOfVet),
-                        StyledNotification.NotificationStyle.kGameMessagePositive);
-                    Actor.ModifyFunds(-kCostOfVet);
+                    Actor.ShowTNSIfSelectable(LocalizeString("VetCureBill", mPet.Name, PetDiseaseManager
+                        .kPetCureCost), StyledNotification.NotificationStyle.kGameMessagePositive);
+                    Actor.ModifyFunds(-PetDiseaseManager.kPetCureCost);
                 }
                 else if (!GameUtils.IsFutureWorld())
                 {
-                    Actor.ShowTNSIfSelectable(LocalizeString("NoMoneyVetCure", mPet.Name, kCostOfVet),
-                        StyledNotification.NotificationStyle.kGameMessageNegative);
-                    Actor.UnpaidBills += kCostOfVet;
+                    Actor.ShowTNSIfSelectable(LocalizeString("NoMoneyVetCure", mPet.Name, PetDiseaseManager
+                        .kPetCureCost), StyledNotification.NotificationStyle.kGameMessageNegative);
+                    Actor.UnpaidBills += PetDiseaseManager.kPetCureCost;
                 }
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetGermy.buffName);
                 mPet.BuffManager.RemoveElement(Buffs.BuffEWPetPneumonia.buffName);

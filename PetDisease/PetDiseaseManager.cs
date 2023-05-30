@@ -64,6 +64,14 @@ namespace Echoweaver.Sims3Game.PetDisease
         public static float kRecuperateTime = 720f;
 
         [Tunable]
+        [TunableComment("Int. Cost of vaccine per pet.")]
+        public static int kPetVaccineCost = 150;
+
+        [Tunable]
+        [TunableComment("Int. Cost to cure a pet of a disease at the vet.")]
+        public static int kPetCureCost = 250;
+
+        [Tunable]
         [TunableComment("Float. Temp in F where fishing pets could catch cold.")]
         public static float kChillyEnoughToCatchCold = 40f;
 
