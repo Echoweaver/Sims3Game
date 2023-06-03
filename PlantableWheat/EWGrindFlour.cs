@@ -29,7 +29,6 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				}
 				else
 				{
-					// TODO: Localize!
 					greyedOutTooltipCallback = CreateTooltipCallback(Loader.Localize("GrindFlourTooltip"));
 				}
 				return false;
@@ -53,7 +52,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
             public override string GetInteractionName(ref InteractionInstanceParameters parameters)
             {
-                return "Grind Flour";
+				return Loader.Localize("GrindFlour");
             }
 		}
 
