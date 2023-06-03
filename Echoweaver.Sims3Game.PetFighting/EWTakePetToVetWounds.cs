@@ -15,6 +15,7 @@ using Sims3.UI.Controller;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Abstracts.RabbitHole;
 using static Sims3.Gameplay.Actors.Sim;
+using static Echoweaver.Sims3Game.PetFighting.Tunables;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -62,11 +63,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 		}
 
 		public static string sLocalizeKey = "Echoweaver/PetFighting/TakeToVet:";
-
-		[Tunable]
-		public static int kCostOfVetVisit = 200;
-        [Tunable]
-        public static int kLTRBoostOfVetVisit = 20;
 
 		public static InteractionDefinition Singleton = new Definition();
 
@@ -131,10 +127,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		[Tunable]
 		public static float kSimMinutesForVet = 120f;
-
-		[Tunable]
-		public static int kCostOfVet = EWTakePetToVetWounds.kCostOfVetVisit;
-
 		public static InteractionDefinition Singleton = new Definition();
 
 
@@ -187,16 +179,18 @@ namespace Echoweaver.Sims3Game.PetFighting
 			bool result = DoLoop(ExitReason.Default);
 			if (Actor.HasExitReason(ExitReason.StageComplete))
 			{
-				if (Actor.FamilyFunds > kCostOfVet)
+				if (Actor.FamilyFunds > kCostOfVetVisit)
 				{
-					Actor.ModifyFunds(-kCostOfVet);
+                    Actor.ShowTNSIfSelectable(LocalizeString("Echoweaver/PetFighting/EWFightPet:WoundsCuredVet",
+                        mPet.Name, kCostOfVetVisit), StyledNotification.NotificationStyle.kGameMessagePositive);
+                    Actor.ModifyFunds(-kCostOfVetVisit);
 				}
 				else if (!GameUtils.IsFutureWorld())
 				{
-					Actor.ShowTNSIfSelectable(LocalizeString("Echoweaver/PetFighting/EWFightPet:TakeToVetBill", kCostOfVet),
-						StyledNotification.NotificationStyle.kGameMessagePositive);
+					Actor.ShowTNSIfSelectable(LocalizeString("Echoweaver/PetFighting/EWFightPet:TakeToVetBill",
+						kCostOfVetVisit), StyledNotification.NotificationStyle.kGameMessageNegative);
 					Sim actor = Actor;
-					actor.UnpaidBills += kCostOfVet;
+					actor.UnpaidBills += kCostOfVetVisit;
 				}
 				mPet.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
 				mPet.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
@@ -214,7 +208,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 			// relationship and display the icon?
 			Relationship relationship = Relationship.Get(Actor, mPet, createIfNone: true);
 			LongTermRelationshipTypes currentLTR = relationship.CurrentLTR;
-			relationship.LTR.UpdateLiking(EWTakePetToVetWounds.kLTRBoostOfVetVisit);
+			relationship.LTR.UpdateLiking(kLTRBoostOfVetVisit);
 			LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
 			SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
 							Actor, mPet, true, 0, currentLTR, currentLTR2);

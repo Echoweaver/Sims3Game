@@ -22,11 +22,13 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         [Tunable]
         protected static bool kInstantiator = false;
-
-        [Tunable]
-        public static bool kAllowPetDeath = true;
         // Word on the street is that ghost shaders don't require the associated EP.
         public static SimDescription.DeathType fightDeathType = SimDescription.DeathType.MummyCurse;
+
+        public static BuffNames buffNamePetGermy = (BuffNames)0x9086F0050AC3673Dul;
+        public static BuffNames buffNamePetPnumonia = (BuffNames)0x904F100B14974699ul;
+        public static BuffNames buffNamePetstilence = (BuffNames)0x7768716F913C2054ul;
+        public static BuffNames buffNameTummyTrouble = (BuffNames)0xDFF72BA95943E99Dul;
 
         static Loader()
         {
@@ -131,7 +133,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 EWPetSuccumbToWounds die = EWPetSuccumbToWounds.Singleton.CreateInstance(targetPet, targetPet,
                     new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as EWPetSuccumbToWounds;
                 targetPet.InteractionQueue.AddNext(die);
-                if (kAllowPetDeath)
+                if (Tunables.kAllowPetDeath)
                 {
                     return ListenerAction.Remove;
                 }
@@ -150,7 +152,8 @@ namespace Echoweaver.Sims3Game.PetFighting
             if (targetPet.BuffManager.HasElement(BuffNames.StarvingPet) &&
                targetPet.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
-                EventTracker.SendEvent(EventTypeId.kSimPassedOut, e.Actor);
+                EWPetSuccumbToWounds die = EWPetSuccumbToWounds.Singleton.CreateInstance(targetPet, targetPet,
+                    new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as EWPetSuccumbToWounds;
                 return ListenerAction.Remove;
             }
             return ListenerAction.Keep;

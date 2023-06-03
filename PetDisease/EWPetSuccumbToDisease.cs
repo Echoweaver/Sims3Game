@@ -69,7 +69,6 @@ namespace Echoweaver.Sims3Game.PetDisease
         {
             if (kAllowPetDiseaseDeath)
             {
-                // TODO: Localize!
                 if (!Target.IsSleeping)
                 {   
                     EnterStateMachine("PetPassOut", "Enter", "x");
@@ -120,7 +119,6 @@ namespace Echoweaver.Sims3Game.PetDisease
                 Target.BuffManager.RemoveElement(buffNameSeriousWound);
                 Target.BuffManager.RemoveElement(buffNameGraveWound);
 
-                // TODO: This should be tunable
                 DoLoop(ExitReason.StageComplete);
                 Target.Motives.RestoreDecay(CommodityKind.Hunger);
                 Target.Motives.RestoreDecay(CommodityKind.Energy);

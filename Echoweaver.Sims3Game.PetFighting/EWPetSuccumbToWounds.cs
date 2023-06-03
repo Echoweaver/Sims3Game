@@ -1,11 +1,11 @@
-﻿using Sims3.Gameplay.Actors;
+﻿using System.Collections.Generic;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
-using static Sims3.Gameplay.ActorSystems.PetSurfacePosture;
 
 namespace Echoweaver.Sims3Game.PetFighting
 {
@@ -30,7 +30,7 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         public override ThumbnailKey GetIconKey()
         {
-            if (Loader.kAllowPetDeath)
+            if (Tunables.kAllowPetDeath)
             {
                 return new ThumbnailKey(new ResourceKey(ResourceUtils.HashString64("moodlet_EWDeath"),
                     0x2F7D0004, 0u), ThumbnailSize.Medium);
@@ -49,20 +49,32 @@ namespace Echoweaver.Sims3Game.PetFighting
             
         public override bool Run()
         {
-            //mPriority = new InteractionPriority(InteractionPriorityLevel.MaxDeath);
-            //CancellableByPlayer = false;
-
             Target.BuffManager.RemoveElement(BuffEWGraveWound.buffName);
             Target.BuffManager.RemoveElement(BuffEWSeriousWound.buffName);
             Target.BuffManager.RemoveElement(BuffEWMinorWound.buffName);
-            if (Loader.kAllowPetDeath)
+
+            if (Tunables.kAllowPetDeath)
             {
-                StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightDie",
-                    Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
+
+                if (!Target.IsSleeping)
+                {
+                    EnterStateMachine("PetPassOut", "Enter", "x");
+                    AnimateSim("PassOutLoop");
+                }
+
+                StyledNotification.Show(new StyledNotification.Format(Localization
+                    .LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightDie", Target.Name),
+                    StyledNotification.NotificationStyle.kGameMessageNegative));
+
+                // Add a ghost shader so the pet appears to die after falling unconscious. 
+                World.ObjectSetGhostState(Target.ObjectId, (uint)Loader.fightDeathType,
+                    (uint)Target.SimDescription.AgeGenderSpecies);
+                AnimateSim("Exit");
                 Target.Kill(Loader.fightDeathType);
             }
             else
             {
+
                 if (!Target.IsSleeping)
                 {
                     EnterStateMachine("PetPassOut", "Enter", "x");
@@ -72,25 +84,32 @@ namespace Echoweaver.Sims3Game.PetFighting
 
                 StyledNotification.Show(new StyledNotification.Format(Localization.LocalizeString("Echoweaver/PetFighting/EWFightPet:PetFightRecuperate",
                     Target.Name), StyledNotification.NotificationStyle.kGameMessageNegative));
-                // TODO: Needs an origin for succumb to wounds
-                Target.BuffManager.AddElement(BuffEWRecuperateCat.StaticGuid,
-                    Origin.FromFight);
+
+                TimedStage timedStage = new TimedStage(GetInteractionName(), Tunables.kRecuperateDuration,
+                    showCompletionTime: false, selectable: true, visibleProgress: true);
+                Stages = new List<Stage>(new Stage[1] { timedStage });
+                ActiveStage = timedStage;
+
+                StartStages();
+                VisualEffect mSleepZs;
+                mSleepZs = VisualEffect.Create("zzz");
+                mSleepZs.ParentTo(Target, Sim.FXJoints.Mouth);
+                mSleepZs.Start();
+
+                // Remove diseases from Pet Diseases mod if they are present
+                Target.BuffManager.RemoveElement(Loader.buffNamePetGermy);
+                Target.BuffManager.RemoveElement(Loader.buffNamePetPnumonia);
+                Target.BuffManager.RemoveElement(Loader.buffNamePetstilence);
+                Target.BuffManager.RemoveElement(Loader.buffNameTummyTrouble);
 
                 Target.Motives.FreezeDecay(CommodityKind.Hunger, false);
                 Target.Motives.FreezeDecay(CommodityKind.Energy, true);
 
-                float passOutMinutes = 720f;
-                ExitReason acceptedExitReasons = ~(ExitReason.Finished);
-                float startTime = SimClock.ElapsedTime(TimeUnit.Minutes);
-                while (!Target.WaitForExitReason(1f, acceptedExitReasons))
-                {
-                    float currentTime = SimClock.ElapsedTime(TimeUnit.Minutes);
-                    if (currentTime - startTime > passOutMinutes)
-                    {
-                        AnimateSim(kJazzStateSleep);
-                        break;
-                    }
-                }
+                DoLoop(ExitReason.StageComplete);
+                Target.Motives.RestoreDecay(CommodityKind.Hunger);
+                Target.Motives.RestoreDecay(CommodityKind.Energy);
+                mSleepZs.Stop();
+
                 Target.Motives.RestoreDecay(CommodityKind.Hunger);
                 Target.Motives.RestoreDecay(CommodityKind.Energy);
                 AnimateSim("Exit");

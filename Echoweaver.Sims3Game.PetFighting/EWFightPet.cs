@@ -395,7 +395,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             // Jetpack: Fast-moving clouds over gold ghost
             // HumanStatue: Invisible except for eyes!!
 
-            if (Loader.kAllowPetDeath)
+            if (Tunables.kAllowPetDeath)
             {
                 // TODO: LOCALIZE!
                 Target.Kill(Loader.fightDeathType);

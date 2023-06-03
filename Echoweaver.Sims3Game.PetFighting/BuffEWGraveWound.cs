@@ -1,6 +1,7 @@
 ﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
 using Sims3.SimIFace;
 
 namespace Echoweaver.Sims3Game.PetFighting
@@ -29,13 +30,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			public VisualEffect mRArmFx;
 			public VisualEffect mRArmFx2;
 
-			public VisualEffect mLThighFx;
-			public VisualEffect mLThighFx2;
-
-			public VisualEffect mRThighFx;
-			public VisualEffect mRThighFx2;
-
-			public VisualEffect mEffect;
 
 			public BuffInstanceEWGraveWound()
 			{
@@ -53,47 +47,40 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 			public void StartFx(Sim owner)
 			{
-				Vector3 fxColor = new Vector3(1f, 0f, 0f); // RGB for red
-				mHeadFx = VisualEffect.Create("ep1SoakedDripsHead");
+				string effect_name;
+				if (owner.IsCat || owner.IsLittleDog)
+				{
+					effect_name = "ep5doglittleeatvomit";
+
+                } else
+				{
+                    effect_name = "ep5dogeatvomit";
+                }
+                Vector3 fxColor = new Vector3(1f, 0f, 0f); // RGB for red
+				mHeadFx = VisualEffect.Create(effect_name);
 				mHeadFx.ParentTo(owner, Sim.FXJoints.Head);
-                mHeadFx.SetEffectColorScale(fxColor);
-                mHeadFx.Start();
-				mHeadFx2 = VisualEffect.Create("ep1SoakedDripsHead");
+				mHeadFx.SetEffectColorScale(fxColor);
+				mHeadFx.Start();
+				mHeadFx2 = VisualEffect.Create(effect_name);
 				mHeadFx2.ParentTo(owner, Sim.FXJoints.Head);
 				mHeadFx2.SetEffectColorScale(fxColor);
 				mHeadFx2.Start();
-				mLArmFx = VisualEffect.Create("ep1SoakedDripsArm");
-				mLArmFx.ParentTo(owner, Sim.FXJoints.LeftShoulder);
-				mLArmFx.SetEffectColorScale(fxColor);    
-				mLArmFx.Start();
-				mLArmFx2 = VisualEffect.Create("ep1SoakedDripsArm");
-				mLArmFx2.ParentTo(owner, Sim.FXJoints.LeftShoulder);
-				mLArmFx2.SetEffectColorScale(fxColor);
-				mLArmFx2.Start();
-				mRArmFx = VisualEffect.Create("ep1SoakedDripsArm");
-				mRArmFx.ParentTo(owner, Sim.FXJoints.RightShoulderblade);
+				mRArmFx = VisualEffect.Create(effect_name);
+				mRArmFx.ParentTo(owner, Sim.FXJoints.RightUpperArm);
 				mRArmFx.SetEffectColorScale(fxColor);   
 				mRArmFx.Start();
-				mRArmFx2 = VisualEffect.Create("ep1SoakedDripsArm");
-				mRArmFx2.ParentTo(owner, Sim.FXJoints.RightShoulderblade);
+				mRArmFx2 = VisualEffect.Create(effect_name);
+				mRArmFx2.ParentTo(owner, Sim.FXJoints.RightUpperArm);
 				mRArmFx2.SetEffectColorScale(fxColor);
 				mRArmFx2.Start();
-				mLThighFx = VisualEffect.Create("ep1SoakedDripsThigh");
-				mLThighFx.ParentTo(owner, Sim.FXJoints.LeftSideThigh);
-				mLThighFx.SetEffectColorScale(fxColor);    
-				mLThighFx.Start();
-				mLThighFx2 = VisualEffect.Create("ep1SoakedDripsThigh");
-				mLThighFx2.ParentTo(owner, Sim.FXJoints.LeftSideThigh);
-				mLThighFx2.SetEffectColorScale(fxColor);
-				mLThighFx2.Start();
-				mRThighFx = VisualEffect.Create("ep1SoakedDripsThigh");
-				mRThighFx.ParentTo(owner, Sim.FXJoints.RightSideThigh);
-				mRThighFx.SetEffectColorScale(fxColor);   
-				mRThighFx.Start();
-				mRThighFx2 = VisualEffect.Create("ep1SoakedDripsThigh");
-				mRThighFx2.ParentTo(owner, Sim.FXJoints.RightSideThigh);
-				mRThighFx2.SetEffectColorScale(fxColor);
-				mRThighFx2.Start();
+				mLArmFx = VisualEffect.Create(effect_name);
+                mLArmFx.ParentTo(owner, Sim.FXJoints.LeftUpperArm);
+                mLArmFx.SetEffectColorScale(fxColor);
+                mLArmFx.Start();
+                mLArmFx2 = VisualEffect.Create(effect_name);
+                mLArmFx2.ParentTo(owner, Sim.FXJoints.LeftUpperArm);
+                mLArmFx2.SetEffectColorScale(fxColor);
+                mLArmFx2.Start();
 			}
 
 			public void StopFx()
@@ -134,41 +121,12 @@ namespace Echoweaver.Sims3Game.PetFighting
 					mRArmFx2.Dispose();
 					mRArmFx2 = null;
 				}
-				if (mLThighFx != null)
-				{
-					mLThighFx.Stop(VisualEffect.TransitionType.HardTransition);
-					mLThighFx.Dispose();
-					mLThighFx = null;
-				}
-				if (mLThighFx2 != null)
-				{
-					mLThighFx2.Stop(VisualEffect.TransitionType.HardTransition);
-					mLThighFx2.Dispose();
-					mLThighFx2 = null;
-				}
-				if (mRThighFx != null)
-				{
-					mRThighFx.Stop(VisualEffect.TransitionType.HardTransition);
-					mRThighFx.Dispose();
-					mRThighFx = null;
-				}
-				if (mRThighFx2 != null)
-				{
-					mRThighFx2.Stop(VisualEffect.TransitionType.HardTransition);
-					mRThighFx2.Dispose();
-					mRThighFx2 = null;
-				}
+
 			}
 
 			public override void Dispose(BuffManager bm)
 			{
 				StopFx();
-				if (mEffect != null)
-				{
-					mEffect.Stop();
-					mEffect.Dispose();
-					mEffect = null;
-				}
 				base.Dispose(bm);
 			}
 
@@ -192,8 +150,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 		{
 			Sim actor = bm.Actor;
 			BuffInstanceEWGraveWound buffInstance = bi as BuffInstanceEWGraveWound;
+            buffInstance.TimeoutCount = Tunables.kGraveWoundDuration;
 
-			buffInstance.StartFx(actor);
+            buffInstance.StartFx(actor);
 			base.OnAddition(bm, bi, travelReaddition);
 
 			// This should increase hunger and energy decay.
