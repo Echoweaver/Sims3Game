@@ -38,7 +38,9 @@ namespace Echoweaver.Sims3Game.PlantableWheat
             {
                 foreach (GameObject o in Sims3.Gameplay.Queries.GetObjects<WoodFireOven>())
                 {
-                    o.AddInteraction(EWBakeBreadIngredient.Singleton, true);
+                    o.AddInteraction(EWBakeIngredient.BreadSingleton, true);
+                    o.AddInteraction(EWBakeIngredient.RollsSingleton, true);
+                    o.AddInteraction(EWBakeIngredient.LongRollsSingleton, true);
                 }
             }
 
@@ -58,7 +60,9 @@ namespace Echoweaver.Sims3Game.PlantableWheat
                 WoodFireOven w = e.TargetObject as WoodFireOven;
                 if (w != null)
                 {
-                    w.AddInteraction(EWBakeBreadIngredient.Singleton, true);
+                    w.AddInteraction(EWBakeIngredient.BreadSingleton, true);
+                    w.AddInteraction(EWBakeIngredient.RollsSingleton, true);
+                    w.AddInteraction(EWBakeIngredient.LongRollsSingleton, true);
                 }
             }
             return ListenerAction.Keep;

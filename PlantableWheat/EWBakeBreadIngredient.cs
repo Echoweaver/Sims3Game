@@ -11,16 +11,30 @@ using Sims3.Gameplay.Objects.CookingObjects;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.TuningValues;
+using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.Store.Objects;
 
 namespace Echoweaver.Sims3Game.PlantableWheat
 {
-	public class EWBakeBreadIngredient : Interaction<Sim, WoodFireOven>
+
+	public class EWBakeIngredient : Interaction<Sim, WoodFireOven>
 	{
-		public class Definition : InteractionDefinition<Sim, WoodFireOven, EWBakeBreadIngredient>
+
+		public class DefinitionBase : InteractionDefinition<Sim, WoodFireOven, EWBakeIngredient>
 		{
-			public override bool Test(Sim a, WoodFireOven target, bool isAutonomous,
+			public string recipe_name = "WOBakeBreadCountry";
+			public string interaction_name = Loader.Localize("BakeBread");
+			public string ingredient_name = "Bread";
+
+			public DefinitionBase(string p_recipe, string p_interaction, string p_ingredient)
+			{
+				recipe_name = p_recipe;
+				interaction_name = p_interaction;
+				ingredient_name = p_ingredient;
+			}
+
+            public override bool Test(Sim a, WoodFireOven target, bool isAutonomous,
 				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
 				Ingredient i = a.Inventory.Find<Ingredient>(FlourTest);
@@ -56,14 +70,29 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				return false;
 			}
 
-			public override string GetInteractionName(ref InteractionInstanceParameters parameters)
+
+            public override string[] GetPath(bool isFemale)
+            {
+                return new string[1] {
+                    Localization.LocalizeString (Loader.Localize("BakeBread"))
+                };
+            }
+
+            public override string GetInteractionName(ref InteractionInstanceParameters parameters)
 			{
-				return Loader.Localize("BakeBread"); 
+				return interaction_name;
 			}
+
 		}
 
-		public static InteractionDefinition Singleton = new Definition();
-		Cooking skill;
+		public static InteractionDefinition BreadSingleton = new DefinitionBase("WOBakeBreadCountry",
+            Localization.LocalizeString(0xC73DD5A96B067B33), "Bread");
+        public static InteractionDefinition RollsSingleton = new DefinitionBase("BSBakeDinnerRoll",
+            Localization.LocalizeString(0x85C3CDCD3083615D), "Buns");
+        public static InteractionDefinition LongRollsSingleton = new DefinitionBase("BSBakeBaguette",
+            Localization.LocalizeString(0xB918BD96E2868C3B), "Long Buns");
+
+        Cooking skill;
 
 		public override bool Run()
 		{
@@ -82,8 +111,8 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				}
 			}
 
-			Ingredient flourItem = Actor.Inventory.Find<Ingredient>(Definition.FlourTest);
-			Ingredient eggItem = Actor.Inventory.Find<Ingredient>(Definition.EggTest);
+			Ingredient flourItem = Actor.Inventory.Find<Ingredient>(DefinitionBase.FlourTest);
+			Ingredient eggItem = Actor.Inventory.Find<Ingredient>(DefinitionBase.EggTest);
 
 			if (flourItem == null || eggItem == null)
 			{
@@ -119,8 +148,9 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 				trayPropObj.UnParent();
 				trayPropObj.Destroy();
 			}
+			string recipe_name = (this.InteractionDefinition as DefinitionBase).recipe_name;
 			Recipe breadRecipe = null;
-			Recipe.NameToRecipeHash.TryGetValue("WOBakeBreadCountry", out breadRecipe);
+			Recipe.NameToRecipeHash.TryGetValue(recipe_name, out breadRecipe);
 			if (breadRecipe == null)
 			{
 				EarlyExit();
@@ -132,7 +162,7 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
 			//Quality resultQuality = Target.GetFoodQuality(Actor);
 			IFoodContainer finishedRecipe = Target.mCurrentRecipe.CreateFinishedFood(Recipe.MealQuantity.Group,
-				resultQuality);
+				Quality.Perfect);
 			if (finishedRecipe == null)
 			{
 				EarlyExit();
@@ -163,7 +193,8 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 			eggItem.Dispose();
 			DestroyObject(containedFood);
 			DestroyObject(containerProp);
-			return EWGrindFlour.AddIngredientsToSimInventory(Actor, "Bread", 1, resultQuality);
+			string ingredient_name = (this.InteractionDefinition as DefinitionBase).ingredient_name;
+			return EWGrindFlour.AddIngredientsToSimInventory(Actor, ingredient_name, 1, resultQuality);
 		}
 
 		public void BakeLoopDelegate(StateMachineClient smc, LoopData loopData)
@@ -200,18 +231,17 @@ namespace Echoweaver.Sims3Game.PlantableWheat
 
 			if (Target.mFoodWillBurn)
             {
-				int recipePoints = Cooking.RecipeLevelFoodPoints[recipe.CookingSkillLevelRequired];
-				int skillPoints = (int)(Cooking.FoodPointBonusPerTimesCooked * skill.SkillLevel);
-				int ingredientPoints = Ingredient.QualityToIngredientPointMap[quality1]
-					+ Ingredient.QualityToIngredientPointMap[quality2];
-				foodPoints = recipePoints + ingredientPoints + skillPoints + naturalCookPoints
-					+ bornToCookPoints;
+                foodPoints = Food.kNumFoodPointsBurnt + naturalCookPoints + bornToCookPoints;
 			} else
             {
-				foodPoints = Food.kNumFoodPointsBurnt + naturalCookPoints + bornToCookPoints;
-
-			}
-			return Cooking.GetQualityFromFoodPoints(recipe, foodPoints);
+                int recipePoints = Cooking.RecipeLevelFoodPoints[recipe.CookingSkillLevelRequired];
+                int skillPoints = (int)(Cooking.FoodPointBonusPerTimesCooked * skill.SkillLevel);
+                int ingredientPoints = Ingredient.QualityToIngredientPointMap[quality1]
+                    + Ingredient.QualityToIngredientPointMap[quality2];
+                foodPoints = recipePoints + ingredientPoints + skillPoints + naturalCookPoints
+                    + bornToCookPoints;
+            }
+            return Cooking.GetQualityFromFoodPoints(recipe, foodPoints);
 		}
 
 		public bool CheckBurnt(Sim sim, Recipe recipe, StateMachineClient stateMachine)
