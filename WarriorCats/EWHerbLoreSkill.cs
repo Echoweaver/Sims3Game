@@ -27,7 +27,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
      * 7: Tend gains speed
      * 8: Harvest gains quality
      * 9: ?
-     * 10: Make more traveling herbs
+     * 10: Make traveling herbs: Chammomile, Buzzberry, Licorice
      */
 
 

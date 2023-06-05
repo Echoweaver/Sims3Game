@@ -37,7 +37,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					return false;
 				}
 				// TODO: Do I want to use non-herb stuff?
-				if (ingredient.IngredientKey != "Bumbleleaf")
+				if (ingredient.IngredientKey != "Gensing")
 				{
 					return false;
 				}
