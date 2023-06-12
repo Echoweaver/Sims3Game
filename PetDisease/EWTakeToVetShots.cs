@@ -97,11 +97,11 @@ namespace Echoweaver.Sims3Game.PetDisease
         public override bool Run()
         {
             mPetsToVaccinate = GetSelectedObjectsAsSims();
-            if (mPetsToVaccinate.Count <= 1)
+            if (mPetsToVaccinate.Count < 1)
             {
                 return false;
             }
-            Sim firstPet = mPetsToVaccinate[1];
+            Sim firstPet = mPetsToVaccinate[0];
             Actor.RouteTurnToFace(firstPet.Position);
             EnterStateMachine("CallPet", "Enter", "x");
             AnimateSim("Call Pet");

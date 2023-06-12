@@ -41,6 +41,10 @@
     <Compile Include="EWPetTreatPneumonia.cs" />
     <Compile Include="EWAbstractPetTreatPlantable.cs" />
     <Compile Include="EWPetTreatPetstilence.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="EWEnlistApprentice.cs" />
+    <Compile Include="EWDismissApprentice.cs" />
+    <Compile Include="MentorFighting.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

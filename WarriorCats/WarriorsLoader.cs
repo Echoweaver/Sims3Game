@@ -31,6 +31,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static BuffNames buffNameGermyPet = (BuffNames)0x9086F0050AC3673Dul;
         public static BuffNames buffNameTummyTrouble = (BuffNames)0xDFF72BA95943E99;
 
+        // Custom skills from other mods
+        public const SkillNames FightingSkillName = (SkillNames)0x20F47569;
+        public const CommodityKind FightingCommodityKind = (CommodityKind)0x262891D3;
+
+
         [Tunable]
         protected static bool kInstantiator = false;
 
