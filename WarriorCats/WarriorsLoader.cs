@@ -12,6 +12,7 @@ using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.ObjectComponents;
+using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -31,17 +32,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static BuffNames buffNameGermyPet = (BuffNames)0x9086F0050AC3673Dul;
         public static BuffNames buffNameTummyTrouble = (BuffNames)0xDFF72BA95943E99;
 
-        // Custom skills from other mods
-        public const SkillNames FightingSkillName = (SkillNames)0x20F47569;
-        public const CommodityKind FightingCommodityKind = (CommodityKind)0x262891D3;
-
 
         [Tunable]
         protected static bool kInstantiator = false;
-
-        [Tunable]
-        public static bool kAllowPetDeath = true;
-
 
         static Loader()
         {
@@ -68,6 +61,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
+
+            foreach (Sim pet in Queries.GetObjects<Sim>())
+            {
+                if (pet.IsCat || pet.IsADogSpecies)
+                {
+                    AddPetInteractions(pet);
+                }
+            }
+
             foreach (Plant p in Queries.GetObjects<Plant>())
             {
                 AddPlantInteractions(p);
@@ -106,6 +108,22 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
+
+            if (Config.kPetWarriorDebug)
+            {
+                AlarmManager.Global.AddAlarm(10f, TimeUnit.Seconds, NotifyDebugState, "Notify that debug is on",
+                    AlarmType.NeverPersisted, null);
+            }
+        }
+
+        public static void AddPetInteractions(Sim p)
+        {
+            p.AddInteraction(EWEnlistApprentice.Singleton, true);
+            p.AddInteraction(EWDismissApprentice.Singleton, true);
+            p.AddInteraction(MentorFishing.Singleton, true);
+            p.AddInteraction(MentorFighting.Singleton, true);
+            p.AddInteraction(MentorHerbLore.Singleton, true);
+            p.AddInteraction(MentorMedicine.Singleton, true);
         }
 
         public static void AddPlantableInventoryInteractions(Ingredient i)
@@ -183,6 +201,19 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 }
             }
             return ListenerAction.Keep;
+        }
+
+        public static void NotifyDebugState()
+        {
+            DebugNote("Pet Warrior Debug Mode ON");
+        }
+
+        public static void DebugNote(string str)
+        {
+            if (Config.kPetWarriorDebug)
+            {
+                StyledNotification.Show(new StyledNotification.Format(str, StyledNotification.NotificationStyle.kDebugAlert));
+            }
         }
     }
 }
