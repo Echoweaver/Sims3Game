@@ -6,6 +6,7 @@ using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.Store.Objects;
+using Sims3.UI;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -26,9 +27,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		public const SkillNames FishingSkillName = (SkillNames)0xDE46D7FA;
 		public const CommodityKind FishingCommodityKindID = unchecked((CommodityKind)0xFD000E72);
 
-
 		public static bool CanTakeApprentice(Sim s)
 		{
+			if (!(s.IsCat || s.IsADogSpecies))
+				return false;
 			if (s.SimDescription.ChildOrBelow)
 				return false;
 			// Can't take an apprentice if you ARE an apprentice
@@ -55,8 +57,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public static bool CanBeApprenticed(Sim s)
 		{
-			// TODO: Properly add children to the Unapprenticed dict
-			return Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId)
+            if (!(s.IsCat || s.IsADogSpecies))
+                return false;
+            // TODO: Properly add children to the Unapprenticed dict
+            return Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId)
 				|| (s.SimDescription.ChildOrBelow && !Apprentices.ContainsKey(s.SimDescription.SimDescriptionId));
 		}
 
@@ -81,6 +85,18 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		[Tunable]
 		public static bool kPetWarriorDebug = false;
-	}
+
+        public static void DebugNote(string str)
+        {
+            if (kPetWarriorDebug)
+            {
+                StyledNotification.Show(new StyledNotification.Format(str, StyledNotification
+					.NotificationStyle.kDebugAlert));
+            }
+        }
+
+        [Tunable]
+        public static float kApprenticeSkillGainRate = 20f;
+    }
 }
 

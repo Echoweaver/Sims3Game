@@ -13,6 +13,9 @@ using Sims3.Gameplay.Objects.Fishing;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.UI;
+using Sims3.Gameplay.Socializing;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -62,6 +65,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
 
+            //LoadSocialData("EWWarriors_SocialData");
+
             foreach (Sim pet in Queries.GetObjects<Sim>())
             {
                 if (pet.IsCat || pet.IsADogSpecies)
@@ -80,14 +85,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 PlantableComponent plantable = i.Plantable;
                 if (plantable != null)
                 {
-                    //if (plantable.PlantDef != null)
-                    //{
-                    //    if (!plantable.PlantDef.LimitedAvailability)
-                    //    {
                             i.AddInteraction(EWPetPickUpPlantable.Singleton, true);
                             AddPlantableInventoryInteractions(i);
-                    //    }
-                    //}
                 }
             }
 
@@ -113,6 +112,27 @@ namespace Echoweaver.Sims3Game.WarriorCats
             {
                 AlarmManager.Global.AddAlarm(10f, TimeUnit.Seconds, NotifyDebugState, "Notify that debug is on",
                     AlarmType.NeverPersisted, null);
+            }
+        }
+
+        public static void LoadSocialData(string spreadsheet)
+        {
+            XmlDocument root = Simulator.LoadXML(spreadsheet);
+            bool isEp5Installed = GameUtils.IsInstalled(ProductVersion.EP5);
+            if (spreadsheet != null)
+            {
+                XmlElementLookup lookup = new XmlElementLookup(root);
+                List<XmlElement> list = lookup["Action"];
+                foreach (XmlElement element in list)
+                {
+                    CommodityTypes types;
+                    XmlElementLookup table = new XmlElementLookup(element);
+                    ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"),
+                        out types, CommodityTypes.Undefined);
+                    ActionData data = new ActionData(element.GetAttribute("key"),
+                        types, ProductVersion.BaseGame, table, isEp5Installed);
+                    ActionData.Add(data);
+                }
             }
         }
 
@@ -205,15 +225,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static void NotifyDebugState()
         {
-            DebugNote("Pet Warrior Debug Mode ON");
+            Config.DebugNote("Pet Warrior Debug Mode ON");
         }
 
-        public static void DebugNote(string str)
-        {
-            if (Config.kPetWarriorDebug)
-            {
-                StyledNotification.Show(new StyledNotification.Format(str, StyledNotification.NotificationStyle.kDebugAlert));
-            }
-        }
     }
 }

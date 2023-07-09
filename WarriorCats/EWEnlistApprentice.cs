@@ -22,12 +22,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
         {
             public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
-                if (!(a.IsPet && target.IsPet))
+                if (a == target)
+                    return false;
+                if (HasApprentice(a, target))
                     return false;
                 if (!CanTakeApprentice(a))
                 {
                     if (kPetWarriorDebug)
                     {
+                        // TODO: Localize!
                         greyedOutTooltipCallback = CreateTooltipCallback("Actor cannot take an apprentice");
                     }
                     return false;
@@ -36,6 +39,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 {
                     if (kPetWarriorDebug)
                     {
+                        // TODO: Localize!
                         greyedOutTooltipCallback = CreateTooltipCallback("Target is not available as an apprentice");
                     }
                     return false;
@@ -62,34 +66,36 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 return false;
             }
 
+            AddApprentice(Actor, Target);
             Actor.LookAtManager.SetInteractionLookAt(Target, LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
             Target.LookAtManager.SetInteractionLookAt(Actor, LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
             EnterStateMachine("Socialize", "Enter", "x", "y");
             BeginCommodityUpdates();
-            ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData("w_hunting_cat_skill");
+            ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData("balloon_trait_brave");
             balloonData.BalloonType = ThoughtBalloonTypes.kSpeechBalloon;
-            balloonData.LowAxis = (RandomUtil.CoinFlip() ? ThoughtBalloonAxis.kLike : ThoughtBalloonAxis.kDislike);
-            balloonData.Duration = ThoughtBalloonDuration.Medium;
+            balloonData.Duration = ThoughtBalloonDuration.Short;
             Actor.ThoughtBalloonManager.ShowBalloon(balloonData);
+            Target.ThoughtBalloonManager.ShowBalloon(balloonData);
             mCurrentStateMachine.RequestState(false, "x", "Socialize");
             mCurrentStateMachine.RequestState(true, "y", "Socialize");
-            Target.ThoughtBalloonManager.ShowBalloon(balloonData);
             mCurrentStateMachine.RequestState(false, "x", "Exit");
             mCurrentStateMachine.RequestState(true, "y", "Exit");
-            EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target, "Pet Socialize", wasRecipient: false, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
-            EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Target, Actor, "Pet Socialize", wasRecipient: true, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
+            EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target,
+                "Enlist Apprentice", wasRecipient: false, wasAccepted: true, actorWonFight: false,
+                CommodityTypes.Undefined));
+            EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Target, Actor,
+                "Enlist Apprentice", wasRecipient: true, wasAccepted: true, actorWonFight: false,
+                CommodityTypes.Undefined));
             EndCommodityUpdates(true);
             FinishLinkedInteraction();
             WaitForSyncComplete();
 
-            // Apprentice assignment can't be rejected
-            AddApprentice(Actor, Target);
-            SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Nuzzle Auto Accept",
+            SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Sniff",
                 new string[0], null, initialGreet: false);
-            InteractionInstance nuzzleInteraction = definition2.CreateInstance(Target, Actor,
+            InteractionInstance acceptInteraction = definition2.CreateInstance(Target, Actor,
                 new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
                 true);
-            Actor.InteractionQueue.TryPushAsContinuation(this, nuzzleInteraction);
+            Actor.InteractionQueue.TryPushAsContinuation(this, acceptInteraction);
 
             Cleanup();
             return true;

@@ -44,6 +44,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public static InteractionDefinition Singleton = new Definition();
 
+        // balloon_pond (fishing)
+        // balloon_jellyfish (fishing)
+        // balloon_question
+        // balloon_fish
+        // balloon_rain
+        // ep5_balloon_giantsquid
+        // ep10_balloon_fish
+        // ep10_balloon_shark
+
         public override bool Run()
         {
             return true;
