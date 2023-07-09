@@ -170,15 +170,34 @@ namespace Echoweaver.Sims3Game.PetFighting
 					return false;
 				}
 			}
-			skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
-			bool returnVal = base.Run();
+			skillActor.StartSkillGain(skillActor.getSkillGainRate());
+
+            EWPetFightingSkill skillTarget = new EWPetFightingSkill(EWPetFightingSkill.skillNameID);
+            if (Target.IsCat || Target.IsADogSpecies)
+            {
+                skillTarget = Target.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+                if (skillTarget == null)
+                {
+                    skillTarget = Target.SkillManager.AddElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
+                    if (skillTarget == null)
+                    {
+                        return false;
+                    }
+                }
+                skillTarget.StartSkillGain(skillTarget.getSkillGainRate());
+            }
+
+            bool returnVal = base.Run();
 			skillActor.StopSkillGain();
-			return returnVal;
+            if (Target.IsCat || Target.IsADogSpecies)
+            {
+                skillTarget.StopSkillGain();
+            }
+            return returnVal;
 		}
 
 		public override void RunPostChaseBehavior()
 		{
-			skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
 			OutcomeType outcomeType = OutcomeType.Succeed;
 				outcomeType = (OutcomeType)RandomUtil.GetWeightedIndex(GetOutcomeWeights());
 			PlayFaceoffAnims(false);
@@ -259,7 +278,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 			}
 			EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target, "Chase Mean", wasRecipient: false, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
 			EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Target, Actor, "Chase Mean", wasRecipient: true, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
-			skillActor.StopSkillGain();
 		}
 
 		public void PlayFaceoffAnims(bool reverseRoles)
@@ -297,18 +315,18 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		public float[] GetOutcomeWeights()
 		{
-			int actorSkill = Math.Max(0, Actor.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+			float actorSkillLevell = Math.Max(0, skillActor.getEffectiveSkillLevel(Actor.LotCurrent == Actor.LotHome, Target));
 
-			int targetSkill = 0;
+			int targetSkillLevel = 0;
 			if (Target.IsHuman)
 			{
-				targetSkill = Math.Max(0, Target.SkillManager.GetSkillLevel(SkillNames.MartialArts));
+				targetSkillLevel = Math.Max(0, Target.SkillManager.GetSkillLevel(SkillNames.MartialArts));
 			} else if (Target.IsCat || Target.IsADogSpecies)
             {
-				targetSkill = Math.Max(0, Target.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
+				targetSkillLevel = Math.Max(0, Target.SkillManager.GetSkillLevel(EWPetFightingSkill.skillNameID));
 			}
 
-			int intimidateModifier = (actorSkill - targetSkill) * kIntimidateChanceBonusPerSkillLevelDiff;
+			float intimidateModifier = (actorSkillLevell - targetSkillLevel) * kIntimidateChanceBonusPerSkillLevelDiff;
 			int animalAffinity = 0;
 			if (Actor.IsCat && Target.HasTrait(TraitNames.CatPerson))
             {

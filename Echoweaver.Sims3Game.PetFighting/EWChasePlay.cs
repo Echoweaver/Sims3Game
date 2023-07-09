@@ -20,7 +20,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 chaseBaseClass.IsMeanChase = false;
                 return chaseBaseClass;
             }
-
         }
 
         public static new InteractionDefinition Singleton = new EWChasePlayDefinition();
@@ -36,9 +35,28 @@ namespace Echoweaver.Sims3Game.PetFighting
                     return false;
                 }
             }
-            skillActor.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            skillActor.StartSkillGain(skillActor.getSkillGainRate());
+
+            EWPetFightingSkill skillTarget = new EWPetFightingSkill(EWPetFightingSkill.skillNameID);
+            if (Target.IsCat || Target.IsADogSpecies)
+            {
+                skillTarget = Target.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
+                if (skillTarget == null)
+                {
+                    skillTarget = Target.SkillManager.AddElement(EWPetFightingSkill.skillNameID) as EWPetFightingSkill;
+                    if (skillTarget == null)
+                    {
+                        return false;
+                    }
+                }
+                skillTarget.StartSkillGain(skillTarget.getSkillGainRate());
+            }
             bool returnVal = base.Run();
             skillActor.StopSkillGain();
+            if (Target.IsCat || Target.IsADogSpecies)
+            {
+                skillTarget.StopSkillGain();
+            }
             return returnVal;
         }
     }

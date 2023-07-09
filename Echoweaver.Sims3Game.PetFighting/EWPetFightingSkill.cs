@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -57,26 +58,26 @@ namespace Echoweaver.Sims3Game.PetFighting
             return Localization.LocalizeString(SkillOwner.IsFemale, sEWLocalizationKey + name, parameters);
         }
 
-        public float getSkillGainRate(Sim s)
+        public float getSkillGainRate()
         {
             float rate = kSkillGainRateNormal;
             if (OppExperiencedFighterCompleted)
             {
                 rate = kSkillGainRateExperienced;
             }
-            if (s.HasTrait(TraitNames.AggressivePet))
+            if (SkillOwner.HasTrait(TraitNames.AggressivePet))
             {
                 rate *= 1.2f;
             }
-            if (s.HasTrait(TraitNames.DestructivePet))
+            if (SkillOwner.HasTrait(TraitNames.DestructivePet))
             {
                 rate *= 1.2f;
             }
-            if (s.HasTrait(TraitNames.SkittishPet))
+            if (SkillOwner.HasTrait(TraitNames.SkittishPet))
             {
                 rate *= .9f;
             }
-            if (s.HasTrait(TraitNames.NonDestructivePet))
+            if (SkillOwner.HasTrait(TraitNames.NonDestructivePet))
             {
                 rate *= .9f;
             }
@@ -108,7 +109,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             private EWPetFightingSkill mSkill;
 
             public string Description => Localization.LocalizeString(mSkill.sStatsLocalizeKey + "CountFightsWon",
-                //mSkill.mFightsWon, mSkill.mFightsLost);
                 mSkill.mFightsWon, mSkill.mFightsWon == 0 ? 0 : Math.Round((decimal)(mSkill.mFightsWon
                     / (mSkill.mFightsWon + mSkill.mFightsLost)) * 100, 1));
 
@@ -151,20 +151,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        //public class FightsLostHuman : ITrackedStat
-        //{
-        //    private EWPetFightingSkill mSkill;
-
-        //    public string Description => "Fights Lost Human " + mSkill.mFightsLostHuman;
-
-        //    public FightsLostHuman(EWPetFightingSkill skill)
-
-        //    {
-        //        mSkill = skill;
-        //    }
-        //}
-
-
         public class FightsWonBigDog : ITrackedStat
         {
             private EWPetFightingSkill mSkill;
@@ -180,19 +166,6 @@ namespace Echoweaver.Sims3Game.PetFighting
                 mSkill = skill;
             }
         }
-
-        //public class FightsLostBigDog : ITrackedStat
-        //{
-        //    private EWPetFightingSkill mSkill;
-
-        //    public string Description => "Fights Lost Big Dog " + mSkill.mFightsLostBigDog;
-
-        //    public FightsLostBigDog(EWPetFightingSkill skill)
-
-        //    {
-        //        mSkill = skill;
-        //    }
-        //}
 
         public class FightsWonSmallPet : ITrackedStat
         {
@@ -210,18 +183,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        //public class FightsLostSmallPet : ITrackedStat
-        //{
-        //    private EWPetFightingSkill mSkill;
-
-        //    public string Description => "Fights Lost Small Pet " + mSkill.mFightsLostSmallPet;
-
-        //    public FightsLostSmallPet(EWPetFightingSkill skill)
-
-        //    {
-        //        mSkill = skill;
-        //    }
-        //}
 
         public class FightsWonHomeLot : ITrackedStat
         {
@@ -237,34 +198,34 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
         }
 
-        public void lostFight(Sim s)
+        public void lostFight(Sim target)
         {
             ++mFightsLost;
-            if (s.IsHuman)
+            if (target.IsHuman)
             {
                 ++mFightsLostHuman;
-            } else if (s.IsFullSizeDog)
+            } else if (target.IsFullSizeDog)
             {
                 ++mFightsLostBigDog;
-            } else if (s.IsRaccoon || s.IsLittleDog || s.IsCat)
+            } else if (target.IsRaccoon || target.IsLittleDog || target.IsCat)
             {
                 ++mFightsLostSmallPet;
             }
         }
 
-        public void wonFight(Sim s, bool isOnHomeLot)
+        public void wonFight(Sim target, bool isOnHomeLot)
         {
             AddPoints(200, true, true);
             ++mFightsWon;
-            if (s.IsHuman)
+            if (target.IsHuman)
             {
                 ++mFightsWonHuman;
             }
-            else if (s.IsFullSizeDog)
+            else if (target.IsFullSizeDog)
             {
                 ++mFightsWonBigDog;
             }
-            else if (s.IsRaccoon || s.IsLittleDog || s.IsCat)
+            else if (target.IsRaccoon || target.IsLittleDog || target.IsCat)
             {
                 ++mFightsWonSmallPet;
             }

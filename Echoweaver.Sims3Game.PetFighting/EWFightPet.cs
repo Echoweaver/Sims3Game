@@ -126,8 +126,8 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            skillActor.StartSkillGain(skillActor.getSkillGainRate(Actor));
-            skillTarget.StartSkillGain(skillTarget.getSkillGainRate(Target));
+            skillActor.StartSkillGain(skillActor.getSkillGainRate());
+            skillTarget.StartSkillGain(skillTarget.getSkillGainRate());
 
             BeginCommodityUpdates();
             Actor.RequestWalkStyle(WalkStyle.PetRun);
@@ -362,54 +362,6 @@ namespace Echoweaver.Sims3Game.PetFighting
             LongTermRelationshipTypes currentLTR2 = relationship.CurrentLTR;
             SocialComponent.SetSocialFeedbackForActorAndTarget(CommodityTypes.Friendly,
                             Actor, Target, true, 0, currentLTR, currentLTR2);
-        }
-    }
-
-    public class EWKillNow : ImmediateInteraction<Sim, Sim>
-    {
-        public class Definition : ImmediateInteractionDefinition<Sim, Sim, EWKillNow>
-        {
-            public static InteractionDefinition Singleton = new Definition();
-
-            public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
-            {
-                return true;
-            }
-
-            public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
-            {
-                return "KillNow";
-            }
-        }
-
-        public static InteractionDefinition Singleton = new Definition();
-
-        public override bool Run()
-        {
-            // Mummy Curse: exotic gold-to-black shading
-            // Mermaid Dehydration: Slowly pulsing yellow
-            // Jellybean: Teal with barely-visible jellybean outlines floating above torso
-            // Robot: Lovely green good for disease but difficult to use because it has no defined death process
-            // Thirst: Red liquid with pulsing heart. Perfect for wounds, but concered that Bad Pet ghost is already
-            // red.
-            // Jetpack: Fast-moving clouds over gold ghost
-            // HumanStatue: Invisible except for eyes!!
-
-            if (Tunables.kAllowPetDeath)
-            {
-                // TODO: LOCALIZE!
-                Target.Kill(Loader.fightDeathType);
-            }
-            //Target.Kill(SimDescription.DeathType.HumanStatue);
-            //if (Target.IsHuman)
-            //{
-            //    Target.PlaySoloAnimation("ad2ad_soc_neutral_fight_Loop1_y");
-            //} else if (Target.IsLittleDog)
-            //{
-            //    Target.PlaySoloAnimation("al2a_soc_neutral_attackSim_insulting_neutral_x");
-            //}
-
-            return true;
         }
     }
 }

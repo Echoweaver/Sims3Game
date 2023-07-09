@@ -111,7 +111,6 @@ namespace Echoweaver.Sims3Game.PetFighting
         }
 
         EWPetFightingSkill skillActor;
-        MartialArts skillTarget;
 
         public override bool Run()
         {
@@ -145,28 +144,14 @@ namespace Echoweaver.Sims3Game.PetFighting
                 }
             }
 
-            skillTarget = Target.SkillManager.GetSkill<MartialArts>(SkillNames.MartialArts);
-            if (skillTarget == null)
-            {
-                skillTarget = Actor.SkillManager.AddElement(SkillNames.MartialArts)
-                    as MartialArts;
-                if (skillTarget == null)
-                {
-                    return false;
-                }
-            }
-
-            skillActor.StartSkillGain(skillActor.getSkillGainRate(Actor));
-            skillTarget.StartSkillGain(EWPetFightingSkill.kSkillGainRateNormal);
+            skillActor.StartSkillGain(skillActor.getSkillGainRate());
 
             UpdateConversationWhenSocialStarts(Actor, Target);
             mSmc = GetStateMachine();
             string jazzState = mTargetEffect.RHS.JazzState;
             jazzState = SetupAnimationParameters(false, false, false, jazzState);
             mSmc.RequestState(null, jazzState);
-
             skillActor.StopSkillGain();
-            skillTarget.StopSkillGain();
 
             bool actorWon = DoesActorWinFight();
 
@@ -213,8 +198,8 @@ namespace Echoweaver.Sims3Game.PetFighting
         {
             float winChance = EWFightPet.kBaseWinChance;
             float actorSkillLevel = skillActor.getEffectiveSkillLevel(Actor.LotCurrent == Actor.LotHome, Target);
-            int targetSkill = Math.Max(0, Target.SkillManager.GetSkillLevel(SkillNames.MartialArts));
-            winChance += (actorSkillLevel - targetSkill) * EWFightPet.kWinChanceBonusPerSkillLevelDiff;
+            int targetSkillLevel = Math.Max(0, Target.SkillManager.GetSkillLevel(SkillNames.MartialArts));
+            winChance += (actorSkillLevel - targetSkillLevel) * EWFightPet.kWinChanceBonusPerSkillLevelDiff;
             for (int i = 0; i < EWFightPet.kWinChanceModifyTraits.Length; i++)
             {
                 if (Actor.HasTrait(EWFightPet.kWinChanceModifyTraits[i]))
