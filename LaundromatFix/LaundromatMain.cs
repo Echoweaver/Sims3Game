@@ -29,10 +29,12 @@ namespace Echoweaver.Sims3.LaundromatFix
 		{
 			foreach (WashingMachine w in Queries.GetObjects<WashingMachine>())
 			{
-				w.RemoveInteractionByType(WashingMachine.DoLaundry.Singleton);
-				w.AddInteraction(EWDoLaundry.Singleton, true);
+				if (w.LotCurrent.IsCommunityLot)
+				{
+					w.RemoveInteractionByType(WashingMachine.DoLaundry.Singleton);
+					w.AddInteraction(EWDoLaundryAtLaundromat.Singleton, true);
+				}
 			}
-			WashingMachine.DoLaundry.Singleton = new EWDoLaundry.Definition();
 			AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, new AlarmTimerCallback(Initialize),
 				"Laundromat Fix Debug Note", AlarmType.NeverPersisted, null);
 		}

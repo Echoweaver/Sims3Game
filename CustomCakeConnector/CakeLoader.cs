@@ -42,46 +42,71 @@ namespace Echoweaver.Sims3.CustomCakeConnector
             {
                 Sim s = e.Actor as Sim;
                 IDish meal = e.TargetObject as IDish;
-                if (mealEvent.Quality != Quality.Horrifying && mealEvent.RecipeUsed.IsHarvestable)
+                // If the recipe burns, it's just a fail. Don't replace with the cake object
+                if (mealEvent.Quality != Quality.Horrifying && mealEvent.RecipeUsed.HarvestableName == "CakeConnector")
                 {
-                    if (mealEvent.RecipeUsed.HarvestableName == "")
+                    // The custom cake must have an NGMP resource connecting the recipe key
+                    // to the instance ID of the swapped object.
+                    IGameObject cake = GlobalFunctions.CreateObjectOutOfWorld(mealEvent
+                        .RecipeUsed.Key);
+                    if (cake is ServingContainer)
                     {
-                        // The custom cake must have an NGMP resource connecting the recipe key
-                        // to the instance ID of the swapped object.
-                        IGameObject cake = GlobalFunctions.CreateObjectOutOfWorld(mealEvent
-                            .RecipeUsed.Key);
-                        if (cake is ServingContainer)
-                        {
-                            ((ServingContainerGroup) cake).CookingProcess.Quality = mealEvent.Quality;
-                            ((ServingContainerGroup) cake).CookingProcess.SetFinalPreparer(s.SimDescription);
-                        } else if (cake is Ingredient)
-                        {
-                            ((Ingredient)cake).SetQuality(mealEvent.Quality);
-                        }
-
-                        if (cake is ServingContainer)
-                        {
-                            CarrySystem.PutDown(s, SurfaceType.Normal);
-                            Vector3 pos = mealEvent.TargetObject.Position;
-                            Vector3 forward = mealEvent.TargetObject.ForwardVector;
-                            mealEvent.TargetObject.Destroy();
-                            cake.SetPosition(pos);      
-                            cake.SetForward(forward);
-                            cake.AddToWorld();
-                        } else if (cake is InventoryItem)
-                        {
-                            CarrySystem.AnimateIntoSimInventory(s);
-                            mealEvent.TargetObject.Destroy();
-                            s.Inventory.TryToAdd(cake);
-                        } else
-                        {
-                            StyledNotification.Show(new StyledNotification.Format("Recipe swap object cannot be instatiated for type "
-                                + cake.GetType().ToString(),
-                                StyledNotification.NotificationStyle.kDebugAlert));
-                        }
+                        ((ServingContainerGroup)cake).CookingProcess.Quality = mealEvent.Quality;
+                        ((ServingContainerGroup)cake).CookingProcess.SetFinalPreparer(s.SimDescription);
+                    }
+                    else if (cake is Ingredient)
+                    {
+                        ((Ingredient)cake).SetQuality(mealEvent.Quality);
                     }
 
+                    if (cake is ServingContainer)
+                    {
+                        CarrySystem.PutDown(s, SurfaceType.Normal);
+                        Vector3 pos = mealEvent.TargetObject.Position;
+                        Vector3 forward = mealEvent.TargetObject.ForwardVector;
+                        ISurface sur = mealEvent.TargetObject.Parent as ISurface;
+                        // The cake object needs to be slotted into the same surface slot where the
+                        // completed recipe was set down. I don't expect that the else statement
+                        // will be accessed, but I thought it should do something reasonable
+                        // if the recipe data is weird.
+                        if (sur != null)
+                        {
+                            SurfaceSlot swapSlot = sur.Surface.GetSurfaceSlotFromContainedObject(mealEvent.TargetObject);
+                            mealEvent.TargetObject.Destroy();
+                            cake.SetPosition(pos);
+                            cake.SetForward(forward);
+                            cake.AddToWorld();
+                            cake.ParentToSlot(sur, swapSlot.ContainmentSlot);
+                        }
+                        else
+                        {
+                            mealEvent.TargetObject.Destroy();
+                            cake.SetPosition(pos);
+                            cake.SetForward(forward);
+                            cake.AddToWorld();
+                            CarrySystem.PickUpWithoutRouting(s, (ServingContainer)cake);
+                            CarrySystem.PutDown(s, SurfaceType.Normal);
+                        }
+
+                    }
+                    else if (cake is InventoryItem)
+                    {
+                        // Just putting in the option of swapping out a recipe for something other
+                        // than a cake.
+                        CarrySystem.AnimateIntoSimInventory(s);
+                        mealEvent.TargetObject.Destroy();
+                        s.Inventory.TryToAdd(cake);
+                    }
+                    else
+                    {
+                        StyledNotification.Show(new StyledNotification.Format
+                            ("CustomCakeConnector: Recipe swap object cannot be instatiated for type "
+                            + cake.GetType().ToString(),
+                            StyledNotification.NotificationStyle.kDebugAlert));
+                    }
                 }
+
+
             }
             return ListenerAction.Keep;
         }

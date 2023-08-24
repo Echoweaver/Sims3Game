@@ -33,7 +33,7 @@ namespace Sims3.Gameplay.Objects.CookingObjects.CustomCake
         {
             base.OnCreation();
             CookingProcess = new CustomCakeCookingProcess(this, GetRecipeKey());
-            SetGeoStates();
+            //SetGeoStates();
         }
 
         public override void OnStartup()

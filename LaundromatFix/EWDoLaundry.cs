@@ -13,9 +13,9 @@ using static Sims3.Gameplay.Objects.Appliances.WashingMachine;
 
 namespace Echoweaver.Sims3.LaundromatFix
 {
-    public class EWDoLaundry : WashingMachine.DoLaundry
+    public class EWDoLaundryAtLaundromat : WashingMachine.DoLaundry
     {
-        public new class Definition : InteractionDefinition<Sim, WashingMachine, EWDoLaundry>
+        public new class Definition : InteractionDefinition<Sim, WashingMachine, EWDoLaundryAtLaundromat>
         {
             public bool mAllowStages;
 
@@ -34,16 +34,16 @@ namespace Echoweaver.Sims3.LaundromatFix
             public override string GetInteractionName(Sim actor, WashingMachine target,
                 InteractionObjectPair iop)
             {
-                if (target.LotCurrent.IsCommunityLot)
-                {
-                    return LocalizeString("DoLaundryAtLaundromat", target.Tuning.kCostToOperate);
-                }
-                return base.GetInteractionName(actor, target, iop);
+                return LocalizeString("DoLaundryAtLaundromat", target.Tuning.kCostToOperate);
             }
 
             public override bool Test(Sim a, WashingMachine target, bool isAutonomous,
                 ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
+                if (target.LotCurrent.IsResidentialLot)
+                {
+                    return false;
+                }
                 if (!target.CanDoLaundry())
                 {
                     return false;
@@ -65,31 +65,6 @@ namespace Echoweaver.Sims3.LaundromatFix
                 {
                     greyedOutTooltipCallback = InteractionInstance.CreateTooltipCallback(
                         LocalizeString("InsufficientFunds"));
-                    return false;
-                }
-                if (target.LotCurrent.IsResidentialLot)
-                {
-                    if (!LaundryManager.IsAllowedToDoLaundryOnResidentialLot(target, a))
-                    {
-                        return false;
-                    }
-                    if (Queries.CountObjects(typeof(ClothingPileDry), target.LotCurrent.LotId) != 0)
-                    {
-                        return true;
-                    }
-                    Hamper[] objects = target.LotCurrent.GetObjects<Hamper>();
-                    foreach (Hamper hamper in objects)
-                    {
-                        if (hamper.HasClothingPiles())
-                        {
-                            return true;
-                        }
-                    }
-                    if (a.Inventory.ContainsType(typeof(ClothingPileDry), 1))
-                    {
-                        return true;
-                    }
-                    greyedOutTooltipCallback = new GreyedOutTooltipCallback(NoLaundryTooltip);
                     return false;
                 }
                 return true;
