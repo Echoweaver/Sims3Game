@@ -71,7 +71,14 @@ namespace Echoweaver.Sims3Game.PetFighting
             }
             EventTracker.AddListener(EventTypeId.kSimPassedOut, new ProcessEventDelegate(OnSimPassedOut));
             EventTracker.AddListener(EventTypeId.kSimInstantiated, new ProcessEventDelegate(OnSimInstantiated));
-            EventTracker.AddListener(EventTypeId.kPetTakenBySocialWorker, new ProcessEventDelegate(OnPetSocialWorker));
+            EventTracker.AddListener(EventTypeId.kGotBuff, new ProcessEventDelegate(OnGotBuff));
+
+
+            if (Tunables.kPetFightingDebug)
+            {
+                AlarmManager.Global.AddAlarm(10f, TimeUnit.Seconds, NotifyDebugState, "Notify that debug is on",
+                    AlarmType.NeverPersisted, null);
+            }
         }
 
         public static void AddInteraction(Sim s)
@@ -141,22 +148,35 @@ namespace Echoweaver.Sims3Game.PetFighting
             return ListenerAction.Keep;
         }
 
-        public static ListenerAction OnPetSocialWorker(Event e)
+        public static ListenerAction OnGotBuff(Event e)
         {
-            // Check to see if pet sims have same passed out event
-            StyledNotification.Show(new StyledNotification.Format("DEBUG: Social Worker",
-                StyledNotification.NotificationStyle.kDebugAlert));
             Sim targetPet = e.Actor as Sim;
 
             // Starving pet with Grave Wound active dies/succumbs to wound.
             if (targetPet.BuffManager.HasElement(BuffNames.StarvingPet) &&
                targetPet.BuffManager.HasElement(BuffEWGraveWound.StaticGuid))
             {
+                DebugNote("DEBUG: Buff is PetStarving and sim has Grave Wound. Die.");
                 EWPetSuccumbToWounds die = EWPetSuccumbToWounds.Singleton.CreateInstance(targetPet, targetPet,
                     new InteractionPriority(InteractionPriorityLevel.MaxDeath), false, false) as EWPetSuccumbToWounds;
+                targetPet.InteractionQueue.AddNext(die);
                 return ListenerAction.Remove;
             }
             return ListenerAction.Keep;
+        }
+
+        public static void NotifyDebugState()
+        {
+            DebugNote("Pet Fighting Debug Mode ON");
+        }
+
+        public static void DebugNote(string str)
+        {
+            if (Tunables.kPetFightingDebug)
+            {
+                StyledNotification.Show(new StyledNotification.Format(str, StyledNotification
+                    .NotificationStyle.kDebugAlert));
+            }
         }
 
         public static void AddEnumValue<T>(string key, object value) where T : struct

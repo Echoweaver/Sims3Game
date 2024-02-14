@@ -42,8 +42,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                     out BuffInstance value);
                 if (value == null)
                 {
-                    StyledNotification.Show(new StyledNotification.Format("ERROR Add Commodity Multiplier buff failed for: "
-                        + s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                    Loader.DebugNote("ERROR Add Commodity Multiplier buff failed for: " + s.Name);
                     return;
                 }
 
@@ -64,8 +63,7 @@ namespace Echoweaver.Sims3Game.PetFighting
                 as BuffCommodityDecayModifier.BuffInstanceCommodityDecayModifier;
             if (buffModifier == null)
             {
-                StyledNotification.Show(new StyledNotification.Format("ERROR Remove " + commodity +
-                    " multiplier failed for: " + s.Name, StyledNotification.NotificationStyle.kDebugAlert));
+                Loader.DebugNote("ERROR Remove " + commodity + " multiplier failed for: " + s.Name);
                 return;
             }
 

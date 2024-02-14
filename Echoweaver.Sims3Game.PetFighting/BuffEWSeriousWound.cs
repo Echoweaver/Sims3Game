@@ -107,9 +107,6 @@ namespace Echoweaver.Sims3Game.PetFighting
 
 		}
 
-		public static float kSeriousWoundHungerDecayMultiplier = 2.0f;
-		public static float kSeriousWoundEnergyDecayMultiplier = 2.0f;
-
 		public BuffEWSeriousWound(BuffData data) : base(data)
 		{
 		}
@@ -129,8 +126,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 			base.OnAddition(bm, bi, travelReaddition);
 
 			// This should increase hunger and energy decay.
-			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, kSeriousWoundHungerDecayMultiplier);
-			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
+			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Hunger, Tunables.kSeriousWoundHungerDecayMultiplier);
+			BuffBooter.addCommodityMultiplier(actor, CommodityKind.Energy, Tunables.kSeriousWoundEnergyDecayMultiplier);
 		}
 
 		public override void OnRemoval(BuffManager bm, BuffInstance bi)
@@ -138,8 +135,8 @@ namespace Echoweaver.Sims3Game.PetFighting
 			base.OnRemoval(bm, bi);
 
 			Sim actor = bm.Actor;
-			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Hunger, kSeriousWoundHungerDecayMultiplier);
-			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Energy, kSeriousWoundEnergyDecayMultiplier);
+			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Hunger, Tunables.kSeriousWoundHungerDecayMultiplier);
+			BuffBooter.removeCommodityMultiplier(actor, CommodityKind.Energy, Tunables.kSeriousWoundEnergyDecayMultiplier);
 		}
 	}
 }

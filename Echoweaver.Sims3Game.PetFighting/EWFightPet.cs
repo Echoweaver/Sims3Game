@@ -118,7 +118,7 @@ namespace Echoweaver.Sims3Game.PetFighting
             skillTarget = Target.SkillManager.GetSkill<EWPetFightingSkill>(EWPetFightingSkill.skillNameID);
             if (skillTarget == null)
             {
-                skillTarget = Actor.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
+                skillTarget = Target.SkillManager.AddElement(EWPetFightingSkill.skillNameID)
                     as EWPetFightingSkill;
                 if (skillTarget == null)
                 {
@@ -233,9 +233,9 @@ namespace Echoweaver.Sims3Game.PetFighting
                 mPetFightNoiseBroadcast.EndBroadcast();
                 mPetFightNoiseBroadcast = null;
             }
-            FinishSocial("Fight Pet", bApplySocialEffect: true);
             skillActor.StopSkillGain();
             skillTarget.StopSkillGain();
+            FinishSocial("Fight Pet", bApplySocialEffect: true);
             FinishLinkedInteraction();
             WaitForSyncComplete();
             StandardExit(removeFromUseList: false);

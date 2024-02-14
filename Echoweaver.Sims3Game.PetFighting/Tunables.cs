@@ -7,6 +7,9 @@ namespace Echoweaver.Sims3Game.PetFighting
 	{
 
         [Tunable]
+        public static bool kPetFightingDebug = false;
+
+        [Tunable]
         public static bool kAllowPetDeath = true;
 
         [Tunable]
@@ -26,6 +29,24 @@ namespace Echoweaver.Sims3Game.PetFighting
 
         [Tunable]
         public static int kLTRBoostOfVetVisit = 20;
+
+        [Tunable]
+        public static float kMinorWoundHungerDecayMultiplier = 1.2f;
+
+        [Tunable]
+        public static float kMinorWoundEnergyDecayMultiplier = 1.2f;
+
+        [Tunable]
+        public static float kSeriousWoundHungerDecayMultiplier = 1.5f;
+            
+        [Tunable]
+        public static float kSeriousWoundEnergyDecayMultiplier = 1.5f;
+
+        [Tunable]
+        public static float kGraveWoundHungerDecayMultiplier = 2.0f;
+
+        [Tunable]
+        public static float kGraveWoundEnergyDecayMultiplier = 2.0f;
 
         public Tunables()
 		{
