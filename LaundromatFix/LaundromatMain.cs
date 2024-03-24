@@ -8,6 +8,7 @@ using Sims3.Gameplay.Actors;
 using Queries = Sims3.Gameplay.Queries;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Objects.Miscellaneous;
+using Sims3.Gameplay.Autonomy;
 
 //Template Created by Battery
 
@@ -35,7 +36,12 @@ namespace Echoweaver.Sims3.LaundromatFix
 					w.AddInteraction(EWDoLaundryAtLaundromat.Singleton, true);
 				}
 			}
-			AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, new AlarmTimerCallback(Initialize),
+            InteractionTuning oldTuning = AutonomyTuning.GetTuning(WashingMachine.DoLaundry.Singleton
+				.GetType().FullName, "Sims3.Gameplay.Objects.Appliances.WashingMachine");
+            AutonomyTuning.AddTuning(EWDoLaundryAtLaundromat.Singleton.GetType().FullName,
+				"Sims3.Gameplay.Objects.Appliances.WashingMachine", oldTuning);
+
+            AlarmManager.Global.AddAlarm(1f, TimeUnit.Minutes, new AlarmTimerCallback(Initialize),
 				"Laundromat Fix Debug Note", AlarmType.NeverPersisted, null);
 		}
 
