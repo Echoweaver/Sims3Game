@@ -15,13 +15,12 @@ using static Sims3.SimIFace.Simulator;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects;
 using Sims3.SimIFace.Enums;
+using Sims3.Store.Objects;
 
 namespace Echoweaver.Sims3.CustomCakeConnector
 {
     public class Loader
     {
-        static bool HasBeenLoaded = false;
-
         [Tunable]
         protected static bool kInstantiator = false;
 
@@ -41,67 +40,93 @@ namespace Echoweaver.Sims3.CustomCakeConnector
             if (mealEvent != null)
             {
                 Sim s = e.Actor as Sim;
-                IDish meal = e.TargetObject as IDish;
+                ServingContainer meal = e.TargetObject as ServingContainer;
                 // If the recipe burns, it's just a fail. Don't replace with the cake object
                 if (mealEvent.Quality != Quality.Horrifying && mealEvent.RecipeUsed.HarvestableName == "CakeConnector")
                 {
                     // The custom cake must have an NGMP resource connecting the recipe key
                     // to the instance ID of the swapped object.
-                    IGameObject cake = GlobalFunctions.CreateObjectOutOfWorld(mealEvent
+                    IGameObject swapped_item = GlobalFunctions.CreateObjectOutOfWorld(mealEvent
                         .RecipeUsed.Key);
-                    if (cake is ServingContainer)
+                    if (swapped_item is ServingContainer)
                     {
-                        ((ServingContainerGroup)cake).CookingProcess.Quality = mealEvent.Quality;
-                        ((ServingContainerGroup)cake).CookingProcess.SetFinalPreparer(s.SimDescription);
+                        ((ServingContainerGroup)swapped_item).CookingProcess.Quality = mealEvent.Quality;
+                        ((ServingContainerGroup)swapped_item).CookingProcess.SetFinalPreparer(s.SimDescription);
                     }
-                    else if (cake is Ingredient)
+                    else if (swapped_item is Ingredient)
                     {
-                        ((Ingredient)cake).SetQuality(mealEvent.Quality);
+                        ((Ingredient)swapped_item).SetQuality(mealEvent.Quality);
                     }
-
-                    if (cake is ServingContainer)
+                        
+                    if (swapped_item is ServingContainer)
                     {
-                        CarrySystem.PutDown(s, SurfaceType.Normal);
-                        Vector3 pos = mealEvent.TargetObject.Position;
-                        Vector3 forward = mealEvent.TargetObject.ForwardVector;
-                        ISurface sur = mealEvent.TargetObject.Parent as ISurface;
+                        if (s.Posture is SimCarryingObjectPosture)
+                        {
+                            CarrySystem.PutDown(s, SurfaceType.Normal);
+                        }
+                        Vector3 pos = meal.Position;
+                        Vector3 forward = meal.ForwardVector;
+                        ISurface sur = meal.Parent as ISurface;
                         // The cake object needs to be slotted into the same surface slot where the
-                        // completed recipe was set down. I don't expect that the else statement
-                        // will be accessed, but I thought it should do something reasonable
-                        // if the recipe data is weird.
+                        // completed recipe was set down. 
                         if (sur != null)
                         {
-                            SurfaceSlot swapSlot = sur.Surface.GetSurfaceSlotFromContainedObject(mealEvent.TargetObject);
-                            mealEvent.TargetObject.Destroy();
-                            cake.SetPosition(pos);
-                            cake.SetForward(forward);
-                            cake.AddToWorld();
-                            cake.ParentToSlot(sur, swapSlot.ContainmentSlot);
+                            SurfaceSlot swapSlot = sur.Surface.GetSurfaceSlotFromContainedObject(meal);
+                            meal.Destroy();
+                            swapped_item.SetPosition(pos);
+                            swapped_item.SetForward(forward);
+                            swapped_item.AddToWorld();
+                            swapped_item.ParentToSlot(sur, swapSlot.ContainmentSlot);
                         }
                         else
                         {
-                            mealEvent.TargetObject.Destroy();
-                            cake.SetPosition(pos);
-                            cake.SetForward(forward);
-                            cake.AddToWorld();
-                            CarrySystem.PickUpWithoutRouting(s, (ServingContainer)cake);
+                            // I don't expect that this else statement
+                            // will be accessed, but I thought it should do something reasonable
+                            // if the recipe data is weird.
+                            meal.Destroy();
+                            swapped_item.SetPosition(pos);
+                            swapped_item.SetForward(forward);
+                            swapped_item.AddToWorld();
+                            CarrySystem.PickUpWithoutRouting(s, (ServingContainer)swapped_item);
                             CarrySystem.PutDown(s, SurfaceType.Normal);
                         }
-
                     }
-                    else if (cake is InventoryItem)
+                    else if (s.Inventory.CanAdd(swapped_item))
                     {
+                        if (!(s.Posture is SimCarryingObjectPosture))
+                        {
+                            CarrySystem.PickUp(s, meal);
+                        }
                         // Just putting in the option of swapping out a recipe for something other
                         // than a cake.
                         CarrySystem.AnimateIntoSimInventory(s);
-                        mealEvent.TargetObject.Destroy();
-                        s.Inventory.TryToAdd(cake);
+                        meal.Destroy();
+
+                        // It appears this field can't be empty, so if it's unused, presumably it defaults
+                        // to 1?
+                        if (mealEvent.RecipeUsed.NumberPetFoodCreated > 1)
+                        {
+                            for (int i = 0; i < mealEvent.RecipeUsed.NumberPetFoodCreated - 1; ++i)
+                            {
+                                IGameObject cakeClone = swapped_item.Clone();
+                                if (!s.Inventory.TryToAdd(cakeClone))
+                                {
+                                    StyledNotification.Show(new StyledNotification.Format
+                                        ("CustomCakeConnector: Error creating total="
+                                        + mealEvent.RecipeUsed.NumberPetFoodCreated + " inventory items of type "
+                                        + swapped_item.GetType().ToString(),
+                                        StyledNotification.NotificationStyle.kDebugAlert));
+                                    break;
+                                }
+                            }
+                        } 
+                        s.Inventory.TryToAdd(swapped_item);
                     }
                     else
                     {
                         StyledNotification.Show(new StyledNotification.Format
                             ("CustomCakeConnector: Recipe swap object cannot be instatiated for type "
-                            + cake.GetType().ToString(),
+                            + swapped_item.GetType().ToString(),
                             StyledNotification.NotificationStyle.kDebugAlert));
                     }
                 }
