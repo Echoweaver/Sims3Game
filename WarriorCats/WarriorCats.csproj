@@ -48,6 +48,7 @@
     <Compile Include="MentorFishing.cs" />
     <Compile Include="MentorMedicine.cs" />
     <Compile Include="MentorHerbLore.cs" />
+    <Compile Include="MentorCatHunting.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">

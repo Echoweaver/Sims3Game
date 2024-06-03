@@ -97,6 +97,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         [Tunable]
         public static float kApprenticeSkillGainRate = 20f;
+
+        [Tunable]
+        [TunableComment("The max distance a pet must be from a water source to try to route to it.")]
+        public static float kMaxWaterDistance = 40f;
+        [Tunable]
+
+        [TunableComment("Description:  Max amount of time (in minutes) to play in the water")]
+        public static float kMaxPlayInWaterTime = 30f;
+
     }
 }
 

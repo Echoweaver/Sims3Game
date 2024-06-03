@@ -65,7 +65,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
         public static void OnWorldLoadFinishedHandler(object sender, System.EventArgs e)
         {
 
-            //LoadSocialData("EWWarriors_SocialData");
+            LoadSocialData("EWWarriors_SocialData");
 
             foreach (Sim pet in Queries.GetObjects<Sim>())
             {

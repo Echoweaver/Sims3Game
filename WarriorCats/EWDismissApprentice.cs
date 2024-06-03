@@ -29,7 +29,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             {
                 // TODO: Localize!!
                 return new string[1] {
-                    "Apprentice"
+                    "Apprentice..."
                 };
             }
         }

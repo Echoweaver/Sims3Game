@@ -35,15 +35,16 @@ namespace Echoweaver.Sims3Game.WarriorCats
                     }
                     return false;
                 }
-                if (!CanBeApprenticed(target))
-                {
-                    if (kPetWarriorDebug)
-                    {
-                        // TODO: Localize!
-                        greyedOutTooltipCallback = CreateTooltipCallback("Target is not available as an apprentice");
-                    }
-                    return false;
-                }
+                //if (!CanBeApprenticed(target))
+                //{
+                //    if (kPetWarriorDebug)
+                //    {
+                //        // TODO: Localize!
+                //        greyedOutTooltipCallback = CreateTooltipCallback(target.GetLocalizedName()
+                //            + " is not available as an apprentice");
+                //    }
+                //    return false;
+                //}
                 return true;
             }
 

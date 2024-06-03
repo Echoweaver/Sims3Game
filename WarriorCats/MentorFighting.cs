@@ -23,6 +23,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
         {
             public MentorFightingDefinition() : base()
             {
+                ActionKey = "Mentor Fighting";
             }
 
             public override InteractionInstance CreateInstance(ref InteractionInstanceParameters parameters)
@@ -32,19 +33,14 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 chaseBaseClass.IsMeanChase = false;
                 return chaseBaseClass;
             }
+
             public override string[] GetPath(bool isFemale)
             {
                 // TODO: Localize!!
-                return new string[1] {
-                            "Apprentice"
-                        };
-            }
-
-            public override string GetInteractionName(Sim s, Sim target, InteractionObjectPair interaction)
-            {
-                //return LocalizeStr("?");
-                // TODO: Localize!
-                return "Mentor Fighting";
+                return new string[1]
+                {
+                    "Apprentice..."
+                };
             }
 
             public override bool Test(Sim actor, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -53,11 +49,24 @@ namespace Echoweaver.Sims3Game.WarriorCats
                     return false;
                 if (!actor.SkillManager.HasElement(FightingSkillName))
                     return false;
+                if (target.SkillManager.HasElement(FightingSkillName))
+                {
+                    // Can only mentor up to one skill below the teacher
+                    if ((target.SkillManager.GetElement(FightingSkillName).SkillLevel + 1) >=
+                        actor.SkillManager.GetElement(FightingSkillName).SkillLevel)
+                    {
+                        // TODO: Localize!
+                        greyedOutTooltipCallback = CreateTooltipCallback("This apprentice has learned everything you can teach right now");
+                        return false;
+                    }
+                }
                 return true;
             }
         }
 
         public static new InteractionDefinition Singleton = new MentorFightingDefinition();
+
+        public override string SocialName => "Mentor Fighting";
 
         Skill skillMentor;
         Skill skillStudent;
@@ -131,7 +140,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
             EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Actor, Target, "Chase Play", wasRecipient: false, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
             EventTracker.SendEvent(new SocialEvent(EventTypeId.kSocialInteraction, Target, Actor, "Chase Play", wasRecipient: true, wasAccepted: true, actorWonFight: false, CommodityTypes.Undefined));
             EndCommodityUpdates(succeeded: true);
-            if (!Actor.HasExitReason(ExitReason.Default) && !Target.HasExitReason(ExitReason.Default) && base.NumLoops > 0)
+            if (!Actor.HasExitReason(ExitReason.Default) && !Target.HasExitReason(ExitReason.Default) && base.NumLoops > 0
+                && skillMentor.SkillLevel > (skillStudent.SkillLevel + 1))
             {
                 Sim sim = Actor;
                 Sim target = Target;

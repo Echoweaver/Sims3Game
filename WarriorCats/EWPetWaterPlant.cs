@@ -16,6 +16,7 @@ using Sims3.UI;
 using System.Collections.Generic;
 using static Sims3.Gameplay.Core.Terrain;
 using static Sims3.Gameplay.Objects.Gardening.Plant;
+using static Echoweaver.Sims3Game.WarriorCats.Config;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -40,7 +41,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			public override string GetInteractionName(Sim a, Plant target, InteractionObjectPair interaction)
 			{
-				return "Localize - Water";
+				// TODO: Localize!
+				return "Water Plant";
 			}
 		}
 
@@ -61,8 +63,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			}
 			TimedStage timedStage = new TimedStage(GetInteractionName(), num, showCompletionTime: false, selectable: true, visibleProgress: true);
 			base.Stages = new List<Stage>(new Stage[1] {
-			timedStage
-		});
+				timedStage
+			});
 		}
 
 		public override void Cleanup()
@@ -82,6 +84,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			IPond nearestWater = GetNearestWater(Actor.Position, float.MaxValue);
 			if (nearestWater == null)
             {
+				DebugNote("Water Plant: No water source found.");
 				return false;
             }
 			ulong notUsed = 10u; // Not used by the method. I don't know what it was supposed to be.
@@ -209,6 +212,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			IPond result = null;
 			float nearest_distance = max_distance;
 			IPond[] ponds = Sims3.Gameplay.Queries.GetObjects<IPond>();
+			DebugNote("GetNearestWater: " + ponds.Length + " water sources found");
 			foreach (IPond DHMOLocation in ponds)
 			{
 
@@ -218,6 +222,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					result = DHMOLocation;
 					nearest_distance = pond_distance;
 				}
+			}
+			if (result != null)
+			{
+				DebugNote("Nearest water source distance: " + nearest_distance);
 			}
 			return result;
 		}
