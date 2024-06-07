@@ -51,6 +51,9 @@ using Sims3.UI.Hud;
  * 7 - Childbirth: RASPBERRY, WONDERPETAL (85) 
  * 8 - Wounds, remove: Same as above (95)
  * 10 - Extend Life: LIFE FRUIT (100)
+ * 
+ * Possible addition: Make bandages from spiders to allow others to bandage wounds, 
+ * make mouse/rodent bile from rodents to allow others to treat fleas. Note: bile is stored in moss
 */
 
 namespace Echoweaver.Sims3Game.WarriorCats

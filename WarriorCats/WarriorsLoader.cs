@@ -144,6 +144,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             p.AddInteraction(MentorFighting.Singleton, true);
             p.AddInteraction(MentorHerbLore.Singleton, true);
             p.AddInteraction(MentorMedicine.Singleton, true);
+            p.AddInteraction(MentorCatHunting.Singleton, true);
         }
 
         public static void AddPlantableInventoryInteractions(Ingredient i)
