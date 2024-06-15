@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomCakeConnector", "Cust
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaundromatFix", "LaundromatFix\LaundromatFix.csproj", "{3EC91648-7043-4213-B635-AEA0ACF3953A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InGameOptions", "InGameOptions\InGameOptions.csproj", "{882AB39A-31BD-44CB-A8F5-9813EBFA307D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreGroupTalk", "MoreGroupTalk\MoreGroupTalk.csproj", "{3DAD6461-9BDE-4C55-A94B-7E85B0745D46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,5 +101,13 @@ Global
 		{3EC91648-7043-4213-B635-AEA0ACF3953A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3EC91648-7043-4213-B635-AEA0ACF3953A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3EC91648-7043-4213-B635-AEA0ACF3953A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{882AB39A-31BD-44CB-A8F5-9813EBFA307D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{882AB39A-31BD-44CB-A8F5-9813EBFA307D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{882AB39A-31BD-44CB-A8F5-9813EBFA307D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{882AB39A-31BD-44CB-A8F5-9813EBFA307D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DAD6461-9BDE-4C55-A94B-7E85B0745D46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DAD6461-9BDE-4C55-A94B-7E85B0745D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DAD6461-9BDE-4C55-A94B-7E85B0745D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DAD6461-9BDE-4C55-A94B-7E85B0745D46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.Store.Objects;
 using Sims3.UI;
+using Sims3.UI.CAS;
+using Sims3.UI.Hud;
+using static Sims3.UI.StringInputDialog;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -20,8 +26,11 @@ namespace Echoweaver.Sims3Game.WarriorCats
         [Persistable]
         public static Dictionary<ulong, bool> Unapprenticed = new Dictionary<ulong, bool>();
 
-		// Custom skills from other mods
-		public const SkillNames FightingSkillName = (SkillNames)0x20F47569;
+        [Persistable]
+        public static Dictionary<ulong, bool> Graduated = new Dictionary<ulong, bool>();
+
+        // Custom skills from other mods
+        public const SkillNames FightingSkillName = (SkillNames)0x20F47569;
 		public const CommodityKind FightingCommodityKind = (CommodityKind)0x262891D3;
 
 		public const SkillNames FishingSkillName = (SkillNames)0xDE46D7FA;
@@ -33,13 +42,22 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				return false;
 			if (s.SimDescription.ChildOrBelow)
 				return false;
+			// If you are a former apprentice who graduted, you may take an apprentice
+			if (Graduated.ContainsKey(s.SimDescription.SimDescriptionId))
+				return true;
 			// Can't take an apprentice if you ARE an apprentice
 			if (Apprentices.ContainsKey(s.SimDescription.SimDescriptionId))
 				return false;
-			// Can't take an apprentice if you are looking to become an apprentice
+			// Can't take an apprentice if you are in the pool of pets needing apprentices
 			if (Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId))
 				return false;
-			return true;
+			// If you are a new pet or an apprentice who has graduated, you won't be in
+			// either the Apprentice or Unapprenticed pool
+            if (!Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId)
+                && !Apprentices.ContainsKey(s.SimDescription.SimDescriptionId) &&
+				s.SimDescription.AdultOrAbove)
+                return true;
+            return true;
 		}
 
 		public static bool HasApprentice(Sim master, Sim apprentice)
@@ -59,9 +77,23 @@ namespace Echoweaver.Sims3Game.WarriorCats
 		{
             if (!(s.IsCat || s.IsADogSpecies))
                 return false;
-            // TODO: Properly add children to the Unapprenticed dict
-            return Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId)
-				|| (s.SimDescription.ChildOrBelow && !Apprentices.ContainsKey(s.SimDescription.SimDescriptionId));
+			// Can't be an apprentice if you are already an apprentce
+            if (Apprentices.ContainsKey(s.SimDescription.SimDescriptionId))
+				return false;
+			// Can't be an apprentice again if you graduated from apprenticeship
+			if (Graduated.ContainsKey(s.SimDescription.SimDescriptionId))
+				return false;
+			if (s.SimDescription.Elder)  // Elder sims can't be apprentices
+                return false;
+            if (Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId))
+				return true;
+			if (s.SimDescription.ChildOrBelow && !Apprentices.ContainsKey(s.SimDescription.SimDescriptionId))
+				return true;
+			// Default state of a cat newly added to the household
+			if (!Apprentices.ContainsKey(s.SimDescription.SimDescriptionId)
+				&& !Unapprenticed.ContainsKey(s.SimDescription.SimDescriptionId))
+				return true;
+			return false;
 		}
 
 		public static string LocalizeStr(string name, params object[] parameters)
@@ -75,11 +107,56 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Apprentices.Add(apprentice.SimDescription.SimDescriptionId, master.SimDescription.SimDescriptionId);
 		}
 
-		public static void RemoveApprentice(Sim apprentice)
+		public static void RejectApprentice(Sim apprentice)
 		{
 			Apprentices.Remove(apprentice.SimDescription.SimDescriptionId);
 			Unapprenticed.Add(apprentice.SimDescription.SimDescriptionId, true);
 		}
+
+		public static void GraduateApprentice(Sim apprentice)
+		{
+			Apprentices.Remove(apprentice.SimDescription.SimDescriptionId);
+			Unapprenticed.Remove(apprentice.SimDescription.SimDescriptionId);
+			Graduated.Add(apprentice.SimDescription.SimDescriptionId, true);
+		}
+
+		public static void ClearApprenticeState(Sim s)
+		{
+			// Debug only option to fix data that might be messed up
+			Apprentices.Remove(s.SimDescription.SimDescriptionId);
+			Unapprenticed.Remove(s.SimDescription.SimDescriptionId);
+            Graduated.Remove(s.SimDescription.SimDescriptionId);
+        }
+
+        public static bool RenameSim(Sim s, string promptText)
+		{
+            if (!UIUtils.IsOkayToStartModalDialog())
+            {
+                return false;
+            }
+            string changeFnameText = Localization.LocalizeString(s.IsFemale,
+				"Gameplay/Objects/RabbitHoles/CityHall:ChangeNameFirstName", new object[1] { s.SimDescription });
+            string changeLnameText = Localization.LocalizeString(s.IsFemale,
+				"Gameplay/Objects/RabbitHoles/CityHall:ChangeNameLastName", new object[1] { s.SimDescription });
+            do
+            {
+                s.SimDescription.FirstName = StringInputDialog.Show(promptText, changeFnameText,
+					s.FirstName, CASBasics.GetMaxNameLength(), Validation.SimNameText);
+            } while (string.IsNullOrEmpty(s.FirstName));
+            do
+            {
+                s.SimDescription.LastName = StringInputDialog.Show(promptText, changeLnameText,
+					s.LastName, CASBasics.GetMaxNameLength(), Validation.SimNameText);
+            } while (string.IsNullOrEmpty(s.LastName));
+            Household.AddDirtyNameSimID(s.SimDescription.SimDescriptionId);
+            IHudModel hudModel = Sims3.Gameplay.UI.Responder.Instance.HudModel;
+            HudModel val = (HudModel)(hudModel is HudModel ? hudModel : null);
+            if (s.SimDescription.CreatedSim != null)
+            {
+                val.NotifyNameChanged(s.SimDescription.CreatedSim.ObjectId);
+            }
+            return true;
+        }
 
 		// Tunings will go here
 

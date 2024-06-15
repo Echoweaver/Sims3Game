@@ -140,11 +140,13 @@ namespace Echoweaver.Sims3Game.WarriorCats
         {
             p.AddInteraction(EWEnlistApprentice.Singleton, true);
             p.AddInteraction(EWDismissApprentice.Singleton, true);
+            p.AddInteraction(EWGradateApprentice.Singleton, true);
             p.AddInteraction(MentorFishing.Singleton, true);
             p.AddInteraction(MentorFighting.Singleton, true);
             p.AddInteraction(MentorHerbLore.Singleton, true);
             p.AddInteraction(MentorMedicine.Singleton, true);
             p.AddInteraction(MentorCatHunting.Singleton, true);
+            p.AddInteraction(EWDebugClearApprentice.Singleton, true);
         }
 
         public static void AddPlantableInventoryInteractions(Ingredient i)

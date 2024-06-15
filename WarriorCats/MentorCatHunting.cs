@@ -87,7 +87,6 @@ namespace Echoweaver.Sims3Game.WarriorCats
             }
 
             public static InteractionDefinition Singleton = new Definition();
-            public CatHuntingJig mJig;
 
             public override bool DemonstrateAnim()
             {

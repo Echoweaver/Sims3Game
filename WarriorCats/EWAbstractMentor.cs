@@ -15,10 +15,10 @@ namespace Echoweaver.Sims3Game.WarriorCats
 {
     public abstract class EWAbstractMentor : Interaction<Sim, Sim>
     {
-        public static int remainingRepeats = 5;
         public static SkillNames skillName;
         public static Skill skillMentor;
         public static Skill skillStudent;
+        public static int remainingRepeats = 5;
         public static string[] speechBallons;
 
         public static InteractionDefinition DemonstrateDefinition;
@@ -174,12 +174,15 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             public override bool Run()
             {
-                DebugNote("Begin Watch ");
+                DebugNote("Begin Watch " + skillStudent.Name);
                 skillStudent.StartSkillGain(kApprenticeSkillGainRate);
                 if (!Actor.RoutingComponent.RouteToDynamicObjectRadius(Target, 0, kRouteDistance, null))
                 {
                     DebugNote("Watch " + skillStudent.Name + ": RouteToDynamicObjectRadius failed");
                     return false;
+                } else
+                {
+                    Actor.RouteTurnToFace(Target.Position);
                 }
                 StandardEntry();
                 BeginCommodityUpdates();
@@ -192,6 +195,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
             public void LoopFunc(StateMachineClient smc, LoopData ld)
             {
+
                 ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData(Target.GetThumbnailKey());
                 balloonData.BalloonType = ThoughtBalloonTypes.kThoughtBalloon;
                 balloonData.mPriority = ThoughtBalloonPriority.Low;

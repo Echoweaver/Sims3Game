@@ -35,16 +35,16 @@ namespace Echoweaver.Sims3Game.WarriorCats
                     }
                     return false;
                 }
-                //if (!CanBeApprenticed(target))
-                //{
-                //    if (kPetWarriorDebug)
-                //    {
-                //        // TODO: Localize!
-                //        greyedOutTooltipCallback = CreateTooltipCallback(target.GetLocalizedName()
-                //            + " is not available as an apprentice");
-                //    }
-                //    return false;
-                //}
+                if (!CanBeApprenticed(target))
+                {
+                    if (kPetWarriorDebug)
+                    {
+                        // TODO: Localize!
+                        greyedOutTooltipCallback = CreateTooltipCallback(target.GetLocalizedName()
+                            + " is not available as an apprentice");
+                    }
+                    return false;
+                }
                 return true;
             }
 
@@ -90,6 +90,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             EndCommodityUpdates(true);
             FinishLinkedInteraction();
             WaitForSyncComplete();
+            RenameSim(Target, "This sim is now an apprentice! Change their name if applicable:");
 
             SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Sniff",
                 new string[0], null, initialGreet: false);

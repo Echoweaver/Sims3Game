@@ -101,8 +101,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
             skillName = FishingSkillName;
             remainingRepeats = 5;
             DemonstrateDefinition = new DemonstrateFishing.Definition();
-            speechBallons = new string[] { "balloon_pond", "balloon_jellyfish",
-                    "balloon_question", "balloon_fish" };
+            speechBallons = new string[] { "balloon_pond", "balloon_jellyfish", "ep10_balloon_fish",
+                "balloon_question", "balloon_fish", "ep5_balloon_giantsquid", "ep5_balloon_shark",
+                "ep3_balloon_snail", "ep3_balloon_waterfall"};
 
             return base.Run();
         }

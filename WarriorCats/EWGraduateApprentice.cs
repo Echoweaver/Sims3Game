@@ -5,15 +5,14 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-    public class EWDismissApprentice : SocialInteraction
+    public class EWGradateApprentice : SocialInteraction
     {
-        public class Definition : InteractionDefinition<Sim, Sim, EWDismissApprentice>
+        public class Definition : InteractionDefinition<Sim, Sim, EWGradateApprentice>
         {
             public override bool Test(Sim a, Sim target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
             {
@@ -24,7 +23,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
             {
                 //return LocalizeStr("?");
                 // TODO: Localize!
-                return "Dismiss Apprentice";
+                return "Graduate Apprentice";
             }
 
             public override string[] GetPath(bool isFemale)
@@ -41,14 +40,22 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public override bool Run()
         {
-            RemoveApprentice(Target);
-            Actor.LookAtManager.SetInteractionLookAt(Target, Sim.LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
-            Target.LookAtManager.SetInteractionLookAt(Actor, Sim.LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
+
+            if (!BeginSocialInteraction(new SocialInteractionB.Definition(null, "Become Apprentice",
+                allowCarryChild: false), pairedSocial: true, doCallOver: true))
+            {
+                return false;
+            }
+
+            GraduateApprentice(Target);
+            Actor.LookAtManager.SetInteractionLookAt(Target, Sim.LookAtPriorityForSocializingSim,
+                (LookAtJointFilter)3);
+            Target.LookAtManager.SetInteractionLookAt(Actor, Sim.LookAtPriorityForSocializingSim,
+                (LookAtJointFilter)3);
             EnterStateMachine("Socialize", "Enter", "x", "y");
             BeginCommodityUpdates();
             ThoughtBalloonManager.BalloonData balloonData = new ThoughtBalloonManager.BalloonData("balloon_trait_brave");
             balloonData.BalloonType = ThoughtBalloonTypes.kSpeechBalloon;
-            balloonData.LowAxis = ThoughtBalloonAxis.kDislike;
             balloonData.Duration = ThoughtBalloonDuration.Short;
             Actor.ThoughtBalloonManager.ShowBalloon(balloonData);
             Target.ThoughtBalloonManager.ShowBalloon(balloonData);
@@ -65,10 +72,9 @@ namespace Echoweaver.Sims3Game.WarriorCats
             EndCommodityUpdates(true);
             FinishLinkedInteraction();
             WaitForSyncComplete();
-            // TODO: Localize!
-            RenameSim(Target, "This sim has been rejected as an apprentice. Change their name if applicable:");
+            RenameSim(Target, "Congratulations! This sim has graduated from apprenticeship. Change their name if applicable:");
 
-            SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Cat Hiss",
+            SocialInteractionA.Definition definition2 = new SocialInteractionA.Definition("Sniff",
                 new string[0], null, initialGreet: false);
             InteractionInstance acceptInteraction = definition2.CreateInstance(Target, Actor,
                 new InteractionPriority(InteractionPriorityLevel.UserDirected), false,
@@ -79,5 +85,5 @@ namespace Echoweaver.Sims3Game.WarriorCats
             return true;
         }
     }
-
 }
+

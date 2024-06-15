@@ -50,6 +50,9 @@
     <Compile Include="MentorHerbLore.cs" />
     <Compile Include="MentorCatHunting.cs" />
     <Compile Include="EWAbstractMentor.cs" />
+    <Compile Include="Fnorder.cs" />
+    <Compile Include="EWGraduateApprentice.cs" />
+    <Compile Include="EWDebugClearApprenticeState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
