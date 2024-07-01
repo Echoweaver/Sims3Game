@@ -1,19 +1,16 @@
-﻿using Sims3.Gameplay;
+﻿using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Objects.Miscellaneous;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using System.Collections.Generic;
 using static Sims3.Gameplay.Objects.Gardening.Plant;
-using static Sims3.SimIFace.Simulator;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
-	public class EWPetDisposePlant : Interaction<Sim, Plant>, IDisposePlantInteraction
+    public class EWPetDisposePlant : Interaction<Sim, Plant>, IDisposePlantInteraction
 	{
 		public class Definition : InteractionDefinition<Sim, Plant, EWPetDisposePlant>
 		{

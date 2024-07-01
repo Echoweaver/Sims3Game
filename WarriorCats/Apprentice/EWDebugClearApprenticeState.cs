@@ -7,7 +7,7 @@ using Sims3.Gameplay.Pools;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class EWDebugClearApprentice : ImmediateInteraction<Sim, Sim>
     {

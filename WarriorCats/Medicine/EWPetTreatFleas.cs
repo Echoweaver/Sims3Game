@@ -1,4 +1,5 @@
-﻿using Sims3.Gameplay.Actors;
+﻿using System.Collections.Generic;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
@@ -7,7 +8,6 @@ using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using System.Collections.Generic;
 using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
 using static Sims3.Gameplay.Skills.CatHuntingSkill;
 using static Sims3.SimIFace.Route;
@@ -15,7 +15,7 @@ using static Sims3.UI.ObjectPicker;
 using Queries = Sims3.Gameplay.Queries;
 
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
     public class EWPetTreatFleas : Interaction<Sim, ICatPrey>
 	{

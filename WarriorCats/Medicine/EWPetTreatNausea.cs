@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Echoweaver.Sims3Game.WarriorCats.HerbLore;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -12,9 +13,9 @@ using static Sims3.SimIFace.Route;
 using static Sims3.UI.ObjectPicker;
 using Queries = Sims3.Gameplay.Queries;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
-	public class EWPetTreatNausea : Interaction<Sim, GameObject>
+    public class EWPetTreatNausea : Interaction<Sim, GameObject>
 	{
 		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatNausea>
 		{

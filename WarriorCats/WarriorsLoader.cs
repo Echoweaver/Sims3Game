@@ -1,21 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Xml;
+using Echoweaver.Sims3Game.WarriorCats.Apprentice;
+using Echoweaver.Sims3Game.WarriorCats.HerbLore;
+using Echoweaver.Sims3Game.WarriorCats.Medicine;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.ObjectComponents;
+using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Gardening;
+using Sims3.Gameplay.Skills;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Queries = Sims3.Gameplay.Queries;
-using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Objects.Fishing;
-using Sims3.Gameplay.Objects.FoodObjects;
-using Sims3.Gameplay.ObjectComponents;
-using Sims3.UI;
-using Sims3.Gameplay.Socializing;
-using System.Collections.Generic;
-using System.Xml;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
@@ -85,8 +86,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
                 PlantableComponent plantable = i.Plantable;
                 if (plantable != null)
                 {
-                            i.AddInteraction(EWPetPickUpPlantable.Singleton, true);
-                            AddPlantableInventoryInteractions(i);
+                    i.AddInteraction(EWPetPickUpPlantable.Singleton, true);
+                    AddPlantableInventoryInteractions(i);
                 }
             }
 

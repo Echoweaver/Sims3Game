@@ -1,7 +1,7 @@
-﻿using Sims3.Gameplay;
+﻿using System.Collections.Generic;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
@@ -10,17 +10,14 @@ using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.ObjectComponents;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Objects.Gardening;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
-using System.Collections.Generic;
 using static Sims3.SimIFace.World;
 using PlantableObjectData = Sims3.Gameplay.ObjectComponents.PlantObject.PlantableObjectData;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
-	public class EWPetPlantSeed : ImmediateInteraction<Sim, GameObject>
+    public class EWPetPlantSeed : ImmediateInteraction<Sim, GameObject>
 	{
 		public class Definition : InteractionDefinition<Sim, GameObject, EWPetPlantSeed>
 		{

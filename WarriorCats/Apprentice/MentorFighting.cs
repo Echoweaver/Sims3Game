@@ -1,21 +1,15 @@
-﻿using System;
-using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Autonomy;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.PetSystems;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
 using static Sims3.Gameplay.Actors.Sim;
-using static Sims3.Gameplay.Actors.Sim.ChasePlay;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class MentorFighting : ChasePlay
     {

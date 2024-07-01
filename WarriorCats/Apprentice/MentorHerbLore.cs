@@ -1,25 +1,18 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using Echoweaver.Sims3Game.WarriorCats.HerbLore;
 using Sims3.Gameplay.Abstracts;
-using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Interfaces;
-using Sims3.Gameplay.Skills;
-using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.Objects.Gardening;
+using Sims3.Gameplay.Objects.Pets;
+using Sims3.Gameplay.ThoughtBalloons;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
-using static Sims3.Gameplay.Core.Terrain;
-using Sims3.Gameplay.Objects.Gardening;
 using static Sims3.UI.StyledNotification;
-using Sims3.Gameplay.Core;
-using Sims3.Gameplay.ThoughtBalloons;
-using static Sims3.Gameplay.ThoughtBalloons.ThoughtBalloonManager;
-using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.EventSystem;
-using Sims3.Gameplay.Objects.Pets;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class MentorHerbLore : EWAbstractMentor
     {

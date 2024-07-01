@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Fishing;
-using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -16,7 +14,7 @@ using Queries = Sims3.Gameplay.Queries;
 
 namespace Echoweaver.Sims3Game.WarriorCats
 {
-	public class EWCarryFish : Interaction<Sim, GameObject>
+    public class EWCarryFish : Interaction<Sim, GameObject>
 	{
 		public class Definition : InteractionDefinition<Sim, GameObject, EWCarryFish>
 		{
@@ -115,7 +113,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 			Fish fish = Target as Fish;
 			//fish.UpdateVisualState(Sims3.Gameplay.ObjectComponents.CatHuntingComponent.CatHuntingModelState.InInventory);
-			if (!EWPetPickUpPlantable.PickUpFromSimInventory(Actor, Target, fish.MedatorName, true))
+			if (!HerbLore.EWPetPickUpPlantable.PickUpFromSimInventory(Actor, Target, fish.MedatorName, true))
 				return false;
 
 			if (mSimToPresent != null && !mSimToPresent.HasBeenDestroyed)
@@ -153,7 +151,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 				waitInstance.waitComplete = true;
 			}
 
-			EWPetPickUpPlantable.PutDownOnFloor(Actor);
+			HerbLore.EWPetPickUpPlantable.PutDownOnFloor(Actor);
 			if (Actor.HasExitReason())
 			{
 				return false;

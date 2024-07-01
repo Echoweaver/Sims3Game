@@ -1,13 +1,14 @@
-﻿using Sims3.Gameplay.Abstracts;
+﻿using Echoweaver.Sims3Game.WarriorCats.HerbLore;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Interactions;
 using Sims3.SimIFace;
 using static Sims3.SimIFace.Route;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
-	public abstract class EWAbstractPetTreatPlantable : Interaction<Sim, GameObject>
+    public abstract class EWAbstractPetTreatPlantable : Interaction<Sim, GameObject>
 	{
 		[TunableComment("The distance the cat should get to the Sim before dropping the object on the ground.")]
 		[Tunable]

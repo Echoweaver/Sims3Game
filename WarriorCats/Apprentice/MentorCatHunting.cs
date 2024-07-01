@@ -14,7 +14,7 @@ using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
 using static Sims3.Gameplay.Objects.Pets.BoxStall;
 using static Sims3.SimIFace.Route;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class MentorCatHunting : EWAbstractMentor
     {

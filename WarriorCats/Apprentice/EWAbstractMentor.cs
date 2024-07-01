@@ -1,6 +1,4 @@
-﻿using System;
-using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
@@ -11,7 +9,7 @@ using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
 using static Sims3.UI.StyledNotification;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public abstract class EWAbstractMentor : Interaction<Sim, Sim>
     {

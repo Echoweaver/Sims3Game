@@ -1,17 +1,9 @@
-﻿using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.Actors;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
-using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
-using Sims3.Gameplay.Objects.FoodObjects;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
 using Sims3.UI.Controller;
 using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
 using static Sims3.UI.StyledNotification;
@@ -20,9 +12,9 @@ using static Sims3.UI.StyledNotification;
 // This is not intended to be a user interaction. This is for pets treated by a medical cat to eat their
 // herb treatment.
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
-	public class EWPetBeTreated : Interaction<Sim, IGameObject>
+    public class EWPetBeTreated : Interaction<Sim, IGameObject>
 	{
 		public class Definition : InteractionDefinition<Sim, IGameObject, EWPetBeTreated>
 		{

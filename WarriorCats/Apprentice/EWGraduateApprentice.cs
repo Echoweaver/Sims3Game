@@ -8,7 +8,7 @@ using Sims3.Gameplay.ThoughtBalloons;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class EWGradateApprentice : SocialInteraction
     {

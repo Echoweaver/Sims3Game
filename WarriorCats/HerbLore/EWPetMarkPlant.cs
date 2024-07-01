@@ -5,7 +5,7 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.SimIFace;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
     public class EWPetMarkPlant : Plant.ViewPlant
     {

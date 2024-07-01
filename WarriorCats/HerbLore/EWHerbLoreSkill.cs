@@ -8,12 +8,11 @@ using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 using Sims3.UI.Hud;
 using static Sims3.Gameplay.Skills.Gardening;
 using static Sims3.UI.StyledNotification;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
     /*
      * Herb Lore Skill Levels:

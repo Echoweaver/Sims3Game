@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
@@ -11,15 +10,15 @@ using Sims3.SimIFace;
 using static Sims3.UI.ObjectPicker;
 using Queries = Sims3.Gameplay.Queries;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
-	public class EWPetTreatPneumonia : EWAbstractPetTreatPlantable
+    public class EWPetTreatGermy : EWAbstractPetTreatPlantable
 	{
-		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatPneumonia>
+		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatGermy>
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				return "Localize - Treat Pneumonia" + Localization.Ellipsis;
+				return "Localize - Treat Germy" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
@@ -36,14 +35,14 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					return false;
 				}
 				// TODO: Do I want to use non-herb stuff?
-				if (ingredient.IngredientKey != "Peppermint")
+				if (ingredient.IngredientKey != "Gensing")
 				{
 					return false;
 				}
 				// TODO: Localize
 				if (GetTreatableSims(a, target.InInventory ? a.LotCurrent : target.LotCurrent) == null)
 				{
-					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with pneumonia");
+					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with germy");
 					return false;
 				}
 				return true;
@@ -69,7 +68,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasElement(Loader.buffNamePneumoniaPet))
+					if (s != actor && s.BuffManager.HasElement(Loader.buffNameGermyPet))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -79,7 +78,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasElement(Loader.buffNamePneumoniaPet)
+				if (sim != actor && sim.BuffManager.HasElement(Loader.buffNameGermyPet)
 					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
@@ -90,7 +89,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNamePneumoniaPet);
+			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameGermyPet);
 			if (badBuff == null)
 			{
 				return false;

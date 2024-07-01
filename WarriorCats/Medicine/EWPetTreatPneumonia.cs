@@ -1,33 +1,30 @@
 ﻿using System.Collections.Generic;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.FoodObjects;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using static Sims3.SimIFace.Route;
 using static Sims3.UI.ObjectPicker;
 using Queries = Sims3.Gameplay.Queries;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
-	public class EWPetTreatWound : EWAbstractPetTreatPlantable
+    public class EWPetTreatPneumonia : EWAbstractPetTreatPlantable
 	{
-		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatWound>
+		public class Definition : InteractionDefinition<Sim, GameObject, EWPetTreatPneumonia>
 		{
 			public override string GetInteractionName(Sim actor, GameObject target, InteractionObjectPair iop)
 			{
-				// Localize!
-				return "Localize - Treat Wound" + Localization.Ellipsis;
+				return "Localize - Treat Pneumonia" + Localization.Ellipsis;
 			}
 
 			public override bool Test(Sim a, GameObject target, bool isAutonomous,
 				ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
-				if (a.SkillManager.GetSkillLevel(EWMedicineCatSkill.SkillNameID) < 3)
+				if (a.SkillManager.GetSkillLevel(EWMedicineCatSkill.SkillNameID) < 4)
 				{
 					return false;
 				}
@@ -38,15 +35,14 @@ namespace Echoweaver.Sims3Game.WarriorCats
 					return false;
 				}
 				// TODO: Do I want to use non-herb stuff?
-				if (ingredient.IngredientKey != "Greenleaf" && ingredient.IngredientKey != "Garlic")
+				if (ingredient.IngredientKey != "Peppermint")
 				{
 					return false;
 				}
-
 				// TODO: Localize
 				if (GetTreatableSims(a, target.InInventory ? a.LotCurrent : target.LotCurrent) == null)
 				{
-					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with wounds");
+					greyedOutTooltipCallback = CreateTooltipCallback("Localize - No sims with pneumonia");
 					return false;
 				}
 				return true;
@@ -72,7 +68,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				foreach (Sim s in lot.GetAllActors())
 				{
-					if (s != actor && s.BuffManager.HasAnyElement(Loader.woundBuffList))
+					if (s != actor && s.BuffManager.HasElement(Loader.buffNamePneumoniaPet))
 					{
 						Lazy.Add(ref list, s);
 					}
@@ -82,8 +78,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			Sim[] objects = Queries.GetObjects<Sim>(actor.Position, kRadiusForValidSims);
 			foreach (Sim sim in objects)
 			{
-				if (sim != actor && sim.BuffManager.HasAnyElement(Loader.woundBuffList)
-                    && !Lazy.Contains(list, sim))
+				if (sim != actor && sim.BuffManager.HasElement(Loader.buffNamePneumoniaPet)
+					&& !Lazy.Contains(list, sim))
 				{
 					Lazy.Add(ref list, sim);
 				}
@@ -93,15 +89,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
 		public override bool isSuccessfulTreatment(Sim simToPresentTo)
 		{
-			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameGraveWound);
-			if (badBuff == null)
-			{
-				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameSeriousWound);
-			}
-			if (badBuff == null)
-			{
-				badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNameMinorWound);
-			}
+			badBuff = simToPresentTo.BuffManager.GetElement(Loader.buffNamePneumoniaPet);
 			if (badBuff == null)
 			{
 				return false;
@@ -111,31 +99,8 @@ namespace Echoweaver.Sims3Game.WarriorCats
 			{
 				return false;
 			}
-			bool success = skill.TreatSim(simToPresentTo, badBuff, Target.GetLocalizedName());
-			if (success && badBuff.BuffGuid != (ulong)Loader.buffNameMinorWound)
-			{
-                if (skill.SkillLevel >= 8)
-                {
-                    // Skill levels 8 and above have a chance of completely removing the buff
-                    if (RandomUtil.RandomChance(6.25f * skill.SkillLevel))
-                    {
-                        return true;
-                    }
-                }
-				if (badBuff.BuffGuid == (ulong)Loader.buffNameGraveWound)
-				{
-                    // Add a wound a level lower. The original will be removed with treat.
-                    simToPresentTo.BuffManager.AddElement(Loader.buffNameSeriousWound, badBuff.TimeoutCount,
-                        badBuff.BuffOrigin);
-                } else
-				{
-                    simToPresentTo.BuffManager.AddElement(Loader.buffNameMinorWound, badBuff.TimeoutCount,
-                        badBuff.BuffOrigin);
-                }
-            }
-			return success;
+			return skill.TreatSim(simToPresentTo, badBuff, Target.GetLocalizedName());
 		}
 
 	}
 }
-

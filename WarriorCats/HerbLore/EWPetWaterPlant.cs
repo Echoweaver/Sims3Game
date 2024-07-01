@@ -1,4 +1,5 @@
-﻿using Sims3.Gameplay;
+﻿using System.Collections.Generic;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
@@ -8,20 +9,17 @@ using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Pools;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.SimIFace.Enums;
-using Sims3.UI;
-using System.Collections.Generic;
+using static Echoweaver.Sims3Game.WarriorCats.Config;
 using static Sims3.Gameplay.Core.Terrain;
 using static Sims3.Gameplay.Objects.Gardening.Plant;
-using static Echoweaver.Sims3Game.WarriorCats.Config;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
 
-	public class EWPetWaterPlant : ChainableGardeningInteraction<Plant>
+    public class EWPetWaterPlant : ChainableGardeningInteraction<Plant>
 	{
 		public class Definition : InteractionDefinition<Sim, Plant, EWPetWaterPlant>
 		{

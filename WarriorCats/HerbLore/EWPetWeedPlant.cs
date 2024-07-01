@@ -1,17 +1,15 @@
-﻿using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
+﻿using System.Collections.Generic;
+using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Gardening;
-using Sims3.Gameplay.Skills;
 using Sims3.SimIFace;
-using System.Collections.Generic;
 using static Sims3.Gameplay.Objects.Gardening.Plant;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
-	public class EWPetWeedPlant : ChainableGardeningInteraction<Plant>
+    public class EWPetWeedPlant : ChainableGardeningInteraction<Plant>
 	{
 		public class Definition : InteractionDefinition<Sim, Plant, EWPetWeedPlant>
 		{

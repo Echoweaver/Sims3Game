@@ -56,7 +56,7 @@ using Sims3.UI.Hud;
  * make mouse/rodent bile from rodents to allow others to treat fleas. Note: bile is stored in moss
 */
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Medicine
 {
 
     public class EWMedicineCatSkill : Skill

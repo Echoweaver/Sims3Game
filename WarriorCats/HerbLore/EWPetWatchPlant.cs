@@ -2,19 +2,12 @@
 using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.Gardening;
-using Sims3.Gameplay.Skills;
-using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI.Controller;
-using static Sims3.SimIFace.Route;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
 
     public class EWPetWatchPlant : Interaction<Sim, Plant>

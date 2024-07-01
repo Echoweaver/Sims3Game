@@ -21,38 +21,38 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WarriorsLoader.cs" />
-    <Compile Include="EWMedicineCatSkill.cs" />
-    <Compile Include="EWHerbLoreSkill.cs" />
-    <Compile Include="EWPetMarkPlant.cs" />
-    <Compile Include="EWPetWatchPlant.cs" />
-    <Compile Include="EWPetHarvest.cs" />
-    <Compile Include="EWPetWaterPlant.cs" />
-    <Compile Include="EWPetWeedPlant.cs" />
-    <Compile Include="EWPetPlantSeed.cs" />
-    <Compile Include="EWPPetPickUpPlantable.cs" />
-    <Compile Include="EWPetDisposePlant.cs" />
-    <Compile Include="EWPetTreatFleas.cs" />
-    <Compile Include="EWPetBeTreated.cs" />
-    <Compile Include="EWWait.cs" />
-    <Compile Include="EWPetTreatNausea.cs" />
-    <Compile Include="EWPetTreatWoundWeak.cs" />
     <Compile Include="EWCarryFish.cs" />
-    <Compile Include="EWPetTreatGermy.cs" />
-    <Compile Include="EWPetTreatPneumonia.cs" />
-    <Compile Include="EWAbstractPetTreatPlantable.cs" />
-    <Compile Include="EWPetTreatPetstilence.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="EWEnlistApprentice.cs" />
-    <Compile Include="EWDismissApprentice.cs" />
-    <Compile Include="MentorFighting.cs" />
-    <Compile Include="MentorFishing.cs" />
-    <Compile Include="MentorMedicine.cs" />
-    <Compile Include="MentorHerbLore.cs" />
-    <Compile Include="MentorCatHunting.cs" />
-    <Compile Include="EWAbstractMentor.cs" />
     <Compile Include="Fnorder.cs" />
-    <Compile Include="EWGraduateApprentice.cs" />
-    <Compile Include="EWDebugClearApprenticeState.cs" />
+    <Compile Include="Medicine\EWMedicineCatSkill.cs" />
+    <Compile Include="Medicine\EWPetBeTreated.cs" />
+    <Compile Include="Medicine\EWPetTreatFleas.cs" />
+    <Compile Include="Medicine\EWPetTreatGermy.cs" />
+    <Compile Include="Medicine\EWPetTreatNausea.cs" />
+    <Compile Include="Medicine\EWPetTreatPetstilence.cs" />
+    <Compile Include="Medicine\EWPetTreatPneumonia.cs" />
+    <Compile Include="Medicine\EWPetTreatWoundWeak.cs" />
+    <Compile Include="EWWait.cs" />
+    <Compile Include="Medicine\EWAbstractPetTreatPlantable.cs" />
+    <Compile Include="HerbLore\EWHerbLoreSkill.cs" />
+    <Compile Include="HerbLore\EWPetDisposePlant.cs" />
+    <Compile Include="HerbLore\EWPetHarvest.cs" />
+    <Compile Include="HerbLore\EWPetMarkPlant.cs" />
+    <Compile Include="HerbLore\EWPetPlantSeed.cs" />
+    <Compile Include="HerbLore\EWPetWatchPlant.cs" />
+    <Compile Include="HerbLore\EWPetWaterPlant.cs" />
+    <Compile Include="HerbLore\EWPetWeedPlant.cs" />
+    <Compile Include="HerbLore\EWPPetPickUpPlantable.cs" />
+    <Compile Include="Apprentice\EWAbstractMentor.cs" />
+    <Compile Include="Apprentice\EWDebugClearApprenticeState.cs" />
+    <Compile Include="Apprentice\EWDismissApprentice.cs" />
+    <Compile Include="Apprentice\EWEnlistApprentice.cs" />
+    <Compile Include="Apprentice\EWGraduateApprentice.cs" />
+    <Compile Include="Apprentice\MentorCatHunting.cs" />
+    <Compile Include="Apprentice\MentorFighting.cs" />
+    <Compile Include="Apprentice\MentorFishing.cs" />
+    <Compile Include="Apprentice\MentorHerbLore.cs" />
+    <Compile Include="Apprentice\MentorMedicine.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
@@ -95,6 +95,11 @@
       <HintPath>..\..\Sims3GameFiles\0xF7C3ADE896D4E765_UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Medicine\" />
+    <Folder Include="HerbLore\" />
+    <Folder Include="Apprentice\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

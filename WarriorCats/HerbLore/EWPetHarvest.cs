@@ -2,18 +2,16 @@
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Gardening;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.UI;
 using static Sims3.Gameplay.Objects.Gardening.Plant;
 using static Sims3.UI.StyledNotification;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.HerbLore
 {
-	public class EWPetHarvest : ChainableGardeningInteraction<HarvestPlant>
+    public class EWPetHarvest : ChainableGardeningInteraction<HarvestPlant>
 	{
 		public class Definition : InteractionDefinition<Sim, HarvestPlant, EWPetHarvest>
 		{

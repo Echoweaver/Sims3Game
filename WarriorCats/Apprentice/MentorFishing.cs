@@ -1,31 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Sims3.Gameplay.Abstracts;
-using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
+﻿using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
-using Sims3.Gameplay.CAS;
-using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
-using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Pools;
-using Sims3.Gameplay.Skills;
-using Sims3.Gameplay.Socializing;
-using Sims3.Gameplay.ThoughtBalloons;
-using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
-using Sims3.UI.Controller;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
-using static Echoweaver.Sims3Game.WarriorCats.MentorCatHunting;
 using static Sims3.Gameplay.Core.Terrain;
-using static Sims3.Gameplay.ObjectComponents.CatHuntingComponent;
-using static Sims3.Gameplay.Objects.Toys.ToyBoxToy.PlayWith;
-using static Sims3.SimIFace.Route;
 using static Sims3.UI.StyledNotification;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class MentorFishing : EWAbstractMentor
     {
@@ -76,7 +58,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public override bool Run()
         {
-            IPond nearestWater = EWPetWaterPlant.GetNearestWater(Actor.Position, float.MaxValue);
+            IPond nearestWater = HerbLore.EWPetWaterPlant.GetNearestWater(Actor.Position, float.MaxValue);
             if (nearestWater == null)
             {
                 // TODO: Localize!

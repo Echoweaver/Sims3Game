@@ -9,7 +9,7 @@ using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using static Echoweaver.Sims3Game.WarriorCats.Config;
 
-namespace Echoweaver.Sims3Game.WarriorCats
+namespace Echoweaver.Sims3Game.WarriorCats.Apprentice
 {
     public class EWDismissApprentice : SocialInteraction
     {
@@ -41,7 +41,7 @@ namespace Echoweaver.Sims3Game.WarriorCats
 
         public override bool Run()
         {
-            RemoveApprentice(Target);
+            RejectApprentice(Target);
             Actor.LookAtManager.SetInteractionLookAt(Target, Sim.LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
             Target.LookAtManager.SetInteractionLookAt(Actor, Sim.LookAtPriorityForSocializingSim, (LookAtJointFilter)3);
             EnterStateMachine("Socialize", "Enter", "x", "y");
