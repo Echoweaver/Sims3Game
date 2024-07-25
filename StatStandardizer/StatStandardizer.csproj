@@ -1,0 +1,92 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectGuid>{472e3ac1-139f-4acb-babf-1e2a66029ad5}</ProjectGuid>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Echoweaver.Sims3Game.StatStandardizer</RootNamespace>
+    <AssemblyName>StatStandardizer</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <NoWin32Manifest>False</NoWin32Manifest>
+    <SignAssembly>False</SignAssembly>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>True</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <FileAlignment>4096</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <Optimize>True</Optimize>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Main.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0x0CAE1C361E05B2B3_Sims3StoreObjects">
+      <HintPath>..\..\Sims3GameFiles\0x0CAE1C361E05B2B3_Sims3StoreObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x03D6C8D903CE868C_Sims3GameplaySystems">
+      <HintPath>..\..\Sims3GameFiles\0x03D6C8D903CE868C_Sims3GameplaySystems.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x6AC101133051BEF1_System.Xml">
+      <HintPath>..\..\Sims3GameFiles\0x6AC101133051BEF1_System.Xml.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x28EE9D383A73463E_mscorlib">
+      <HintPath>..\..\Sims3GameFiles\0x28EE9D383A73463E_mscorlib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x78CF6CF5304D0C4F_ScriptCore">
+      <HintPath>..\..\Sims3GameFiles\0x78CF6CF5304D0C4F_ScriptCore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x342EE04373CF1E1C_System">
+      <HintPath>..\..\Sims3GameFiles\0x342EE04373CF1E1C_System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0x600F9EA1DDC99FB1_Sims3MetaData">
+      <HintPath>..\..\Sims3GameFiles\0x600F9EA1DDC99FB1_Sims3MetaData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xB9C90FDC6793BC0A_Sims3GameplayObjects">
+      <HintPath>..\..\Sims3GameFiles\0xB9C90FDC6793BC0A_Sims3GameplayObjects.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xC356DF69B70ADD42_SimIFace">
+      <HintPath>..\..\Sims3GameFiles\0xC356DF69B70ADD42_SimIFace.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0xF7C3ADE896D4E765_UI">
+      <HintPath>..\..\Sims3GameFiles\0xF7C3ADE896D4E765_UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
