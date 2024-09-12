@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreGroupTalk", "MoreGroupT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatStandardizer", "StatStandardizer\StatStandardizer.csproj", "{472E3AC1-139F-4ACB-BABF-1E2A66029AD5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoCommittedDatingMatches", "NoCommittedDatingMatches\NoCommittedDatingMatches.csproj", "{9876FE6C-7A48-47D5-B403-CF23782B9349}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,5 +117,9 @@ Global
 		{472E3AC1-139F-4ACB-BABF-1E2A66029AD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{472E3AC1-139F-4ACB-BABF-1E2A66029AD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{472E3AC1-139F-4ACB-BABF-1E2A66029AD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9876FE6C-7A48-47D5-B403-CF23782B9349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9876FE6C-7A48-47D5-B403-CF23782B9349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9876FE6C-7A48-47D5-B403-CF23782B9349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9876FE6C-7A48-47D5-B403-CF23782B9349}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
