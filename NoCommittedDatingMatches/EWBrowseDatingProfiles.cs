@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.ActorSystems;
+using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
+using Sims3.Gameplay.EventSystem;   
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Objects.Electronics;
@@ -20,10 +21,10 @@ using static Sims3.Gameplay.Utilities.OnlineDatingManager;
 
 namespace Echoweaver.Sims3Game.NoCommittedDatingMatches
 {
-    //public class EWBrowseDatingProfiles : BrowseDatingProfiles
-    public class EWBrowseDatingProfiles : ComputerInteraction
+    public class EWBrowseDatingProfiles : BrowseDatingProfiles
+    //public class EWBrowseDatingProfiles : ComputerInteraction
     {
-        public class Definition : InteractionDefinition<Sim, Computer, EWBrowseDatingProfiles>
+        public new class Definition : InteractionDefinition<Sim, Computer, EWBrowseDatingProfiles>
         {
             public override string[] GetPath(bool isFemale)
             {
@@ -38,25 +39,30 @@ namespace Echoweaver.Sims3Game.NoCommittedDatingMatches
                 }
                 return false;
             }
+            public override string GetInteractionName(Sim a, Computer c, InteractionObjectPair iop)
+            {
+                return "EWBrowse Dating Profiles";
+            }
         }
 
-        public const string sLocalizationKey = "Gameplay/Objects/Electronics/Computer/CreateDatingProfile";
+        //[Tunable]
+        //[TunableComment("Time it takes to write message in minutes")]
+        //public static float kTimeToWriteMessage = 10f;
 
-        [Tunable]
-        [TunableComment("Time it takes to write message in minutes")]
-        public static float kTimeToWriteMessage = 10f;
+        //public static string LocalizeString(string name, params object[] parameters)
+        //{
+        //    return Localization.LocalizeString("Gameplay/Objects/Electronics/Computer/CreateDatingProfile:"
+        //        + name, parameters);
+        //}
 
-        public static string LocalizeString(string name, params object[] parameters)
-        {
-            return Localization.LocalizeString("Gameplay/Objects/Electronics/Computer/CreateDatingProfile:"
-                + name, parameters);
-        }
+        public static InteractionDefinition newSingleton = new Definition();
 
-        public static InteractionDefinition Singleton = new Definition();
+        public static Dictionary<ulong, DateAndTime> lastChecked = new Dictionary<ulong, DateAndTime>();
 
         public override bool Run()
         {
 
+            Main.DebugNote("Start browse dating profiles.");
             StandardEntry();
             if (!Target.StartComputing(this, SurfaceHeight.Table, turnOn: true))
             {
@@ -75,10 +81,22 @@ namespace Echoweaver.Sims3Game.NoCommittedDatingMatches
             OnlineDatingManager instance = OnlineDatingManager.Instance;
             SimDescription simDescription = Actor.SimDescription;
             ulong simDescriptionId = simDescription.SimDescriptionId;
+            OnlineDatingRecord recordForSim = instance.GetRecordForSim(Actor.SimDescription.SimDescriptionId);
 
-            RefreshDatingMatches(instance);
+            // I'm trying to deal with the possibility that matches were last generated without the
+            // mod installed, which would mean they should be regenerated. I'm pretty sure this is a bad
+            // way to do it, but it should work?
+            if (!lastChecked.ContainsKey(simDescriptionId))
+            {
+                recordForSim.mLastTimeMatchesGenerated = DateAndTime.Invalid;
+            } else if (lastChecked[simDescriptionId] < recordForSim.mLastTimeMatchesGenerated)
+            {
+                recordForSim.mLastTimeMatchesGenerated = lastChecked[simDescriptionId];
+            }
+            RefreshDatingMatches(instance, recordForSim);
+            lastChecked[simDescriptionId] = recordForSim.mLastTimeMatchesGenerated;
 
-            List<IDatingProfile> possibleMatchesForSim = instance.GetPossibleMatchesForSim(simDescriptionId);
+            List <IDatingProfile> possibleMatchesForSim = instance.GetPossibleMatchesForSim(simDescriptionId);
             AnimateSim("GenericTyping");
             IDatingProfile val = BrowseDatingProfilesDialog.Show(possibleMatchesForSim, simDescription
                 .GenderPreferenceIsFemale());
@@ -95,15 +113,15 @@ namespace Echoweaver.Sims3Game.NoCommittedDatingMatches
             return true;
         }
 
-        public void RefreshDatingMatches(OnlineDatingManager instance)
+        public static void RefreshDatingMatches(OnlineDatingManager instance, OnlineDatingRecord recordForSim)
         {
             SimDescription sd = null;
             string check_name = "";
             Main.DebugNote("Entering RefreshDatingMatches");
-            OnlineDatingRecord recordForSim = instance.GetRecordForSim(Actor.SimDescription.SimDescriptionId);
             recordForSim.CleanUpPossibleMatches();
 
-            if (recordForSim.mPossibleMatches == null || recordForSim.mLastTimeMatchesGenerated == DateAndTime.Invalid
+            if (recordForSim.mPossibleMatches == null || recordForSim.mLastTimeMatchesGenerated ==
+                DateAndTime.Invalid
                 || SimClock.ElapsedTime(TimeUnit.Days, recordForSim.mLastTimeMatchesGenerated) >= 1f)
             {
                 if (recordForSim.mPossibleMatches == null)
@@ -156,34 +174,9 @@ namespace Echoweaver.Sims3Game.NoCommittedDatingMatches
                         // sims. Sims who are in a committed relationship are still allowed to look for
                         // new dates.
                         check_name = "Marriage";
-                        if (sim.IsMarried)
+                        if (EWAttractionNPCController.isCommittedNPC(sim.CreatedSim))
                         {
-                            bool reject = true;
-                            // Insane? Mean Spirited? Rebellious? Social Butterfly? Unstable?
-                            if (sim.TraitManager != null && sim.TraitManager.HasElement(TraitNames.CommitmentIssues))
-                            {
-                                // Married sims looking other options
-                                check_name = "Marriage Traits";
-                                Main.DebugNote(sim.FullName + " has CommitmentIssues");
-                                reject = false;
-                            } else
-                            {
-                                Relationship relationship = Relationship.Get(sim, sim.Partner, createIfNone: true);
-                                if (relationship.CurrentLTRLiking < 50f)
-                                {
-                                    // Married sims unhappy in their marriage
-                                    check_name = "Unhappy marriage";
-                                    Main.DebugNote(sim.FullName + " is unhappily married");
-                                    reject = false;
-                                }
-                            }
-
-                            // OK, we will assume this sim is happily married and skip them.
-                            if (reject)
-                            {
-                                Main.DebugNote(sim.FullName + " rejected for happy marriage.");
-                                continue;
-                            }
+                            continue;
                         }
 
                         // I'm not sure why we're looping back through the very list we're building
